@@ -14,3 +14,4 @@ Ma Bell ESP32 Bluetooth Gateway
 
    introduction
    usage
+   design
