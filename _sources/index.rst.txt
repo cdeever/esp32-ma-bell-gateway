@@ -6,7 +6,7 @@
 ESP32 Ma Bell Gateway
 ======================
 
-Ma Bell ESP32 Bluetooth Gateway
+Ma Bell ESP32 Mobile Bluetooth Gateway
 
 .. toctree::
    :maxdepth: 2
@@ -14,4 +14,4 @@ Ma Bell ESP32 Bluetooth Gateway
 
    introduction
    usage
-   design
+   state
