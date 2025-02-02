@@ -28,6 +28,8 @@
 
 #include "wifi.h"
 
+void start_webserver(); 
+
 esp_bd_addr_t peer_addr = {0};
 static char peer_bdname[ESP_BT_GAP_MAX_BDNAME_LEN + 1];
 static uint8_t peer_bdname_len;
@@ -179,6 +181,9 @@ void app_main(void)
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
+
+    vTaskDelay(10000 / portTICK_PERIOD_MS); 
+    start_webserver();
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
 
