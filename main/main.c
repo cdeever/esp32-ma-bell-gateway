@@ -26,9 +26,13 @@
 #include "esp_console.h"
 #include "app_hf_msg_set.h"
 
+#include "wifi.h"
+
 esp_bd_addr_t peer_addr = {0};
 static char peer_bdname[ESP_BT_GAP_MAX_BDNAME_LEN + 1];
 static uint8_t peer_bdname_len;
+
+static const char *TAG = "main";
 
 static const char remote_device_name[] = "ESP_HFP_AG";
 
@@ -164,13 +168,17 @@ static void bt_hf_client_hdl_stack_evt(uint16_t event, void *p_param);
 void app_main(void)
 {
     char bda_str[18] = {0};
-    /* Initialize NVS — it is used to store PHY calibration data */
+
+    // Initialize NVS
     esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+      ESP_ERROR_CHECK(nvs_flash_erase());
+      ret = nvs_flash_init();
     }
-    ESP_ERROR_CHECK( ret );
+    ESP_ERROR_CHECK(ret);
+
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    wifi_init_sta();
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
 
