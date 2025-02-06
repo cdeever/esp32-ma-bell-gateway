@@ -1,5 +1,5 @@
 menu "HFP Example Configuration"
-    config EXAMPLE_SSP_ENABLED
+    config SSP_ENABLED
         bool "Secure Simple Pairing"
         depends on BT_CLASSIC_ENABLED
         default y
@@ -8,5 +8,5 @@ menu "HFP Example Configuration"
             ure Simple Pairing. If disable this option,
             Bluedroid will only support Legacy Pairing
 
-            
+
 endmenu

@@ -387,7 +387,7 @@ CONFIG_PARTITION_TABLE_MD5=y
 #
 # HFP Example Configuration
 #
-CONFIG_EXAMPLE_SSP_ENABLED=y
+CONFIG_SSP_ENABLED=y
 # end of HFP Example Configuration
 
 #
