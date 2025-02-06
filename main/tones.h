@@ -1,3 +1,7 @@
+
+#ifndef __TONES_H__
+#define __TONES_H__
+
 #define I2S_PORT I2S_NUM_0
 #define SAMPLE_RATE 16000
 #define BUFFER_SIZE 1024
@@ -28,3 +32,5 @@ typedef struct {
 
 void i2s_init();
 void generate_tone_task(void *param);
+
+#endif
