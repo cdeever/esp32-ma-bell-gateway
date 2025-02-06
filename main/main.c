@@ -27,6 +27,7 @@
 #include "app_hf_msg_set.h"
 
 #include "wifi.h"
+#include "tones.h"
 
 void start_webserver(); 
 
@@ -36,7 +37,7 @@ static uint8_t peer_bdname_len;
 
 static const char *TAG = "main";
 
-static const char remote_device_name[] = "ESP_HFP_AG";
+static const char remote_device_name[] = "MA BELL";
 
 static char *bda2str(esp_bd_addr_t bda, char *str, size_t size)
 {
@@ -180,10 +181,21 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
 
-    vTaskDelay(10000 / portTICK_PERIOD_MS); 
-    start_webserver();
+    // Initialize WiFi, wait a bit, then fire up webserver
+//    wifi_init_sta();
+//    vTaskDelay(10000 / portTICK_PERIOD_MS); 
+//    start_webserver();
+
+    // Initialize I2S for tone generation
+    i2s_init();
+
+    for (int i = 0; i < NUM_TONES; i++) {
+        ESP_LOGI(BT_HF_TAG, "Playing tone %d", i);
+        xTaskCreate(generate_tone_task, "generate_tone", 4096, (void *)i, 5, NULL);
+        ESP_LOGI(BT_HF_TAG, "Waiting for tone %d", i);
+        vTaskDelay(pdMS_TO_TICKS(15000));  // Wait for tone duration
+    }
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
 
@@ -249,6 +261,7 @@ void app_main(void)
 
     // start console REPL
     ESP_ERROR_CHECK(esp_console_start_repl(repl));
+
 }
 
 
