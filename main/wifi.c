@@ -9,12 +9,11 @@
 
 #define ESP_MAXIMUM_RETRY  5
 
-static const char *TAG = "wifi station";
+static const char *TAG = "WIFI STA";
 static int s_retry_num = 0;
 
 static void event_handler(void *arg, esp_event_base_t event_base,
-                          int32_t event_id, void *event_data)
-{
+                          int32_t event_id, void *event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
@@ -32,8 +31,10 @@ static void event_handler(void *arg, esp_event_base_t event_base,
     }
 }
 
-void wifi_init_sta(void)
-{
+void wifi_init_sta(void) {
+
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA started.");
+
     esp_netif_init();
     esp_event_loop_create_default();
     esp_netif_create_default_wifi_sta();
@@ -68,26 +69,5 @@ void wifi_init_sta(void)
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
     esp_wifi_start();
 
-    ESP_LOGI(TAG, "wifi_init_sta finished.");
+    ESP_LOGI(TAG, "ESP_WIFI_INIT_STA finished.");
 }
-/*
-void app_main(void)
-{
-    // Initialize NVS
-
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
-
-    vTaskDelay(15000 / portTICK_PERIOD_MS); 
-
-//    xTaskCreate(&rest_post_task, "rest_post_task", 8192, NULL, 5, NULL);
-
-} 
-*/

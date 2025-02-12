@@ -1,5 +1,5 @@
 menu "HFP Example Configuration"
-    config SSP_ENABLED
+    config EXAMPLE_SSP_ENABLED
         bool "Secure Simple Pairing"
         depends on BT_CLASSIC_ENABLED
         default y

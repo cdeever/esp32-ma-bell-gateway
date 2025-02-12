@@ -20,22 +20,22 @@
 #include "esp_bt_main.h"
 #include "esp_bt_device.h"
 #include "esp_gap_bt_api.h"
+#include "esp_coexist.h" 
 #include "esp_hf_client_api.h"
 #include "bt_app_hf.h"
 #include "gpio_pcm_config.h"
 #include "esp_console.h"
 #include "app_hf_msg_set.h"
 
-#include "wifi.h"
 #include "tones.h"
-
-void start_webserver(); 
+#include "web.h"
+#include "wifi.h"
 
 esp_bd_addr_t peer_addr = {0};
 static char peer_bdname[ESP_BT_GAP_MAX_BDNAME_LEN + 1];
 static uint8_t peer_bdname_len;
 
-static const char *TAG = "main";
+static const char *TAG = "MAIN";
 
 static const char remote_device_name[] = "MA BELL";
 
@@ -168,37 +168,32 @@ enum {
 /* handler for bluetooth stack enabled events */
 static void bt_hf_client_hdl_stack_evt(uint16_t event, void *p_param);
 
-void app_main(void)
-{
+void app_main(void) {
+
+    ESP_LOGI(TAG, "Starting MA Bell Bluetooth Gateway");
+
     char bda_str[18] = {0};
 
-    // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
 
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    wifi_init_sta();
 
-    // Initialize WiFi, wait a bit, then fire up webserver
-//    wifi_init_sta();
-//    vTaskDelay(10000 / portTICK_PERIOD_MS); 
-//    start_webserver();
+    start_webserver();
 
-    // Initialize I2S for tone generation
     i2s_init();
 
-    for (int i = 0; i < NUM_TONES; i++) {
-        ESP_LOGI(BT_HF_TAG, "Playing tone %d", i);
-        xTaskCreate(generate_tone_task, "generate_tone", 4096, (void *)i, 5, NULL);
-        ESP_LOGI(BT_HF_TAG, "Waiting for tone %d", i);
-        vTaskDelay(pdMS_TO_TICKS(15000));  // Wait for tone duration
-    }
+    xTaskCreatePinnedToCore(generate_tone_task, "generate_tone_task", 4096, NULL, 5, NULL, 0);
+
+    current_tone = CALL_WAITING_TONE;   // Start dial tone
+    vTaskDelay(pdMS_TO_TICKS(10000)); // Simulate 5 seconds of playing
+    current_tone = NUM_TONES;   // Stop tone
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
-
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     if ((ret = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
         ESP_LOGE(BT_HF_TAG, "%s initialize controller failed: %s", __func__, esp_err_to_name(ret));
@@ -222,6 +217,14 @@ void app_main(void)
     if ((ret = esp_bluedroid_enable()) != ESP_OK) {
         ESP_LOGE(BT_HF_TAG, "%s enable bluedroid failed: %s", __func__, esp_err_to_name(ret));
         return;
+    }
+
+    // Set coexistence preference
+    esp_err_t coex_ret = esp_coex_preference_set(ESP_COEX_PREFER_BT);
+    if (coex_ret != ESP_OK) {
+        ESP_LOGE(BT_HF_TAG, "Failed to set coexistence preference: %s", esp_err_to_name(coex_ret));
+    } else {
+        ESP_LOGI(BT_HF_TAG, "Coexistence preference set to BALANCE mode");
     }
 
     ESP_LOGI(BT_HF_TAG, "Own address:[%s]", bda2str((uint8_t *)esp_bt_dev_get_address(), bda_str, sizeof(bda_str)));
