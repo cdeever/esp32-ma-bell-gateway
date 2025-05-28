@@ -16,3 +16,4 @@ Ma Bell ESP32 Mobile Bluetooth Gateway
    usage
    tones
    state
+   circuit-design-decisions/off-hook-detection

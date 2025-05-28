@@ -1,5 +1,6 @@
 # Ignore directories
-/build/
+build/
+docs/build
 .ccls-cache/
 .vscode/
 sdkconfig

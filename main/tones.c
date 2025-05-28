@@ -61,21 +61,21 @@ void generate_tone_task(void *param) {
             continue;
         }
 
-        tone_t tone = tones[current_tone];  // Get the active tone
+        tone_t *tone = &tones[current_tone];  // Get the active tone
     
         //PLAY TONE!
         int16_t buffer[BUFFER_SIZE];
-        int samples_per_cycle1 = SAMPLE_RATE / tone.freq1;
-        int samples_per_cycle2 = tone.freq2 ? SAMPLE_RATE / tone.freq2 : 0;
+        int samples_per_cycle1 = SAMPLE_RATE / tone->freq1;
+        int samples_per_cycle2 = tone->freq2 ? SAMPLE_RATE / tone->freq2 : 0;
         int sample_index = 0;
         int elapsed_samples = 0;
         float volume_factor = 0.2;
 
         while (elapsed_samples < PLAY_DURATION * SAMPLE_RATE) {
-            if (tone.duration_on == -1) { // Continuous tone
+            if (tone->duration_on == -1) { // Continuous tone
                 for (int i = 0; i < BUFFER_SIZE; i++) {
                     float sample1 = sinf(2.0f * M_PI * (i % samples_per_cycle1) / samples_per_cycle1);
-                    float sample2 = tone.freq2 ? sinf(2.0f * M_PI * (i % samples_per_cycle2) / samples_per_cycle2) : 0;
+                    float sample2 = tone->freq2 ? sinf(2.0f * M_PI * (i % samples_per_cycle2) / samples_per_cycle2) : 0;
                     buffer[sample_index++] = (int16_t)((32767 * volume_factor) * (sample1 + sample2) / 2);
                     if (sample_index >= BUFFER_SIZE) {
                         size_t bytes_written;
@@ -84,12 +84,15 @@ void generate_tone_task(void *param) {
                     }
                     elapsed_samples++;
                 }
+                if (tone != &tones[current_tone]) {
+                    break;
+                }
             } else { // Pulsed tone
                // 🔊 Generate "On" Phase
-                int total_samples_on = (int)(tone.duration_on * SAMPLE_RATE);
+                int total_samples_on = (int)(tone->duration_on * SAMPLE_RATE);
                 for (int i = 0; i < total_samples_on; i++) {
                     float sample1 = sinf(2.0f * M_PI * (i % samples_per_cycle1) / samples_per_cycle1);
-                    float sample2 = tone.freq2 ? sinf(2.0f * M_PI * (i % samples_per_cycle2) / samples_per_cycle2) : 0;
+                    float sample2 = tone->freq2 ? sinf(2.0f * M_PI * (i % samples_per_cycle2) / samples_per_cycle2) : 0;
                     buffer[sample_index++] = (int16_t)((32767 * volume_factor) * (sample1 + sample2) / 2);
 
                     if (sample_index >= BUFFER_SIZE) {
@@ -100,7 +103,7 @@ void generate_tone_task(void *param) {
                 }
 
                 // 🔇 Generate "Off" Phase (Silence)
-                int total_samples_off = (int)(tone.duration_off * SAMPLE_RATE);
+                int total_samples_off = (int)(tone->duration_off * SAMPLE_RATE);
                 memset(buffer, 0, BUFFER_SIZE * sizeof(int16_t));  // Fill buffer with silence
 
                 for (int i = 0; i < total_samples_off; i += BUFFER_SIZE) {
@@ -109,7 +112,7 @@ void generate_tone_task(void *param) {
                 }
 
                 // 💤 Delay for off time (ensuring sync)
-                vTaskDelay(pdMS_TO_TICKS(tone.duration_off * 1000));
+                vTaskDelay(pdMS_TO_TICKS(tone->duration_off * 1000));
             }
         }
     }
