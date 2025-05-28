@@ -18,3 +18,8 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+github:
+	$(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html
+	rsync -av --delete $(BUILDDIR)/html/ ../ma-bell-docs/
+	cd ../ma-bell-docs && git add . && git commit -m "Update docs" && git push
