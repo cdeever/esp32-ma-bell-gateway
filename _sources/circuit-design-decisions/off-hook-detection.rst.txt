@@ -12,92 +12,118 @@ Different off-hook detection circuit design approaches were considered based on 
 
 These approaches are ordered from oldest to newest technology, mirroring the progression central offices (COs) used over time. While Solid-State Relays (SSRs) weren't used historically for off-hook detection, they're considered here for their modern advantages.
 
+----
+
+Behavior & Performance
+======================
+
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 30 15 15 15 15
 
    * - **Feature**
-     - **Mechanical Relay**  
-       *(Clicky, Old-School CO)*
-     - **Resistor + Transistor**  
-       *(Vintage Solid-State)*
-     - **Optocoupler**  
-       *(Modern Isolation)*
-     - **SSR**  
-       *(No Click)*
+     - **Mechanical Relay**
+     - **Resistor + Transistor**
+     - **Optocoupler**
+     - **SSR**
    * - **Sound / Feel**
-     - ✅ Relay "clunk"
+     - ✅ Clunky click
      - ❌ Silent
      - ❌ Silent
      - ❌ Silent
    * - **Speed & Wear**
-     - ❌ Slower (~5–20ms), wears out
-     - ✅ Fast, no wear
-     - ✅ Fast, no wear
-     - ✅ Fast, no wear
-   * - **Voltage Isolation**  
-       *(Safety to ESP32, 3x)*
-     - ✅ 5 (Isolated)
-     - ❌ 1 (Direct risk)
-     - ✅ 5 (Isolated)
-     - ✅ 5 (Isolated)
-   * - **Reliability**  
-       *(No wear, no false triggers, 2x)*
-     - ❌ 2 (Contact wear)
-     - ✅ 4 (Stable)
-     - ✅ 5 (Very stable)
-     - ✅ 4 (Possible leakage)
-   * - **Simplicity**  
-       *(Novice-friendly, 3x)*
-     - ❌ 3 (Needs driver)
-     - ❌ 2 (Needs protection)
-     - ✅ 4 (Simple)
-     - ✅ 5 (Plug-and-play)
-   * - **Complexity**
-     - ❌ Moderate
-     - ✅ Low
-     - ✅ Low
-     - ✅ Low
-   * - **Cost**  
-       *(2x)*
-     - ❌ 3 (Moderate)
-     - ✅ 5 (Cheapest)
-     - ✅ 4 (Affordable)
-     - ❌ 2 (Higher)
+     - ❌ Slower, wears out
+     - ✅ Fast
+     - ✅ Fast
+     - ✅ Fast
+   * - **Reliability**
+     - ❌ Contact wear
+     - ✅ Stable
+     - ✅ Very stable
+     - ✅ Minor leakage risk
+
+----
+
+Safety, Power & Integration
+===========================
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15 15 15 15
+
+   * - **Feature**
+     - **Mechanical Relay**
+     - **Resistor + Transistor**
+     - **Optocoupler**
+     - **SSR**
+   * - **Voltage Isolation**
+     - ✅ Isolated
+     - ❌ Direct risk
+     - ✅ Isolated
+     - ✅ Isolated
    * - **Current Draw**
-     - 20–60mA (Coil load)
-     - 20–60mA (Resistor drop)
-     - 20–60mA (LED drop)
-     - Very low (Leakage only)
+     - 20–60mA
+     - 20–60mA
+     - 20–60mA
+     - Very low
+   * - **Power Needs**
+     - ❌ Extra power
+     - ✅ None
+     - ✅ None
+     - ✅ None
    * - **ESP32 Integration**
      - ✅ Simple GPIO
      - ✅ Simple GPIO
      - ✅ Simple GPIO
      - ✅ Simple GPIO
-   * - **Power Needs**
-     - ❌ Extra power (coil)
-     - ✅ None
-     - ✅ None
-     - ✅ None
+
+----
+
+Complexity, Cost & Final Score
+==============================
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15 15 15 15
+
+   * - **Feature**
+     - **Mechanical Relay**
+     - **Resistor + Transistor**
+     - **Optocoupler**
+     - **SSR**
+   * - **Simplicity**
+     - ❌ Needs driver
+     - ❌ Needs protection
+     - ✅ Simple
+     - ✅ Plug-and-play
+   * - **Complexity**
+     - ❌ Moderate
+     - ✅ Low
+     - ✅ Low
+     - ✅ Low
+   * - **Cost**
+     - ❌ Moderate
+     - ✅ Cheapest
+     - ✅ Affordable
+     - ❌ Higher
    * - **Pitfalls**
-     - Relay bounce → debounce
-     - Needs Zener for ESP32
-     - LED Vf must be matched
-     - SSR leakage may false trigger
-   * - **🔥 Final Score (Weighted)**
+     - Debounce needed
+     - Needs Zener
+     - Vf matching
+     - Leakage
+   * - **🔥 Final Score**
      - **34**
      - **27**
      - **45**
      - **42**
 
----
+----
 
 Best Choice Based on Score
 ==========================
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
 
    * - **Detection Method**
      - **Final Score (Max 50)**
@@ -110,7 +136,7 @@ Best Choice Based on Score
    * - ✅ **Resistor + Transistor (Vintage Style)**
      - **27**
 
----
+----
 
 Final Thoughts
 ==============

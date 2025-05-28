@@ -48,6 +48,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../tones.html">North American POTS Telephone Tones</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../state.html">State Diagram</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Off-Hook Detection Circuit Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#behavior-performance">Behavior &amp; Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#safety-power-integration">Safety, Power &amp; Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#complexity-cost-final-score">Complexity, Cost &amp; Final Score</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#best-choice-based-on-score">Best Choice Based on Score</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#final-thoughts">Final Thoughts</a></li>
 </ul>
@@ -89,52 +92,119 @@
 <li><p><strong>Other relevant features</strong> (like sound, power use, integration ease)</p></li>
 </ul>
 <p>These approaches are ordered from oldest to newest technology, mirroring the progression central offices (COs) used over time. While Solid-State Relays (SSRs) weren’t used historically for off-hook detection, they’re considered here for their modern advantages.</p>
+<hr class="docutils" />
+<section id="behavior-performance">
+<h2>Behavior &amp; Performance<a class="headerlink" href="#behavior-performance" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
-<th class="head"><p><strong>Mechanical Relay</strong>
-<em>(Clicky, Old-School CO)</em></p></th>
-<th class="head"><p><strong>Resistor + Transistor</strong>
-<em>(Vintage Solid-State)</em></p></th>
-<th class="head"><p><strong>Optocoupler</strong>
-<em>(Modern Isolation)</em></p></th>
-<th class="head"><p><strong>SSR</strong>
-<em>(No Click)</em></p></th>
+<th class="head"><p><strong>Mechanical Relay</strong></p></th>
+<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
+<th class="head"><p><strong>Optocoupler</strong></p></th>
+<th class="head"><p><strong>SSR</strong></p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><strong>Sound / Feel</strong></p></td>
-<td><p>✅ Relay “clunk”</p></td>
+<td><p>✅ Clunky click</p></td>
 <td><p>❌ Silent</p></td>
 <td><p>❌ Silent</p></td>
 <td><p>❌ Silent</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Speed &amp; Wear</strong></p></td>
-<td><p>❌ Slower (~5–20ms), wears out</p></td>
-<td><p>✅ Fast, no wear</p></td>
-<td><p>✅ Fast, no wear</p></td>
-<td><p>✅ Fast, no wear</p></td>
+<td><p>❌ Slower, wears out</p></td>
+<td><p>✅ Fast</p></td>
+<td><p>✅ Fast</p></td>
+<td><p>✅ Fast</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Voltage Isolation</strong>
-<em>(Safety to ESP32, 3x)</em></p></td>
-<td><p>✅ 5 (Isolated)</p></td>
-<td><p>❌ 1 (Direct risk)</p></td>
-<td><p>✅ 5 (Isolated)</p></td>
-<td><p>✅ 5 (Isolated)</p></td>
+<tr class="row-even"><td><p><strong>Reliability</strong></p></td>
+<td><p>❌ Contact wear</p></td>
+<td><p>✅ Stable</p></td>
+<td><p>✅ Very stable</p></td>
+<td><p>✅ Minor leakage risk</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Reliability</strong>
-<em>(No wear, no false triggers, 2x)</em></p></td>
-<td><p>❌ 2 (Contact wear)</p></td>
-<td><p>✅ 4 (Stable)</p></td>
-<td><p>✅ 5 (Very stable)</p></td>
-<td><p>✅ 4 (Possible leakage)</p></td>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="safety-power-integration">
+<h2>Safety, Power &amp; Integration<a class="headerlink" href="#safety-power-integration" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
+<th class="head"><p><strong>Mechanical Relay</strong></p></th>
+<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
+<th class="head"><p><strong>Optocoupler</strong></p></th>
+<th class="head"><p><strong>SSR</strong></p></th>
 </tr>
-<tr class="row-even"><td><p><strong>Simplicity</strong>
-<em>(Novice-friendly, 3x)</em></p></td>
-<td><p>❌ 3 (Needs driver)</p></td>
-<td><p>❌ 2 (Needs protection)</p></td>
-<td><p>✅ 4 (Simple)</p></td>
-<td><p>✅ 5 (Plug-and-play)</p></td>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Voltage Isolation</strong></p></td>
+<td><p>✅ Isolated</p></td>
+<td><p>❌ Direct risk</p></td>
+<td><p>✅ Isolated</p></td>
+<td><p>✅ Isolated</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Current Draw</strong></p></td>
+<td><p>20–60mA</p></td>
+<td><p>20–60mA</p></td>
+<td><p>20–60mA</p></td>
+<td><p>Very low</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Power Needs</strong></p></td>
+<td><p>❌ Extra power</p></td>
+<td><p>✅ None</p></td>
+<td><p>✅ None</p></td>
+<td><p>✅ None</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>ESP32 Integration</strong></p></td>
+<td><p>✅ Simple GPIO</p></td>
+<td><p>✅ Simple GPIO</p></td>
+<td><p>✅ Simple GPIO</p></td>
+<td><p>✅ Simple GPIO</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="complexity-cost-final-score">
+<h2>Complexity, Cost &amp; Final Score<a class="headerlink" href="#complexity-cost-final-score" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
+<th class="head"><p><strong>Mechanical Relay</strong></p></th>
+<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
+<th class="head"><p><strong>Optocoupler</strong></p></th>
+<th class="head"><p><strong>SSR</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Simplicity</strong></p></td>
+<td><p>❌ Needs driver</p></td>
+<td><p>❌ Needs protection</p></td>
+<td><p>✅ Simple</p></td>
+<td><p>✅ Plug-and-play</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Complexity</strong></p></td>
 <td><p>❌ Moderate</p></td>
@@ -142,38 +212,19 @@
 <td><p>✅ Low</p></td>
 <td><p>✅ Low</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Cost</strong>
-<em>(2x)</em></p></td>
-<td><p>❌ 3 (Moderate)</p></td>
-<td><p>✅ 5 (Cheapest)</p></td>
-<td><p>✅ 4 (Affordable)</p></td>
-<td><p>❌ 2 (Higher)</p></td>
+<tr class="row-even"><td><p><strong>Cost</strong></p></td>
+<td><p>❌ Moderate</p></td>
+<td><p>✅ Cheapest</p></td>
+<td><p>✅ Affordable</p></td>
+<td><p>❌ Higher</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Current Draw</strong></p></td>
-<td><p>20–60mA (Coil load)</p></td>
-<td><p>20–60mA (Resistor drop)</p></td>
-<td><p>20–60mA (LED drop)</p></td>
-<td><p>Very low (Leakage only)</p></td>
+<tr class="row-odd"><td><p><strong>Pitfalls</strong></p></td>
+<td><p>Debounce needed</p></td>
+<td><p>Needs Zener</p></td>
+<td><p>Vf matching</p></td>
+<td><p>Leakage</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>ESP32 Integration</strong></p></td>
-<td><p>✅ Simple GPIO</p></td>
-<td><p>✅ Simple GPIO</p></td>
-<td><p>✅ Simple GPIO</p></td>
-<td><p>✅ Simple GPIO</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Power Needs</strong></p></td>
-<td><p>❌ Extra power (coil)</p></td>
-<td><p>✅ None</p></td>
-<td><p>✅ None</p></td>
-<td><p>✅ None</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Pitfalls</strong></p></td>
-<td><p>Relay bounce → debounce</p></td>
-<td><p>Needs Zener for ESP32</p></td>
-<td><p>LED Vf must be matched</p></td>
-<td><p>SSR leakage may false trigger</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>🔥 Final Score (Weighted)</strong></p></td>
+<tr class="row-even"><td><p><strong>🔥 Final Score</strong></p></td>
 <td><p><strong>34</strong></p></td>
 <td><p><strong>27</strong></p></td>
 <td><p><strong>45</strong></p></td>
@@ -181,7 +232,8 @@
 </tr>
 </tbody>
 </table>
-<p>—</p>
+</section>
+<hr class="docutils" />
 <section id="best-choice-based-on-score">
 <h2>Best Choice Based on Score<a class="headerlink" href="#best-choice-based-on-score" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
@@ -205,8 +257,8 @@
 </tr>
 </tbody>
 </table>
-<p>—</p>
 </section>
+<hr class="docutils" />
 <section id="final-thoughts">
 <h2>Final Thoughts<a class="headerlink" href="#final-thoughts" title="Link to this heading"></a></h2>
 <ul class="simple">
