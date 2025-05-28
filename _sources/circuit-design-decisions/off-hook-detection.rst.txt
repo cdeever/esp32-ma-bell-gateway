@@ -19,7 +19,7 @@ Behavior & Performance
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 15 15 15 15
+   :widths: 25 18 18 18 18
 
    * - **Feature**
      - **Mechanical Relay**
@@ -49,7 +49,7 @@ Safety, Power & Integration
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 15 15 15 15
+   :widths: 25 18 18 18 18
 
    * - **Feature**
      - **Mechanical Relay**
@@ -84,7 +84,7 @@ Complexity, Cost & Final Score
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 15 15 15 15
+   :widths: 25 18 18 18 18
 
    * - **Feature**
      - **Mechanical Relay**
@@ -124,6 +124,7 @@ Best Choice Based on Score
 
 .. list-table::
    :header-rows: 1
+   :widths: 50 20
 
    * - **Detection Method**
      - **Final Score (Max 50)**
@@ -145,5 +146,3 @@ Final Thoughts
 - ✅ **SSR is excellent for beginners** – plug-and-play, but slightly pricier.
 - ✅ **Mechanical relay adds classic authenticity**, but will wear out over time.
 - ⚠️ **Resistor + transistor is cheapest**, but exposes ESP32 to risk and is less reliable.
-
----
