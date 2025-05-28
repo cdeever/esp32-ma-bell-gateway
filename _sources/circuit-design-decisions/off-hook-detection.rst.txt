@@ -19,7 +19,7 @@ Behavior & Performance
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 18 18 18 18
+   :widths: 22 19 19 19 19
 
    * - **Feature**
      - **Mechanical Relay**
@@ -31,25 +31,32 @@ Behavior & Performance
      - ❌ Silent
      - ❌ Silent
      - ❌ Silent
-   * - **Speed & Wear**
-     - ❌ Slower, wears out
+   * - **Speed**
+     - ❌ Slower
      - ✅ Fast
      - ✅ Fast
      - ✅ Fast
+   * - **Wear**
+     - ❌ Wears out
+     - ✅ No wear
+     - ✅ No wear
+     - ✅ No wear
    * - **Reliability**
      - ❌ Contact wear
      - ✅ Stable
      - ✅ Very stable
-     - ✅ Minor leakage risk
+     - ✅ Some leakage
 
 ----
 
 Safety, Power & Integration
 ===========================
 
+All approaches integrate with the ESP32 using simple GPIO — no special peripherals required.
+
 .. list-table::
    :header-rows: 1
-   :widths: 25 18 18 18 18
+   :widths: 22 19 19 19 19
 
    * - **Feature**
      - **Mechanical Relay**
@@ -71,11 +78,6 @@ Safety, Power & Integration
      - ✅ None
      - ✅ None
      - ✅ None
-   * - **ESP32 Integration**
-     - ✅ Simple GPIO
-     - ✅ Simple GPIO
-     - ✅ Simple GPIO
-     - ✅ Simple GPIO
 
 ----
 
@@ -84,7 +86,7 @@ Complexity, Cost & Final Score
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 18 18 18 18
+   :widths: 22 19 19 19 19
 
    * - **Feature**
      - **Mechanical Relay**
@@ -95,7 +97,7 @@ Complexity, Cost & Final Score
      - ❌ Needs driver
      - ❌ Needs protection
      - ✅ Simple
-     - ✅ Plug-and-play
+     - ✅ PnP
    * - **Complexity**
      - ❌ Moderate
      - ✅ Low
@@ -130,7 +132,7 @@ Best Choice Based on Score
      - **Final Score (Max 50)**
    * - ✅ **Optocoupler (Modern Isolation)** → *Best Overall*
      - **45**
-   * - ✅ **SSR (No Click)** → *Simple & Plug-and-Play*
+   * - ✅ **SSR (No Click)** → *PnP Option*
      - **42**
    * - ✅ **Mechanical Relay (Clicky CO Feel)**
      - **34**
