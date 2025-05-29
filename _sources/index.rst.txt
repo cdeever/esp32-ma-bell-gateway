@@ -14,6 +14,5 @@ Ma Bell ESP32 Mobile Bluetooth Gateway
 
    introduction
    standards
+   solution-design
    usage
-   state
-   circuit-design-decisions/off-hook-detection
