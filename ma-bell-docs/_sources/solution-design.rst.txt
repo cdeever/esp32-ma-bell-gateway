@@ -6,6 +6,6 @@ Explore the design of the Ma Bell solution across three key areas.
 .. toctree::
    :maxdepth: 2
 
-   circuit
-   software
-   enclosure
+   solution-design/circuit/index
+   solution-design/software/index
+   solution-design/enclosure/index
