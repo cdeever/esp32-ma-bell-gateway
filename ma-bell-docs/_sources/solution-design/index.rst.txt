@@ -1,5 +1,5 @@
-Solution Design Overview
-========================
+Solution Design
+===============
 
 Explore the design of the Ma Bell solution across three key areas.
 
