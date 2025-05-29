@@ -1,0 +1,295 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Off-Hook Detection Circuit Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">North American Telephone Service Standards</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Off-Hook Detection Circuit Design</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/solution-design/circuit/off-hook-detection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="off-hook-detection-circuit-design">
+<h1>Off-Hook Detection Circuit Design<a class="headerlink" href="#off-hook-detection-circuit-design" title="Link to this heading"></a></h1>
+<p>Different off-hook detection circuit design approaches were considered based on key criteria:</p>
+<ul class="simple">
+<li><p><strong>Safety &amp; isolation</strong> (risk to ESP32)</p></li>
+<li><p><strong>Reliability</strong> (false triggers, wear &amp; tear)</p></li>
+<li><p><strong>Simplicity</strong> (novice-friendliness)</p></li>
+<li><p><strong>Cost</strong></p></li>
+<li><p><strong>Other relevant features</strong> (like sound, power use, integration ease)</p></li>
+</ul>
+<p>These approaches are ordered from oldest to newest technology, mirroring the progression central offices (COs) used over time. While Solid-State Relays (SSRs) weren’t used historically for off-hook detection, they’re considered here for their modern advantages.</p>
+<hr class="docutils" />
+<section id="behavior-performance">
+<h2>Behavior &amp; Performance<a class="headerlink" href="#behavior-performance" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
+<th class="head"><p><strong>Mechanical Relay</strong></p></th>
+<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
+<th class="head"><p><strong>Optocoupler</strong></p></th>
+<th class="head"><p><strong>SSR</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Sound / Feel</strong></p></td>
+<td><p>✅ Clunky click</p></td>
+<td><p>❌ Silent</p></td>
+<td><p>❌ Silent</p></td>
+<td><p>❌ Silent</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Speed</strong></p></td>
+<td><p>❌ Slower</p></td>
+<td><p>✅ Fast</p></td>
+<td><p>✅ Fast</p></td>
+<td><p>✅ Fast</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Wear</strong></p></td>
+<td><p>❌ Wears out</p></td>
+<td><p>✅ No wear</p></td>
+<td><p>✅ No wear</p></td>
+<td><p>✅ No wear</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Reliability</strong></p></td>
+<td><p>❌ Contact wear</p></td>
+<td><p>✅ Stable</p></td>
+<td><p>✅ Very stable</p></td>
+<td><p>✅ Some leakage</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="safety-power-integration">
+<h2>Safety, Power &amp; Integration<a class="headerlink" href="#safety-power-integration" title="Link to this heading"></a></h2>
+<p>All approaches integrate with the ESP32 using simple GPIO — no special peripherals required.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
+<th class="head"><p><strong>Mechanical Relay</strong></p></th>
+<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
+<th class="head"><p><strong>Optocoupler</strong></p></th>
+<th class="head"><p><strong>SSR</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Voltage Isolation</strong></p></td>
+<td><p>✅ Isolated</p></td>
+<td><p>❌ Direct risk</p></td>
+<td><p>✅ Isolated</p></td>
+<td><p>✅ Isolated</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Current Draw</strong></p></td>
+<td><p>20–60mA</p></td>
+<td><p>20–60mA</p></td>
+<td><p>20–60mA</p></td>
+<td><p>Very low</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Power Needs</strong></p></td>
+<td><p>❌ Extra power</p></td>
+<td><p>✅ None</p></td>
+<td><p>✅ None</p></td>
+<td><p>✅ None</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="complexity-cost-final-score">
+<h2>Complexity, Cost &amp; Final Score<a class="headerlink" href="#complexity-cost-final-score" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+<col style="width: 19.4%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
+<th class="head"><p><strong>Mechanical Relay</strong></p></th>
+<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
+<th class="head"><p><strong>Optocoupler</strong></p></th>
+<th class="head"><p><strong>SSR</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Simplicity</strong></p></td>
+<td><p>❌ Needs driver</p></td>
+<td><p>❌ Needs protection</p></td>
+<td><p>✅ Simple</p></td>
+<td><p>✅ PnP</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Complexity</strong></p></td>
+<td><p>❌ Moderate</p></td>
+<td><p>✅ Low</p></td>
+<td><p>✅ Low</p></td>
+<td><p>✅ Low</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Cost</strong></p></td>
+<td><p>❌ Moderate</p></td>
+<td><p>✅ Cheapest</p></td>
+<td><p>✅ Affordable</p></td>
+<td><p>❌ Higher</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Pitfalls</strong></p></td>
+<td><p>Debounce needed</p></td>
+<td><p>Needs Zener</p></td>
+<td><p>Vf matching</p></td>
+<td><p>Leakage</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>🔥 Final Score</strong></p></td>
+<td><p><strong>34</strong></p></td>
+<td><p><strong>27</strong></p></td>
+<td><p><strong>45</strong></p></td>
+<td><p><strong>42</strong></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="best-choice-based-on-score">
+<h2>Best Choice Based on Score<a class="headerlink" href="#best-choice-based-on-score" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 71.4%" />
+<col style="width: 28.6%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Detection Method</strong></p></th>
+<th class="head"><p><strong>Final Score (Max 50)</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>✅ <strong>Optocoupler (Modern Isolation)</strong> → <em>Best Overall</em></p></td>
+<td><p><strong>45</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>✅ <strong>SSR (No Click)</strong> → <em>PnP Option</em></p></td>
+<td><p><strong>42</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>✅ <strong>Mechanical Relay (Clicky CO Feel)</strong></p></td>
+<td><p><strong>34</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>✅ <strong>Resistor + Transistor (Vintage Style)</strong></p></td>
+<td><p><strong>27</strong></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="final-thoughts">
+<h2>Final Thoughts<a class="headerlink" href="#final-thoughts" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>✅ <strong>Optocoupler is the best overall</strong> – safe, reliable, and simple.</p></li>
+<li><p>✅ <strong>SSR is excellent for beginners</strong> – plug-and-play, but slightly pricier.</p></li>
+<li><p>✅ <strong>Mechanical relay adds classic authenticity</strong>, but will wear out over time.</p></li>
+<li><p>⚠️ <strong>Resistor + transistor is cheapest</strong>, but exposes ESP32 to risk and is less reliable.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

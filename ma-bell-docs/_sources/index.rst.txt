@@ -14,5 +14,5 @@ Ma Bell ESP32 Mobile Bluetooth Gateway
 
    introduction
    standards
-   design
+   solution-design
    
