@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>North American Telephone Service Standards &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">North American Telephone Service Standards</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#voltage-and-signaling">Voltage and Signaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#audio-specs">Audio Specs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tone-signals">Tone Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dual-tone-multi-frequency-dtmf">Dual-Tone Multi-Frequency (DTMF)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#standard-recordings">Standard Recordings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state.html">State Diagram</a></li>
+<li class="toctree-l1"><a class="reference internal" href="circuit-design-decisions/off-hook-detection.html">Off-Hook Detection Circuit Design</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">North American Telephone Service Standards</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/standards.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="north-american-telephone-service-standards">
+<h1>North American Telephone Service Standards<a class="headerlink" href="#north-american-telephone-service-standards" title="Link to this heading"></a></h1>
+<p>This section defines the electrical and signaling characteristics of analog telephone service in the United States and Canada, as used from the mid-20th century through the digital transition period. These specifications are rooted in standards developed by the Bell System (AT&amp;T), later formalized by <strong>Bellcore</strong> (now Telcordia), and align with international guidelines from <strong>ITU-T</strong> (e.g., Q.23, Q.24, G.712). The parameters listed below are suitable for projects seeking to recreate the experience of analog telephony as deployed in the <strong>North American Numbering Plan (NANP)</strong> region.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These specifications apply to <strong>the United States and Canada</strong> only. They <strong>do not apply</strong> to Central America, which uses other regional or ITU-based standards. Mexico, while part of NANP, uses some differing tone cadences and voltages and is not fully compatible.</p>
+</div>
+<p>The foundation of this system was developed in the 1940s–1960s under AT&amp;T’s Bell System and standardized through the 1970s–1990s by Bellcore and ITU-T. Most equipment and user experiences during this period conformed closely to the values below.</p>
+<section id="voltage-and-signaling">
+<h2>Voltage and Signaling<a class="headerlink" href="#voltage-and-signaling" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>On-hook (idle)</strong>: ~-48 VDC across tip and ring</p></li>
+<li><p><strong>Ringing</strong>: ~70–90 V AC at 20 Hz superimposed on -48 VDC</p></li>
+<li><p><strong>Off-hook</strong>: Drops to ~-10 VDC with loop current of 23–35 mA</p></li>
+</ul>
+</section>
+<section id="audio-specs">
+<h2>Audio Specs<a class="headerlink" href="#audio-specs" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Voice bandwidth</strong>: 300 Hz – 3400 Hz</p></li>
+<li><p><strong>Nominal impedance</strong>: 600 ohms</p></li>
+<li><p><strong>Transmit level</strong>: ~0 dBm at CO; ~-8 to -10 dB received</p></li>
+<li><p><strong>Echo control</strong>: Managed via hybrid circuits (in analog) or echo cancellers (digital)</p></li>
+</ul>
+</section>
+<section id="tone-signals">
+<h2>Tone Signals<a class="headerlink" href="#tone-signals" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 60.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tone</p></th>
+<th class="head"><p>Frequency (Hz)</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Dial Tone</p></td>
+<td><p>350 + 440</p></td>
+<td><p>Continuous tone indicating readiness to dial</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ringback</p></td>
+<td><p>440 + 480</p></td>
+<td><p>2 sec ON, 4 sec OFF</p></td>
+</tr>
+<tr class="row-even"><td><p>Busy</p></td>
+<td><p>480 + 620</p></td>
+<td><p>0.5 sec ON, 0.5 sec OFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>Reorder</p></td>
+<td><p>480 + 620</p></td>
+<td><p>0.25 sec ON, 0.25 sec OFF</p></td>
+</tr>
+<tr class="row-even"><td><p>Off-hook Warning</p></td>
+<td><p>1400 + 2060 + 2450 + 2600</p></td>
+<td><p>Repeated tone when receiver is left off-hook</p></td>
+</tr>
+<tr class="row-odd"><td><p>SIT (Info Tone)</p></td>
+<td><p>950 / 1400 / 1800</p></td>
+<td><p>Special Information Tone before a recording</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="dual-tone-multi-frequency-dtmf">
+<h2>Dual-Tone Multi-Frequency (DTMF)<a class="headerlink" href="#dual-tone-multi-frequency-dtmf" title="Link to this heading"></a></h2>
+<p>Used for push-button dialing. Based on the Bell System’s adoption of <strong>Touch-Tone™</strong> in the 1960s:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>1209 Hz</p></th>
+<th class="head"><p>1336 Hz</p></th>
+<th class="head"><p>1477 Hz</p></th>
+<th class="head"><p>1633 Hz</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>697 Hz</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>A</p></td>
+</tr>
+<tr class="row-odd"><td><p>770 Hz</p></td>
+<td><p>4</p></td>
+<td><p>5</p></td>
+<td><p>6</p></td>
+<td><p>B</p></td>
+</tr>
+<tr class="row-even"><td><p>852 Hz</p></td>
+<td><p>7</p></td>
+<td><p>8</p></td>
+<td><p>9</p></td>
+<td><p>C</p></td>
+</tr>
+<tr class="row-odd"><td><p>941 Hz</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>0</p></td>
+<td><p>#</p></td>
+<td><p>D</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note: Most consumer telephones omitted the A–D column, which was used in military, radio trunking, and internal test systems.</p>
+</section>
+<section id="standard-recordings">
+<h2>Standard Recordings<a class="headerlink" href="#standard-recordings" title="Link to this heading"></a></h2>
+<p>These recordings typically follow SIT tones and indicate a failed or misdialed call:</p>
+<ul class="simple">
+<li><p>“We’re sorry, your call cannot be completed as dialed.”</p></li>
+<li><p>“Please check the number and try again.”</p></li>
+<li><p>“If you need assistance, hang up and dial the operator.”</p></li>
+</ul>
+<p>These recordings were standardized by the Bell System and later by regional carriers and independent telcos.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="introduction.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

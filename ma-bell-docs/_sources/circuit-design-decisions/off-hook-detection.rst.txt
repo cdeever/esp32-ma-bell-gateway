@@ -1,0 +1,150 @@
+==================================
+Off-Hook Detection Circuit Design
+==================================
+
+Different off-hook detection circuit design approaches were considered based on key criteria:
+
+- **Safety & isolation** (risk to ESP32)
+- **Reliability** (false triggers, wear & tear)
+- **Simplicity** (novice-friendliness)
+- **Cost**
+- **Other relevant features** (like sound, power use, integration ease)
+
+These approaches are ordered from oldest to newest technology, mirroring the progression central offices (COs) used over time. While Solid-State Relays (SSRs) weren't used historically for off-hook detection, they're considered here for their modern advantages.
+
+----
+
+Behavior & Performance
+======================
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 19 19 19 19
+
+   * - **Feature**
+     - **Mechanical Relay**
+     - **Resistor + Transistor**
+     - **Optocoupler**
+     - **SSR**
+   * - **Sound / Feel**
+     - ✅ Clunky click
+     - ❌ Silent
+     - ❌ Silent
+     - ❌ Silent
+   * - **Speed**
+     - ❌ Slower
+     - ✅ Fast
+     - ✅ Fast
+     - ✅ Fast
+   * - **Wear**
+     - ❌ Wears out
+     - ✅ No wear
+     - ✅ No wear
+     - ✅ No wear
+   * - **Reliability**
+     - ❌ Contact wear
+     - ✅ Stable
+     - ✅ Very stable
+     - ✅ Some leakage
+
+----
+
+Safety, Power & Integration
+===========================
+
+All approaches integrate with the ESP32 using simple GPIO — no special peripherals required.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 19 19 19 19
+
+   * - **Feature**
+     - **Mechanical Relay**
+     - **Resistor + Transistor**
+     - **Optocoupler**
+     - **SSR**
+   * - **Voltage Isolation**
+     - ✅ Isolated
+     - ❌ Direct risk
+     - ✅ Isolated
+     - ✅ Isolated
+   * - **Current Draw**
+     - 20–60mA
+     - 20–60mA
+     - 20–60mA
+     - Very low
+   * - **Power Needs**
+     - ❌ Extra power
+     - ✅ None
+     - ✅ None
+     - ✅ None
+
+----
+
+Complexity, Cost & Final Score
+==============================
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 19 19 19 19
+
+   * - **Feature**
+     - **Mechanical Relay**
+     - **Resistor + Transistor**
+     - **Optocoupler**
+     - **SSR**
+   * - **Simplicity**
+     - ❌ Needs driver
+     - ❌ Needs protection
+     - ✅ Simple
+     - ✅ PnP
+   * - **Complexity**
+     - ❌ Moderate
+     - ✅ Low
+     - ✅ Low
+     - ✅ Low
+   * - **Cost**
+     - ❌ Moderate
+     - ✅ Cheapest
+     - ✅ Affordable
+     - ❌ Higher
+   * - **Pitfalls**
+     - Debounce needed
+     - Needs Zener
+     - Vf matching
+     - Leakage
+   * - **🔥 Final Score**
+     - **34**
+     - **27**
+     - **45**
+     - **42**
+
+----
+
+Best Choice Based on Score
+==========================
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 20
+
+   * - **Detection Method**
+     - **Final Score (Max 50)**
+   * - ✅ **Optocoupler (Modern Isolation)** → *Best Overall*
+     - **45**
+   * - ✅ **SSR (No Click)** → *PnP Option*
+     - **42**
+   * - ✅ **Mechanical Relay (Clicky CO Feel)**
+     - **34**
+   * - ✅ **Resistor + Transistor (Vintage Style)**
+     - **27**
+
+----
+
+Final Thoughts
+==============
+
+- ✅ **Optocoupler is the best overall** – safe, reliable, and simple.
+- ✅ **SSR is excellent for beginners** – plug-and-play, but slightly pricier.
+- ✅ **Mechanical relay adds classic authenticity**, but will wear out over time.
+- ⚠️ **Resistor + transistor is cheapest**, but exposes ESP32 to risk and is less reliable.
