@@ -9,11 +9,11 @@ ESP32 Ma Bell Gateway
 Ma Bell ESP32 Mobile Bluetooth Gateway
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    introduction
+   standards
    usage
-   tones
    state
    circuit-design-decisions/off-hook-detection
