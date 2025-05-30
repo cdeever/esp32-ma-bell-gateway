@@ -3,11 +3,17 @@ Introduction
 
 The Ma Bell ESP32 Gateway project began after a visit to the Vintage Computer Festival (VCF) Midwest in Chicago in September 2024. One of the exhibits featured a partially restored central office switch and a display of working rotary telephones — the kind once found in nearly every home. It was a glimpse into the infrastructure that powered everyday communication for decades.
 
-Seeing those phones in action brought back vivid memories of the telephone in my childhood kitchen — a lighted ITT slimline rotary phone mounted on the wall, with a standalone mechanical ringer tucked away somewhere out of sight. That evening, I browsed eBay and found both the phone and the ringer — and a question quickly followed:
+Seeing those phones in action brought back vivid memories of the telephone in my childhood kitchen — a lighted ITT Slimline rotary phone mounted on the wall, with a standalone Western Electric ringer mounted along the baseboard, its twin bells clearly audible throughout the house. 
+
+After returning home, I browsed eBay for fun and happened to find a NOS Slimline ITT phone and ringer — just like the ones we used to rent from the phone company — and a question quickly followed:
 
 **Could I bring this phone fully back to life?**
 
-Not as a novelty or audio prop, but as a working phone — one that rings, dials, lights up, and places real calls.
+Of course, devices already exist that allow vintage telephones to connect to modern Bluetooth systems. But as a software developer with a growing interest in embedded systems and electronics, I wondered:
+
+**Could I build my own?**
+
+One that rings, lights up, dials, and behaves exactly as it did in its heyday — not just functionally, but authentically.
 
 That question evolved into a full embedded systems design and implementation challenge: one that would bridge mid-century analog hardware with modern digital tech, while staying faithful to the look, feel, and behavior of the original system.
 
