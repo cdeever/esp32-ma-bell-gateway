@@ -99,11 +99,11 @@
 <h1>Off-Hook Detection<a class="headerlink" href="#off-hook-detection" title="Link to this heading"></a></h1>
 <p>An <strong>off-hook detection circuit</strong> is required to sense when a telephone receiver is lifted—completing the subscriber loop between tip and ring—so that the system can recognize an attempt to place or answer a call.</p>
 <p>The challenge is that this loop typically carries <strong>high voltages (up to 48V DC idle, 90V AC ringing)</strong>, while modern microcontrollers like the <strong>ESP32 operate at just 3.3V and cannot safely interface with the line directly</strong>. Therefore, any detection method must safely <strong>isolate the ESP32</strong> from the phone line while accurately identifying the off-hook condition.</p>
-<p>Several design approaches were evaluated based on how well they meet this need—balancing <strong>electrical safety, reliability, simplicity, and cost</strong>—while also reflecting the technologies used historically by telephone central offices (COs).</p>
+<p>Several design approaches were considered, including the possibility of applying <strong>authentic historical circuit styles</strong> used by central offices (COs), alongside modern alternatives that offer improved safety and integration.</p>
 <hr class="docutils" />
 <section id="historical-framing">
 <h2>Historical Framing<a class="headerlink" href="#historical-framing" title="Link to this heading"></a></h2>
-<table class="docutils align-default">
+<table class="scrollable-table docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
 <col style="width: 75.0%" />
@@ -304,12 +304,16 @@
 <section id="final-thoughts">
 <h2>Final Thoughts<a class="headerlink" href="#final-thoughts" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>✅ <strong>Optocoupler is the best all-around option</strong> – safe, reliable, and minimal complexity.</p></li>
-<li><p>✅ <strong>SSR is beginner-friendly and silent</strong>, great for plug-and-play setups, though slightly pricier.</p></li>
-<li><p>✅ <strong>Mechanical relay brings classic authenticity</strong> with that iconic CO click—but at the cost of longevity.</p></li>
-<li><p>⚠️ <strong>Resistor + transistor is historically vintage</strong>, but exposes the ESP32 and requires extra protection.</p></li>
+<li><p>✅ <strong>Optocoupler is the best all-around option</strong> – safe, reliable, and simple to integrate.</p></li>
+<li><p>✅ <strong>SSR is beginner-friendly and silent</strong>, offering a plug-and-play solution at slightly higher cost.</p></li>
+<li><p>✅ <strong>Mechanical relay adds authentic charm</strong>, but with mechanical wear over time.</p></li>
+<li><p>⚠️ <strong>Resistor + transistor is the least safe</strong>, and while it’s historically relevant, it places the ESP32 at risk without careful protection.</p></li>
 </ul>
-<p>Even if only one method is chosen for implementation, telling the story of all four helps illustrate how telephony evolved—and adds fun, educational depth to your project.</p>
+<p>In this project, the <strong>optocoupler design will be used</strong>. It ensures <strong>galvanic isolation</strong> from the phone line and allows the ESP32 to detect off-hook status without direct exposure to high voltage. A typical implementation requires:
+- A <strong>current-limiting resistor</strong> to protect the opto input,
+- Proper matching of the <strong>forward voltage (Vf)</strong> to ensure reliable triggering,
+- And optionally, a <strong>Schmitt trigger or GPIO interrupt</strong> on the output side for edge detection.</p>
+<p>This balances authenticity, safety, and simplicity while staying faithful to the spirit of vintage CO design.</p>
 </section>
 </section>
 

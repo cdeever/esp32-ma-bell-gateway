@@ -6,7 +6,7 @@ An **off-hook detection circuit** is required to sense when a telephone receiver
 
 The challenge is that this loop typically carries **high voltages (up to 48V DC idle, 90V AC ringing)**, while modern microcontrollers like the **ESP32 operate at just 3.3V and cannot safely interface with the line directly**. Therefore, any detection method must safely **isolate the ESP32** from the phone line while accurately identifying the off-hook condition.
 
-Several design approaches were evaluated based on how well they meet this need—balancing **electrical safety, reliability, simplicity, and cost**—while also reflecting the technologies used historically by telephone central offices (COs).
+Several design approaches were considered, including the possibility of applying **authentic historical circuit styles** used by central offices (COs), alongside modern alternatives that offer improved safety and integration.
 
 ----
 
@@ -16,6 +16,7 @@ Historical Framing
 .. list-table::
    :header-rows: 1
    :widths: 25 75
+   :class: scrollable-table
 
    * - **Era**
      - **Detection Approach**
@@ -160,9 +161,14 @@ Best Choice Based on Score
 Final Thoughts
 ==============
 
-- ✅ **Optocoupler is the best all-around option** – safe, reliable, and minimal complexity.
-- ✅ **SSR is beginner-friendly and silent**, great for plug-and-play setups, though slightly pricier.
-- ✅ **Mechanical relay brings classic authenticity** with that iconic CO click—but at the cost of longevity.
-- ⚠️ **Resistor + transistor is historically vintage**, but exposes the ESP32 and requires extra protection.
+- ✅ **Optocoupler is the best all-around option** – safe, reliable, and simple to integrate.
+- ✅ **SSR is beginner-friendly and silent**, offering a plug-and-play solution at slightly higher cost.
+- ✅ **Mechanical relay adds authentic charm**, but with mechanical wear over time.
+- ⚠️ **Resistor + transistor is the least safe**, and while it’s historically relevant, it places the ESP32 at risk without careful protection.
 
-Even if only one method is chosen for implementation, telling the story of all four helps illustrate how telephony evolved—and adds fun, educational depth to your project.
+In this project, the **optocoupler design will be used**. It ensures **galvanic isolation** from the phone line and allows the ESP32 to detect off-hook status without direct exposure to high voltage. A typical implementation requires:
+- A **current-limiting resistor** to protect the opto input,
+- Proper matching of the **forward voltage (Vf)** to ensure reliable triggering,
+- And optionally, a **Schmitt trigger or GPIO interrupt** on the output side for edge detection.
+
+This balances authenticity, safety, and simplicity while staying faithful to the spirit of vintage CO design.
