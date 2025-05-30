@@ -10,15 +10,17 @@ ESP32 Ma Bell Gateway
 
 **Ma Bell ESP32 Mobile Bluetooth Gateway**
 
-A DIY hardware and firmware project that transforms a classic rotary telephone into a fully functional Bluetooth handset.
+This project brings a vintage rotary telephone back to life — not as a novelty Bluetooth handset, but as a fully functioning telephone just as it was in 1978.
+
+The ESP32 acts as a digital gateway, connecting legacy Bell System hardware to the modern mobile network. The phone rings authentically, the dial pulses are interpreted, and voice is carried over Bluetooth using the Hands-Free Profile (HFP).
 
 Features:
-- **Rotary dialing** and **real analog ringer**
-- **ESP32-based Bluetooth HFP interface**
-- Audio routed over **PCM/I2S**
-- Seamless pairing with mobile phones
+- **Rotary dialing** translated to mobile calls
+- **Mechanical bell ringer** powered and triggered just like the original line
+- **Loop start and off-hook detection** with proper isolation
+- **PCM/I2S audio pipeline** for two-way voice communication
 
-Whether you're retrofitting your home with vintage charm or exploring telephony internals, this project bridges **1970s Bell System design** with **modern embedded development**.
+This is not a prop. This is a real phone call — made the way it used to be.
 
 ----
 
