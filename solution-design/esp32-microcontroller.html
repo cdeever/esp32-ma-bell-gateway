@@ -48,6 +48,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../standards.html">North American Telephone Service Standards</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../solution-design.html">Solution Design</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">ESP32 Microcontroller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bluetooth-classic-vs-ble">Bluetooth Classic vs BLE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simultaneous-wi-fi-bluetooth">Simultaneous Wi-Fi + Bluetooth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="circuit/index.html">Circuit Design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="software/index.html">Software Design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="enclosure/index.html">Enclosure Design</a></li>
@@ -83,7 +85,7 @@
              
   <section id="esp32-microcontroller">
 <h1>ESP32 Microcontroller<a class="headerlink" href="#esp32-microcontroller" title="Link to this heading"></a></h1>
-<a class="reference internal image-reference" href="_images/esp32-wroom32.png"><img alt="ESP32-WROOM-32 Module" class="align-center" src="_images/esp32-wroom32.png" style="width: 300px;" />
+<a class="reference internal image-reference" href="../_images/esp32-wroom32.png"><img alt="ESP32-WROOM-32 Module" class="align-center" src="../_images/esp32-wroom32.png" style="width: 300px;" />
 </a>
 <p>Selecting the right ESP32 variant can be surprisingly tricky. There are dozens of versions—ESP32-C2, ESP32-S3, ESP32-WROVER, WROOM-32, and more—each with its own trade-offs in price, peripherals, core count, wireless support, and package size. After researching compatibility, availability, and feature sets, the <strong>ESP32-WROOM-32</strong> was chosen for this project.</p>
 <p>This module strikes an ideal balance for the Ma Bell Gateway:</p>
@@ -91,17 +93,21 @@
 <li><p>✅ <strong>Dual-core processor (Xtensa LX6 &#64; up to 240 MHz)</strong> – The ESP32 includes two powerful cores. <strong>Core 0</strong> is generally reserved for system-level tasks such as Wi-Fi and Bluetooth stacks, while <strong>Core 1</strong> runs the user application logic (e.g. GPIO handling, tone generation, state machine transitions). This separation is key for real-time responsiveness.</p></li>
 <li><p>✅ <strong>Built-in Wi-Fi and Bluetooth Classic</strong> – Both are essential. Wi-Fi is used to serve a real-time web-based status page, and Bluetooth Classic enables call connectivity via the Hands-Free Profile (HFP).</p></li>
 <li><p>✅ <strong>FreeRTOS included</strong> – The ESP-IDF framework includes a full <strong>Real-Time Operating System (RTOS)</strong> that manages multitasking, timers, inter-task communication, and more. The Ma Bell Gateway uses FreeRTOS features to juggle Bluetooth events, off-hook signaling, tone generation, and status updates without blocking.</p></li>
-<li><p>✅ <strong>Rich peripheral set</strong> – GPIOs, ADCs, DACs, UARTs, I2S, and timers allow flexible integration with telephone hardware and ringer circuits.</p></li>
 </ul>
-<p>### Simultaneous Wi-Fi + Bluetooth</p>
-<p>While Wi-Fi and Bluetooth share the same radio hardware, the ESP32 manages coexistence through fast time-sharing and protocol scheduling. When properly configured:</p>
+</section>
+<section id="bluetooth-classic-vs-ble">
+<h1>Bluetooth Classic vs BLE<a class="headerlink" href="#bluetooth-classic-vs-ble" title="Link to this heading"></a></h1>
+<p>Although many ESP32 variants support <strong>Bluetooth Low Energy (BLE)</strong>, this project requires <strong>Bluetooth Classic</strong> due to its support for audio via the <strong>Hands-Free Profile (HFP)</strong>. BLE is optimized for short, energy-efficient data bursts (e.g. sensors, beacons), but it does not support voice or audio streaming. For this reason, only ESP32 modules that include Bluetooth Classic were considered.</p>
+</section>
+<section id="simultaneous-wi-fi-bluetooth">
+<h1>Simultaneous Wi-Fi + Bluetooth<a class="headerlink" href="#simultaneous-wi-fi-bluetooth" title="Link to this heading"></a></h1>
+<p>While Wi-Fi and Bluetooth share the same radio hardware, the ESP32 manages coexistence through fast time-sharing and protocol scheduling. With proper configuration:</p>
 <ul class="simple">
-<li><p>Wi-Fi can serve the internal status page and support future OTA features</p></li>
-<li><p>Bluetooth Classic can maintain a call session with a mobile phone</p></li>
-<li><p>Tasks remain responsive even during overlapping traffic or tone events</p></li>
+<li><p>Wi-Fi can serve the internal status page and support future OTA updates.</p></li>
+<li><p>Bluetooth Classic can maintain a call session with a mobile phone.</p></li>
+<li><p>System tasks and phone logic remain responsive, even during heavy traffic.</p></li>
 </ul>
-<p>This capability is critical to the gateway’s role: translating rotary dialing and call status from vintage hardware into a modern mobile call, while still exposing real-time state and diagnostics over Wi-Fi.</p>
-<p>The ESP32-WROOM-32’s balance of capability, price, and reliability made it the clear winner for this project.</p>
+<p>The ability to reliably run both wireless stacks alongside real-time GPIO handling was a key reason the WROOM-32 was selected.</p>
 </section>
 
 
