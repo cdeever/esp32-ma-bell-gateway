@@ -52,6 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html#simultaneous-wi-fi-bluetooth">Simultaneous Wi-Fi + Bluetooth</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Design</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Off-Hook Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#historical-framing">Historical Framing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#behavior-performance">Behavior &amp; Performance</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#safety-power-integration">Safety, Power &amp; Integration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#complexity-cost-final-score">Complexity, Cost &amp; Final Score</a></li>
@@ -96,15 +97,38 @@
              
   <section id="off-hook-detection">
 <h1>Off-Hook Detection<a class="headerlink" href="#off-hook-detection" title="Link to this heading"></a></h1>
-<p>Different off-hook detection circuit design approaches were considered based on key criteria:</p>
-<ul class="simple">
-<li><p><strong>Safety &amp; isolation</strong> (risk to ESP32)</p></li>
-<li><p><strong>Reliability</strong> (false triggers, wear &amp; tear)</p></li>
-<li><p><strong>Simplicity</strong> (novice-friendliness)</p></li>
-<li><p><strong>Cost</strong></p></li>
-<li><p><strong>Other relevant features</strong> (like sound, power use, integration ease)</p></li>
-</ul>
-<p>These approaches are ordered from oldest to newest technology, mirroring the progression central offices (COs) used over time. While Solid-State Relays (SSRs) weren’t used historically for off-hook detection, they’re considered here for their modern advantages.</p>
+<p>An <strong>off-hook detection circuit</strong> is required to sense when a telephone receiver is lifted—completing the subscriber loop between tip and ring—so that the system can recognize an attempt to place or answer a call.</p>
+<p>The challenge is that this loop typically carries <strong>high voltages (up to 48V DC idle, 90V AC ringing)</strong>, while modern microcontrollers like the <strong>ESP32 operate at just 3.3V and cannot safely interface with the line directly</strong>. Therefore, any detection method must safely <strong>isolate the ESP32</strong> from the phone line while accurately identifying the off-hook condition.</p>
+<p>Several design approaches were evaluated based on how well they meet this need—balancing <strong>electrical safety, reliability, simplicity, and cost</strong>—while also reflecting the technologies used historically by telephone central offices (COs).</p>
+<hr class="docutils" />
+<section id="historical-framing">
+<h2>Historical Framing<a class="headerlink" href="#historical-framing" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Era</strong></p></th>
+<th class="head"><p><strong>Detection Approach</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1900s–1940s</p></td>
+<td><p>Mechanical relays closed when loop current flowed, activating electromechanical switching gear.</p></td>
+</tr>
+<tr class="row-odd"><td><p>1950s–1970s</p></td>
+<td><p>Transistor-based circuits began replacing relays in local switching systems, offering smaller, quieter alternatives.</p></td>
+</tr>
+<tr class="row-even"><td><p>1970s–1990s</p></td>
+<td><p>Optocouplers appeared in digital switches to isolate analog lines from microprocessors.</p></td>
+</tr>
+<tr class="row-odd"><td><p>2000s+</p></td>
+<td><p>SSRs and integrated analog front-ends are common in VoIP ATAs and digital PBXs for safe, silent switching.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <hr class="docutils" />
 <section id="behavior-performance">
 <h2>Behavior &amp; Performance<a class="headerlink" href="#behavior-performance" title="Link to this heading"></a></h2>
@@ -155,7 +179,7 @@
 <hr class="docutils" />
 <section id="safety-power-integration">
 <h2>Safety, Power &amp; Integration<a class="headerlink" href="#safety-power-integration" title="Link to this heading"></a></h2>
-<p>All approaches integrate with the ESP32 using simple GPIO — no special peripherals required.</p>
+<p>All methods connect to an ESP32 using basic GPIO—no special peripherals needed.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 22.4%" />
@@ -280,11 +304,12 @@
 <section id="final-thoughts">
 <h2>Final Thoughts<a class="headerlink" href="#final-thoughts" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>✅ <strong>Optocoupler is the best overall</strong> – safe, reliable, and simple.</p></li>
-<li><p>✅ <strong>SSR is excellent for beginners</strong> – plug-and-play, but slightly pricier.</p></li>
-<li><p>✅ <strong>Mechanical relay adds classic authenticity</strong>, but will wear out over time.</p></li>
-<li><p>⚠️ <strong>Resistor + transistor is cheapest</strong>, but exposes ESP32 to risk and is less reliable.</p></li>
+<li><p>✅ <strong>Optocoupler is the best all-around option</strong> – safe, reliable, and minimal complexity.</p></li>
+<li><p>✅ <strong>SSR is beginner-friendly and silent</strong>, great for plug-and-play setups, though slightly pricier.</p></li>
+<li><p>✅ <strong>Mechanical relay brings classic authenticity</strong> with that iconic CO click—but at the cost of longevity.</p></li>
+<li><p>⚠️ <strong>Resistor + transistor is historically vintage</strong>, but exposes the ESP32 and requires extra protection.</p></li>
 </ul>
+<p>Even if only one method is chosen for implementation, telling the story of all four helps illustrate how telephony evolved—and adds fun, educational depth to your project.</p>
 </section>
 </section>
 
