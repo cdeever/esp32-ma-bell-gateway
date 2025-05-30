@@ -10,17 +10,18 @@ ESP32 Ma Bell Gateway
 
 **Ma Bell ESP32 Mobile Bluetooth Gateway**
 
-This project brings a vintage rotary telephone back to life as a fully functioning telephone — just as it was in 1978.
+This project brings a vintage rotary telephone back to life as a fully functioning telephone — just as if it were 1978.
 
-Powered by an ESP32, the system simulates the original Bell System Central Office (CO), providing loop current, dial tone, ringing voltage, and rotary pulse interpretation. Behind the scenes, it bridges the call over Bluetooth using the Hands-Free Profile (HFP), allowing the phone to work with modern mobile devices — no apps, no gimmicks.
+Powered by an ESP32, the system simulates the original phone company Central Office (CO) — aka “Ma Bell” — providing loop current, dial tone, ringing voltage, and rotary pulse interpretation. Behind the scenes, it bridges the call over Bluetooth using the Hands-Free Profile (HFP), allowing the phone to work with your modern smartphone.
 
-Features:
-- **Rotary dialing** translated to mobile calls
-- **Mechanical bell ringer** powered and triggered just like the original line
-- **Loop start and off-hook detection** with proper isolation
-- **PCM/I2S audio pipeline** for two-way voice communication
+**Features**
 
-This is not a prop. This is a real phone call — made the way it used to be.
+- **Rotary dialing** translated to mobile calls  
+- **Mechanical bell ringer** powered and triggered just like the original line  
+- **Loop start and off-hook detection** with proper isolation  
+- **PCM/I2S audio pipeline** for two-way voice communication  
+
+This project provides a new generation with an authentic 1970s telephonic experience.
 
 ----
 
