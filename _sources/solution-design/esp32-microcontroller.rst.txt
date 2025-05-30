@@ -1,0 +1,28 @@
+ESP32 Microcontroller
+=====================
+
+.. image:: /_images/esp32-wroom32.png
+   :alt: ESP32-WROOM-32 Module
+   :width: 300px
+   :align: center
+
+Selecting the right ESP32 variant can be surprisingly tricky. There are dozens of versions—ESP32-C2, ESP32-S3, ESP32-WROVER, WROOM-32, and more—each with its own trade-offs in price, peripherals, core count, wireless support, and package size. After researching compatibility, availability, and feature sets, the **ESP32-WROOM-32** was chosen for this project.
+
+This module strikes an ideal balance for the Ma Bell Gateway:
+
+- ✅ **Dual-core processor (Xtensa LX6 @ up to 240 MHz)** – The ESP32 includes two powerful cores. **Core 0** is generally reserved for system-level tasks such as Wi-Fi and Bluetooth stacks, while **Core 1** runs the user application logic (e.g. GPIO handling, tone generation, state machine transitions). This separation is key for real-time responsiveness.
+- ✅ **Built-in Wi-Fi and Bluetooth Classic** – Both are essential. Wi-Fi is used to serve a real-time web-based status page, and Bluetooth Classic enables call connectivity via the Hands-Free Profile (HFP).
+- ✅ **FreeRTOS included** – The ESP-IDF framework includes a full **Real-Time Operating System (RTOS)** that manages multitasking, timers, inter-task communication, and more. The Ma Bell Gateway uses FreeRTOS features to juggle Bluetooth events, off-hook signaling, tone generation, and status updates without blocking.
+- ✅ **Rich peripheral set** – GPIOs, ADCs, DACs, UARTs, I2S, and timers allow flexible integration with telephone hardware and ringer circuits.
+
+### Simultaneous Wi-Fi + Bluetooth
+
+While Wi-Fi and Bluetooth share the same radio hardware, the ESP32 manages coexistence through fast time-sharing and protocol scheduling. When properly configured:
+
+- Wi-Fi can serve the internal status page and support future OTA features
+- Bluetooth Classic can maintain a call session with a mobile phone
+- Tasks remain responsive even during overlapping traffic or tone events
+
+This capability is critical to the gateway’s role: translating rotary dialing and call status from vintage hardware into a modern mobile call, while still exposing real-time state and diagnostics over Wi-Fi.
+
+The ESP32-WROOM-32’s balance of capability, price, and reliability made it the clear winner for this project.
