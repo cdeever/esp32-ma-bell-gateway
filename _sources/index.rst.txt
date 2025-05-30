@@ -24,6 +24,8 @@ Whether you're retrofitting your home with vintage charm or exploring telephony 
 
 .. toctree::
    :maxdepth: 3
+   :caption: Contents:
+   :hidden:
 
    introduction
    standards
