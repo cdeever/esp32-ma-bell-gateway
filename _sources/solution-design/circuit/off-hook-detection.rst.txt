@@ -1,6 +1,6 @@
-==================================
-Off-Hook Detection Circuit Design
-==================================
+==================
+Off-Hook Detection
+==================
 
 Different off-hook detection circuit design approaches were considered based on key criteria:
 

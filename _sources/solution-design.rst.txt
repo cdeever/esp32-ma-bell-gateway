@@ -1,7 +1,7 @@
 Solution Design
 ===============
 
-Explore the design of the Ma Bell solution across three key areas.
+Explore the design of the Ma Bell solution across the key areas.
 
 .. toctree::
    :maxdepth: 1

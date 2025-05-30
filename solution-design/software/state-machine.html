@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>State Diagram &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+  <title>State Machine &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
@@ -47,9 +47,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../standards.html">North American Telephone Service Standards</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../solution-design.html">Solution Design</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html">ESP32 Microcontroller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html#bluetooth-classic-vs-ble">Bluetooth Classic vs BLE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html#simultaneous-wi-fi-bluetooth">Simultaneous Wi-Fi + Bluetooth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../circuit/index.html">Circuit Design</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Software Design</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">State Diagram</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">State Machine</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure Design</a></li>
@@ -74,7 +77,7 @@
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../solution-design.html">Solution Design</a></li>
           <li class="breadcrumb-item"><a href="index.html">Software Design</a></li>
-      <li class="breadcrumb-item active">State Diagram</li>
+      <li class="breadcrumb-item active">State Machine</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/solution-design/software/state-machine.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -84,8 +87,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="state-diagram">
-<h1>State Diagram<a class="headerlink" href="#state-diagram" title="Link to this heading"></a></h1>
+  <section id="state-machine">
+<h1>State Machine<a class="headerlink" href="#state-machine" title="Link to this heading"></a></h1>
 <p>The Ma Bell Emulator state diagram defines the system’s operational states, including idle (on-hook), dialing, call setup, active call, and termination. It models transitions for pulse dialing, Bluetooth connection handling, ringer activation, and tone generation, ensuring seamless integration between the vintage phone, ringer, and a mobile phone via Bluetooth.</p>
 <a class="reference internal image-reference" href="../../_images/state_diagram.png"><img alt="ESP32 Ma Bell State Diagram" class="align-center" src="../../_images/state_diagram.png" style="width: 1000px;" />
 </a>
