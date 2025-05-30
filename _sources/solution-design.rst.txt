@@ -4,7 +4,7 @@ Solution Design
 Explore the design of the Ma Bell solution across three key areas.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    solution-design/esp32-microcontroller
    solution-design/circuit/index
