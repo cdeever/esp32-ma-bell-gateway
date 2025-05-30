@@ -1,8 +1,8 @@
 ESP32 Ma Bell Gateway
 ======================
 
-.. image:: /_images/itt-slimline-phone.jpg
-   :alt: ITT Slimline Phone
+.. image:: /_images/ma-bell-gateway.png
+   :alt: Ma Bell BT Gateway
    :width: 300px
    :align: center
 
