@@ -12,8 +12,7 @@ After returning home, I browsed eBay for fun and happened to find a NOS Slimline
    :width: 400px
    :align: center
 
-..
-    
+   
 **Could I bring this phone fully back to life?**
 
 Of course, devices already exist that allow vintage telephones to connect to modern Bluetooth systems. But as a software developer with a growing interest in embedded systems and electronics, I wondered:
