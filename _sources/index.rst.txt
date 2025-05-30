@@ -1,7 +1,7 @@
 ESP32 Ma Bell Bluetooth Gateway
 ===============================
 
-The "Ma Bell" Bluetooth Gateway is a DIY embedded project that brings the nostalgia of 1970s landline telephony into the modern wireless era by creating a functional mobile phone analog gateway connected via Bluetooth. Designed to work seamlessly with a vintage ITT Slimline rotary phone and a separate Western Electric ringer, this project replicates the authentic experience of 20th-century landline service, complete with dial tone simulation, pulse dialing, and proper ring delays.
+The "Ma Bell" Bluetooth Gateway is a DIY embedded project that brings the nostalgia of 1970s landline telephony into the modern wireless era by creating a functional mobile phone analog gateway connected via Bluetooth. Designed to work seamlessly with any vintage telephone, this project replicates the authentic experience of 20th-century landline service, complete with dial tone simulation, pulse dialing, and proper ring delays.
 
 
 .. image:: /_images/ma-bell-gateway.png
