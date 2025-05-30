@@ -1,12 +1,26 @@
-.. ESP32 Ma Bell Gateway documentation master file, created by
-   sphinx-quickstart on Fri Jan 31 08:39:37 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 ESP32 Ma Bell Gateway
 ======================
 
-Ma Bell ESP32 Mobile Bluetooth Gateway
+.. image:: _static/itt-slimline-phone.jpg
+   :alt: ITT Slimline Phone
+   :width: 300px
+   :align: center
+
+----
+
+**Ma Bell ESP32 Mobile Bluetooth Gateway**
+
+A DIY hardware and firmware project that transforms a classic rotary telephone into a fully functional Bluetooth handset.
+
+Features:
+- **Rotary dialing** and **real analog ringer**
+- **ESP32-based Bluetooth HFP interface**
+- Audio routed over **PCM/I2S**
+- Seamless pairing with mobile phones
+
+Whether you're retrofitting your home with vintage charm or exploring telephony internals, this project bridges **1970s Bell System design** with **modern embedded development**.
+
+----
 
 .. toctree::
    :maxdepth: 3

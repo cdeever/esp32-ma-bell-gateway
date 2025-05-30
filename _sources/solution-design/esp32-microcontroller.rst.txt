@@ -1,18 +1,20 @@
 ESP32 Microcontroller
 =====================
 
-.. image:: /_images/esp32-wroom32.png
-   :alt: ESP32-WROOM-32 Module
+.. image:: /_images/esp32-wrover-ie.png
+   :alt: ESP32-WROVER-IE Module
    :width: 300px
    :align: center
 
-Selecting the right ESP32 variant can be surprisingly tricky. There are dozens of versions—ESP32-C2, ESP32-S3, ESP32-WROVER, WROOM-32, and more—each with its own trade-offs in price, peripherals, core count, wireless support, and package size. After researching compatibility, availability, and feature sets, the **ESP32-WROOM-32** was chosen for this project.
+Selecting the right ESP32 variant can be surprisingly tricky. There are dozens of versions—ESP32-C2, ESP32-S3, ESP32-WROVER, WROOM-32, and more—each with its own trade-offs in price, peripherals, core count, wireless support, and package size. After researching compatibility, availability, and feature sets, the **ESP32-WROVER-IE** was chosen for this project.
 
 This module strikes an ideal balance for the Ma Bell Gateway:
 
 - ✅ **Dual-core processor (Xtensa LX6 @ up to 240 MHz)** – The ESP32 includes two powerful cores. **Core 0** is generally reserved for system-level tasks such as Wi-Fi and Bluetooth stacks, while **Core 1** runs the user application logic (e.g. GPIO handling, tone generation, state machine transitions). This separation is key for real-time responsiveness.
 - ✅ **Built-in Wi-Fi and Bluetooth Classic** – Both are essential. Wi-Fi is used to serve a real-time web-based status page, and Bluetooth Classic enables call connectivity via the Hands-Free Profile (HFP).
-- ✅ **FreeRTOS included** – The ESP-IDF framework includes a full **Real-Time Operating System (RTOS)** that manages multitasking, timers, inter-task communication, and more. The Ma Bell Gateway uses FreeRTOS features to juggle Bluetooth events, off-hook signaling, tone generation, and status updates without blocking.
+- ✅ **PSRAM (typically 4MB)** – The WROVER series includes external pseudo-static RAM, which can be used for audio buffering, logging, or memory-intensive tasks. While not mandatory for this project, it provides headroom for future expansion.
+- ✅ **FreeRTOS included** – The ESP-IDF framework includes **FreeRTOS** as its built-in real-time operating system and exposes a rich API for multitasking, timers, and inter-task communication. The Ma Bell Gateway uses FreeRTOS to juggle Bluetooth events, off-hook signaling, tone generation, and status updates — all without blocking or missing real-time events.
+- ✅ **External antenna connector** – The “IE” version includes a u.FL connector for an external antenna, ensuring strong signal coverage throughout the home.
 
 Bluetooth Classic vs BLE
 ========================
@@ -28,4 +30,4 @@ While Wi-Fi and Bluetooth share the same radio hardware, the ESP32 manages coexi
 - Bluetooth Classic can maintain a call session with a mobile phone.
 - System tasks and phone logic remain responsive, even during heavy traffic.
 
-The ability to reliably run both wireless stacks alongside real-time GPIO handling was a key reason the WROOM-32 was selected.
+The ability to reliably run both wireless stacks alongside real-time GPIO handling was a key reason the WROVER-IE was selected.
