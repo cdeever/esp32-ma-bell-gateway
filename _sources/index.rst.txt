@@ -16,10 +16,11 @@ Powered by an ESP32, the system simulates the original phone company Central Off
 
 **Features**
 
-- **Rotary dialing** translated to mobile calls  
-- **Mechanical bell ringer** powered and triggered just like the original line  
-- **Loop start and off-hook detection** with proper isolation  
-- **PCM/I2S audio pipeline** for two-way voice communication  
+- Rotary dialing translated to mobile calls  
+- Mechanical bell ringer powered and triggered just like the original line  
+- Two-way voice communication  
+- Power for the light-up rotary dial  
+- Tone simulation including dial tone, busy signal, and more  
 
 Once common in every home, this phone rings again — not as a relic, but as a working link to our analog past.
 
