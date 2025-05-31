@@ -1,6 +1,6 @@
-===========================================
-Voice and Tone Audio Circuit Design
-===========================================
+====================
+Voice and Tone Audio
+====================
 
 Overview
 ========
@@ -11,6 +11,7 @@ The circuit must support:
 - **Listening**: Receiving voice and tones to the earpiece.
 - **Speaking**: Capturing voice from the microphone.
 - **Nominal Line Characteristics**:
+
   - **Impedance**: 600 ohms (balanced)
   - **Voice Bandwidth**: 300 Hz – 3400 Hz
   - **Signal Level**: ~0 dBm transmitted, ~-10 dB received
@@ -94,11 +95,11 @@ Design Options:
      - Mic audio passed through 600-ohm transformer into ADC or amplifier.
      - + Isolation  
        + Historical fidelity  
-       − Requires amplification stage  
+       − Requires amplification stage
    * - Preamp with Resistor Matching
      - FET or op-amp gain stage with input resistors matching impedance.
      - + Compact and adjustable  
-       − Sensitive to mic type  
+       − Sensitive to mic type
    * - Capacitive-Coupled Mic Bias
      - Carbon mic powered with DC bias; signal AC-coupled to ADC or amp.
      - + Simulates carbon mic behavior  
@@ -133,7 +134,7 @@ Design Options:
    * - Relay or Analog Switch
      - Select voice or tone signal before amplification.
      - + Clear signal path  
-       − Added complexity  
+       − Added complexity
    * - Dedicated Tone Path
      - Use separate driver for tones, merged at transformer.
      - + Full signal isolation  
@@ -144,3 +145,4 @@ Echo Control Consideration
 
 - While optional, an acoustic echo cancellation (AEC) module or hybrid circuit may be added in analog for improved realism or loopback suppression.
 - Echo mitigation techniques often require four-wire separation of input/output audio, which can be simulated using transformers or op-amp networks.
+
