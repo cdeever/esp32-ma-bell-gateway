@@ -3,18 +3,29 @@ Introduction
 
 The Ma Bell ESP32 Gateway project began after a visit to the Vintage Computer Festival (VCF) Midwest in Chicago in September 2024. One of the exhibits featured a functioning corporate PBX switch system with modules from different eras, with functioning analog phones connected and able to call each other — the kind once found in nearly every home. It was a glimpse into the infrastructure that powered everyday communication for decades.
 
-Seeing those phones in action brought back vivid memories of the telephone in my childhood kitchen — a lighted ITT Slimline rotary phone mounted on the wall with a super long cord, and a standalone Western Electric ringer mounted along the baseboard, its twin bells clearly audible throughout the house.
+*VCF Midwest Exhibit – Inspiration for the Ma Bell Gateway*
 
-After returning home, I browsed eBay for fun and wondered if I could find the same phone for sale, as well as the ringer we used to rent from the phone company. To my surprise, I found a brand new, never-used Slimline ITT phone — New Old Stock (NOS) — still wrapped in the box since 1982. It likely became unused inventory as touch-tone and cordless phones began to take over in the early '80s.
+.. image:: /_images/vcf-pbx-exhibit.jpg
+   :alt: VCF Midwest Exhibit – Vintage PBX System
+   :width: 500px
+   :align: center
+
+Seeing those phones in action brought back vivid memories of the telephone in my childhood kitchen — a rotary wall phone with a super long cord, and a standalone ringer mounted along the baseboard, its oversized twin bells designed to be heard throughout the house.
+
+After returning home, I browsed eBay for fun and wondered if I could find the same phone for sale, as well as the ringer we used to rent from the phone company. To my surprise, I found a brand new, never-used beige **Trimline** wall phone — branded ITT and stamped on the box as model **25413/BA/30M**, with a manufacture date of **9/82** and marked **WALL RR**. It was still sealed in its original packaging, likely left behind as inventory when touch-tone and cordless phones began to take over in the early '80s. The illuminated rotary dial glowed warmly when the handset was lifted — casting that unmistakable orange light on your cheek as you chatted away.
 
 I also managed to find the exact ringer variant as well — the Western Electric stand-alone ringer with two chime modes — evoking memories of the distinctive “bing... bong” that would inevitably sound every night just as we sat down to eat dinner. I was thrilled. These were exactly like the ones from my childhood, and a question quickly followed:
 
 .. image:: /_images/slimline-ringer.jpg
-   :alt: ITT Slimline Phone and Ringer
+   :alt: ITT Trimline Phone and Ringer
    :width: 400px
    :align: center
 
 **Could I bring this phone fully back to life?**
+
+**Unboxing a Time Capsule**
+
+Opening the box felt like peeling back a layer of history. The ITT Trimline phone, model **25413/BA/30M**, was still wrapped in its original plastic — untouched since it was packaged in **September 1982**, as confirmed by the ink-stamped label on the side: “**BEIGE 9/82 WALL RR**.” After more than 40 years in storage, the phone was in pristine condition — the coiled cord still neatly tucked, the rotary dial crystal clear, and the plastic smelling faintly of the era it came from. It was as if it had been waiting all this time to be reconnected and ring once again.
 
 Of course, devices already exist that allow vintage telephones to connect to modern Bluetooth systems. But as a software developer with a growing interest in embedded systems and electronics, I wondered:
 
