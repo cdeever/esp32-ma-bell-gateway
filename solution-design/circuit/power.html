@@ -1,0 +1,176 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Power Supplies &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Off-Hook Detection" href="off-hook-detection.html" />
+    <link rel="prev" title="Circuit Design" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">North American Telephone Service Standards</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../solution-design.html">Solution Design</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html">ESP32 Microcontroller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html#bluetooth-classic-vs-ble">Bluetooth Classic vs BLE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html#simultaneous-wi-fi-bluetooth">Simultaneous Wi-Fi + Bluetooth</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Design</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Power Supplies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#power-domains">Power Domains</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#v-dc-line-voltage-and-ringing">48V DC – Line Voltage and Ringing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#v-ac-dial-illumination">9V AC – Dial Illumination</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#v-5v-dc-esp32-and-peripherals">3.3V / 5V DC – ESP32 and Peripherals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#power-routing-and-isolation">Power Routing and Isolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../software/index.html">Software Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure Design</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../solution-design.html">Solution Design</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Circuit Design</a></li>
+      <li class="breadcrumb-item active">Power Supplies</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/solution-design/circuit/power.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="power-supplies">
+<h1>Power Supplies<a class="headerlink" href="#power-supplies" title="Link to this heading"></a></h1>
+<p>The Ma Bell Gateway requires multiple voltage sources to support both legacy analog telephone hardware and modern embedded electronics. These supplies must be carefully chosen and isolated where necessary to provide the right voltages for ringer operation, illuminated dial lighting, logic control, and audio processing.</p>
+<section id="power-domains">
+<h2>Power Domains<a class="headerlink" href="#power-domains" title="Link to this heading"></a></h2>
+<p>This project uses three distinct power domains:</p>
+<ol class="arabic simple">
+<li><p><strong>48V DC</strong> – Simulated Central Office (CO) Line</p></li>
+<li><p><strong>9V AC</strong> – Dial Illumination</p></li>
+<li><p><strong>3.3V / 5V DC</strong> – ESP32 and Digital Peripherals</p></li>
+</ol>
+<p>Each serves a specific role in replicating the traditional analog phone experience.</p>
+</section>
+<section id="v-dc-line-voltage-and-ringing">
+<h2>48V DC – Line Voltage and Ringing<a class="headerlink" href="#v-dc-line-voltage-and-ringing" title="Link to this heading"></a></h2>
+<p>The 48V DC supply simulates the nominal voltage found on Bell System phone lines when idle. It is applied across the red and green pair of a standard RJ11 connection and serves as the baseline “on-hook” voltage.</p>
+<p>This supply is also used to drive the mechanical ringer. Although traditional ringing voltages were closer to 90V AC, many ringer coils will activate with 48V DC if it is pulsed in a repeating cadence (e.g., 2 seconds on, 4 seconds off). The ESP32 will control this cadence via a relay or solid-state switch, with appropriate electrical isolation.</p>
+<p>Care must be taken to isolate this high-voltage DC from the ESP32 logic, typically through opto-isolators or relays.</p>
+</section>
+<section id="v-ac-dial-illumination">
+<h2>9V AC – Dial Illumination<a class="headerlink" href="#v-ac-dial-illumination" title="Link to this heading"></a></h2>
+<p>The 9V AC supply powers the lighted rotary dial. Many classic telephones used neon or incandescent lamps wired to the outer black and yellow pair of the RJ11 connector. These lights expect a low-voltage AC source, often between 6V and 12V.</p>
+<p>This supply is kept entirely separate from the 48V DC line and is used only for the dial light. It may be left always on or optionally switched on/off in sync with off-hook detection.</p>
+<p>If switched, this will be done using an electrically isolated relay or triac to ensure that the AC circuit is not directly exposed to the microcontroller.</p>
+</section>
+<section id="v-5v-dc-esp32-and-peripherals">
+<h2>3.3V / 5V DC – ESP32 and Peripherals<a class="headerlink" href="#v-5v-dc-esp32-and-peripherals" title="Link to this heading"></a></h2>
+<p>The ESP32 requires 3.3V DC to operate, typically provided by a regulator built into its development board or module. If using a bare ESP32-WROVER-IE, an external 3.3V LDO or switching regulator will be required.</p>
+<p>Peripherals such as audio DACs, op-amps, or other digital logic components may require either 3.3V or 5V depending on their interface. Care must be taken to ensure level-shifting is applied if mixing logic levels.</p>
+<p>The ESP32’s onboard regulators can provide limited current on GPIO pins, but any peripherals drawing significant current—such as relays, audio amps, or OLED displays—should receive power directly from the 3.3V or 5V bus, not through GPIO.</p>
+</section>
+<section id="power-routing-and-isolation">
+<h2>Power Routing and Isolation<a class="headerlink" href="#power-routing-and-isolation" title="Link to this heading"></a></h2>
+<p>To protect the microcontroller and low-voltage circuitry, all high-voltage domains (48V DC and 9V AC) are switched using isolation methods:
+- <strong>Relays</strong> (mechanical or solid-state) for high current or inductive loads
+- <strong>Opto-isolators</strong> for low-current signal switching
+- <strong>Snubber networks</strong> or flyback diodes where appropriate</p>
+<p>Each supply should be clearly separated on the PCB and wiring harness, with appropriate labeling and spacing to meet safety guidelines.</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h2>
+<p>The use of multiple, purpose-specific power supplies allows the Ma Bell Gateway to faithfully recreate the behavior of traditional phone equipment while protecting modern digital components. The 48V DC simulates the CO line and drives the ringer, 9V AC lights the rotary dial, and 3.3V or 5V DC powers the ESP32 and its modern electronics.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Circuit Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="off-hook-detection.html" class="btn btn-neutral float-right" title="Off-Hook Detection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
