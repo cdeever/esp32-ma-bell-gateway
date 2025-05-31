@@ -1,0 +1,146 @@
+===========================================
+Voice and Tone Audio Circuit Design
+===========================================
+
+Overview
+========
+
+This page outlines the analog circuitry needed to support both **voice** and **tone** audio signals in the Ma Bell Gateway project. These signals must be audible on a traditional telephone headset and comply with historical North American telco audio standards.
+
+The circuit must support:
+- **Listening**: Receiving voice and tones to the earpiece.
+- **Speaking**: Capturing voice from the microphone.
+- **Nominal Line Characteristics**:
+  - **Impedance**: 600 ohms (balanced)
+  - **Voice Bandwidth**: 300 Hz – 3400 Hz
+  - **Signal Level**: ~0 dBm transmitted, ~-10 dB received
+
+Circuit Roles
+=============
+
+Two distinct signal paths must be designed:
+
+- **Earpiece Path (Receiving)**
+- **Microphone Path (Transmitting)**
+
+Each must interface with a high-impedance, low-voltage digital system on one end and 600-ohm analog audio hardware on the other.
+
+Earpiece Path (Receiving)
+=========================
+
+This circuit drives the headset’s earpiece using audio or tone signals generated elsewhere in the system.
+
+Circuit Requirements:
+---------------------
+
+- Match 600-ohm impedance to the earpiece.
+- Drive enough current for audibility (~0 dBm).
+- Isolate the ESP32 system from the analog line.
+- Filter to restrict frequency to 300–3400 Hz.
+
+Design Options:
+---------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - **Option**
+     - **Description**
+     - **Trade-Offs**
+   * - Transformer-Coupled Output
+     - Audio signal passed through 600-ohm transformer to the earpiece.
+     - + Historical accuracy  
+       + Isolation  
+       − Requires output power stage
+   * - Differential Amplifier Stage
+     - Op-amp or Class-D driver with impedance-matching resistors.
+     - + Compact  
+       + Easy gain control  
+       − Less historical fidelity  
+       − Requires careful layout
+   * - Capacitive-Coupled Audio
+     - Uses DC-blocking capacitor with resistive load matching.
+     - + Simpler  
+       + Small footprint  
+       − Poor isolation  
+       − Less robust against noise
+
+Microphone Path (Transmitting)
+==============================
+
+This circuit accepts input from a traditional carbon or dynamic microphone and prepares it for digitization.
+
+Circuit Requirements:
+---------------------
+
+- Present 600-ohm input impedance.
+- Capture voice between 300–3400 Hz.
+- Provide gain to bring microphone output to usable level.
+- Block DC where required.
+- Optional: support single-ended or differential input.
+
+Design Options:
+---------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - **Option**
+     - **Description**
+     - **Trade-Offs**
+   * - Transformer-Coupled Input
+     - Mic audio passed through 600-ohm transformer into ADC or amplifier.
+     - + Isolation  
+       + Historical fidelity  
+       − Requires amplification stage  
+   * - Preamp with Resistor Matching
+     - FET or op-amp gain stage with input resistors matching impedance.
+     - + Compact and adjustable  
+       − Sensitive to mic type  
+   * - Capacitive-Coupled Mic Bias
+     - Carbon mic powered with DC bias; signal AC-coupled to ADC or amp.
+     - + Simulates carbon mic behavior  
+       − May introduce DC offset issues
+
+Tone Injection Path
+===================
+
+In addition to voice, tones (e.g. dial tone, busy signal) must be sent to the earpiece.
+
+Circuit Requirements:
+---------------------
+
+- Inject tone signals without disturbing voice transmission circuit.
+- Match impedance and gain to earpiece driver path.
+- Support summing with voice audio if needed.
+
+Design Options:
+---------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - **Option**
+     - **Description**
+     - **Trade-Offs**
+   * - Analog Summing Network
+     - Mix tone and voice at input to transformer or amp.
+     - + No switching required  
+       − Risk of signal bleed
+   * - Relay or Analog Switch
+     - Select voice or tone signal before amplification.
+     - + Clear signal path  
+       − Added complexity  
+   * - Dedicated Tone Path
+     - Use separate driver for tones, merged at transformer.
+     - + Full signal isolation  
+       − Higher component count
+
+Echo Control Consideration
+==========================
+
+- While optional, an acoustic echo cancellation (AEC) module or hybrid circuit may be added in analog for improved realism or loopback suppression.
+- Echo mitigation techniques often require four-wire separation of input/output audio, which can be simulated using transformers or op-amp networks.

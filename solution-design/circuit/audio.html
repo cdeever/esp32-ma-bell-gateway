@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice and Tone Audio Circuit Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solution-design.html">Solution Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Voice and Tone Audio Circuit Design</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/solution-design/circuit/audio.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="voice-and-tone-audio-circuit-design">
+<h1>Voice and Tone Audio Circuit Design<a class="headerlink" href="#voice-and-tone-audio-circuit-design" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>This page outlines the analog circuitry needed to support both <strong>voice</strong> and <strong>tone</strong> audio signals in the Ma Bell Gateway project. These signals must be audible on a traditional telephone headset and comply with historical North American telco audio standards.</p>
+<p>The circuit must support:
+- <strong>Listening</strong>: Receiving voice and tones to the earpiece.
+- <strong>Speaking</strong>: Capturing voice from the microphone.
+- <strong>Nominal Line Characteristics</strong>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Impedance</strong>: 600 ohms (balanced)</p></li>
+<li><p><strong>Voice Bandwidth</strong>: 300 Hz – 3400 Hz</p></li>
+<li><p><strong>Signal Level</strong>: ~0 dBm transmitted, ~-10 dB received</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="circuit-roles">
+<h2>Circuit Roles<a class="headerlink" href="#circuit-roles" title="Link to this heading"></a></h2>
+<p>Two distinct signal paths must be designed:</p>
+<ul class="simple">
+<li><p><strong>Earpiece Path (Receiving)</strong></p></li>
+<li><p><strong>Microphone Path (Transmitting)</strong></p></li>
+</ul>
+<p>Each must interface with a high-impedance, low-voltage digital system on one end and 600-ohm analog audio hardware on the other.</p>
+</section>
+<section id="earpiece-path-receiving">
+<h2>Earpiece Path (Receiving)<a class="headerlink" href="#earpiece-path-receiving" title="Link to this heading"></a></h2>
+<p>This circuit drives the headset’s earpiece using audio or tone signals generated elsewhere in the system.</p>
+<section id="circuit-requirements">
+<h3>Circuit Requirements:<a class="headerlink" href="#circuit-requirements" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Match 600-ohm impedance to the earpiece.</p></li>
+<li><p>Drive enough current for audibility (~0 dBm).</p></li>
+<li><p>Isolate the ESP32 system from the analog line.</p></li>
+<li><p>Filter to restrict frequency to 300–3400 Hz.</p></li>
+</ul>
+</section>
+<section id="design-options">
+<h3>Design Options:<a class="headerlink" href="#design-options" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Option</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Trade-Offs</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Transformer-Coupled Output</p></td>
+<td><p>Audio signal passed through 600-ohm transformer to the earpiece.</p></td>
+<td><ul class="simple">
+<li><p>Historical accuracy</p></li>
+<li><p>Isolation</p></li>
+</ul>
+<p>− Requires output power stage</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Differential Amplifier Stage</p></td>
+<td><p>Op-amp or Class-D driver with impedance-matching resistors.</p></td>
+<td><ul class="simple">
+<li><p>Compact</p></li>
+<li><p>Easy gain control</p></li>
+</ul>
+<p>− Less historical fidelity
+− Requires careful layout</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>Capacitive-Coupled Audio</p></td>
+<td><p>Uses DC-blocking capacitor with resistive load matching.</p></td>
+<td><ul class="simple">
+<li><p>Simpler</p></li>
+<li><p>Small footprint</p></li>
+</ul>
+<p>− Poor isolation
+− Less robust against noise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="microphone-path-transmitting">
+<h2>Microphone Path (Transmitting)<a class="headerlink" href="#microphone-path-transmitting" title="Link to this heading"></a></h2>
+<p>This circuit accepts input from a traditional carbon or dynamic microphone and prepares it for digitization.</p>
+<section id="id1">
+<h3>Circuit Requirements:<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Present 600-ohm input impedance.</p></li>
+<li><p>Capture voice between 300–3400 Hz.</p></li>
+<li><p>Provide gain to bring microphone output to usable level.</p></li>
+<li><p>Block DC where required.</p></li>
+<li><p>Optional: support single-ended or differential input.</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>Design Options:<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Option</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Trade-Offs</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Transformer-Coupled Input</p></td>
+<td><p>Mic audio passed through 600-ohm transformer into ADC or amplifier.</p></td>
+<td><ul class="simple">
+<li><p>Isolation</p></li>
+<li><p>Historical fidelity</p></li>
+</ul>
+<p>− Requires amplification stage</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Preamp with Resistor Matching</p></td>
+<td><p>FET or op-amp gain stage with input resistors matching impedance.</p></td>
+<td><ul class="simple">
+<li><p>Compact and adjustable</p></li>
+</ul>
+<p>− Sensitive to mic type</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>Capacitive-Coupled Mic Bias</p></td>
+<td><p>Carbon mic powered with DC bias; signal AC-coupled to ADC or amp.</p></td>
+<td><ul class="simple">
+<li><p>Simulates carbon mic behavior</p></li>
+</ul>
+<p>− May introduce DC offset issues</p>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="tone-injection-path">
+<h2>Tone Injection Path<a class="headerlink" href="#tone-injection-path" title="Link to this heading"></a></h2>
+<p>In addition to voice, tones (e.g. dial tone, busy signal) must be sent to the earpiece.</p>
+<section id="id3">
+<h3>Circuit Requirements:<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Inject tone signals without disturbing voice transmission circuit.</p></li>
+<li><p>Match impedance and gain to earpiece driver path.</p></li>
+<li><p>Support summing with voice audio if needed.</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Design Options:<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Option</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Trade-Offs</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Analog Summing Network</p></td>
+<td><p>Mix tone and voice at input to transformer or amp.</p></td>
+<td><ul class="simple">
+<li><p>No switching required</p></li>
+</ul>
+<p>− Risk of signal bleed</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Relay or Analog Switch</p></td>
+<td><p>Select voice or tone signal before amplification.</p></td>
+<td><ul class="simple">
+<li><p>Clear signal path</p></li>
+</ul>
+<p>− Added complexity</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>Dedicated Tone Path</p></td>
+<td><p>Use separate driver for tones, merged at transformer.</p></td>
+<td><ul class="simple">
+<li><p>Full signal isolation</p></li>
+</ul>
+<p>− Higher component count</p>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="echo-control-consideration">
+<h2>Echo Control Consideration<a class="headerlink" href="#echo-control-consideration" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>While optional, an acoustic echo cancellation (AEC) module or hybrid circuit may be added in analog for improved realism or loopback suppression.</p></li>
+<li><p>Echo mitigation techniques often require four-wire separation of input/output audio, which can be simulated using transformers or op-amp networks.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
