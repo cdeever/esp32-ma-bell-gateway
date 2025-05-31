@@ -1,3 +1,4 @@
+=====================
 ESP32 Microcontroller
 =====================
 
@@ -17,12 +18,12 @@ This module strikes an ideal balance for the Ma Bell Gateway:
 - ✅ **External antenna connector** – The “IE” version includes a u.FL connector for an external antenna, ensuring strong signal coverage throughout the home.
 
 Bluetooth Classic vs BLE
-========================
+------------------------
 
 Although many ESP32 variants support **Bluetooth Low Energy (BLE)**, this project requires **Bluetooth Classic** due to its support for audio via the **Hands-Free Profile (HFP)**. BLE is optimized for short, energy-efficient data bursts (e.g. sensors, beacons), but it does not support voice or audio streaming. For this reason, only ESP32 modules that include Bluetooth Classic were considered.
 
 Simultaneous Wi-Fi + Bluetooth
-==============================
+------------------------------
 
 While Wi-Fi and Bluetooth share the same radio hardware, the ESP32 manages coexistence through fast time-sharing and protocol scheduling. With proper configuration:
 
