@@ -1,15 +1,23 @@
-====================================
-Ringer Signaling – Waveform Options
-====================================
+=================
+Ringer Signaling 
 
 Most legacy Bell System ringers were designed to respond to approximately 90V RMS sine wave at 20 Hz. While modern designs may attempt to simulate this with lower voltages or simpler signals, the original sound and behavior is best reproduced with a true sine wave.
-
-This section outlines several options for how to drive the ringer coil using a 48V DC power supply, with a focus on waveform generation, isolation, and authenticity.
 
 Overview
 --------
 
-All ringer options are expected to follow the standard North American cadence of 2 seconds ON and 4 seconds OFF, repeating for the duration of the ring. The difference lies in how the "ON" segment is energized.
+All ringer options are expected to follow the standard North American cadence of 2 seconds ON and 4 seconds OFF, repeating for the duration of the ring. The difference lies in how the "ON" segment is energized, and particularly, what waveform is used to drive the ringer coil.
+
+Below is the target waveform used by historical central office equipment:
+
+.. figure:: /_images/ideal_co_ring_signal.png
+   :alt: Ideal CO ring signal
+   :width: 600px
+   :align: center
+
+   **Ideal Central Office Ring Signal:** 20 Hz sine wave applied for 2 seconds, followed by 4 seconds off.
+
+Each waveform generation method offers a different level of authenticity and complexity, as described below.
 
 Design Options
 --------------
