@@ -46,6 +46,7 @@ Power Routing and Isolation
 ---------------------------
 
 To protect the microcontroller and low-voltage circuitry, all high-voltage domains (48V DC and 9V AC) are switched using isolation methods:
+
 - **Relays** (mechanical or solid-state) for high current or inductive loads
 - **Opto-isolators** for low-current signal switching
 - **Snubber networks** or flyback diodes where appropriate
