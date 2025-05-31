@@ -8,14 +8,17 @@ Overview
 This page outlines the analog circuitry needed to support both **voice** and **tone** audio signals in the Ma Bell Gateway project. These signals must be audible on a traditional telephone headset and comply with historical North American telco audio standards.
 
 The circuit must support:
+
 - **Listening**: Receiving voice and tones to the earpiece.
 - **Speaking**: Capturing voice from the microphone.
 - **Nominal Line Characteristics**:
 
+  
   - **Impedance**: 600 ohms (balanced)
   - **Voice Bandwidth**: 300 Hz – 3400 Hz
   - **Signal Level**: ~0 dBm transmitted, ~-10 dB received
 
+  
 Circuit Roles
 =============
 
@@ -39,6 +42,7 @@ Circuit Requirements:
 - Isolate the ESP32 system from the analog line.
 - Filter to restrict frequency to 300–3400 Hz.
 
+  
 Design Options:
 ---------------
 
@@ -51,22 +55,26 @@ Design Options:
      - **Trade-Offs**
    * - Transformer-Coupled Output
      - Audio signal passed through 600-ohm transformer to the earpiece.
-     - + Historical accuracy  
+     - 
+       + Historical accuracy  
        + Isolation  
        − Requires output power stage
    * - Differential Amplifier Stage
      - Op-amp or Class-D driver with impedance-matching resistors.
-     - + Compact  
+     - 
+       + Compact  
        + Easy gain control  
        − Less historical fidelity  
        − Requires careful layout
    * - Capacitive-Coupled Audio
      - Uses DC-blocking capacitor with resistive load matching.
-     - + Simpler  
+     - 
+       + Simpler  
        + Small footprint  
        − Poor isolation  
        − Less robust against noise
 
+  
 Microphone Path (Transmitting)
 ==============================
 
@@ -81,6 +89,7 @@ Circuit Requirements:
 - Block DC where required.
 - Optional: support single-ended or differential input.
 
+  
 Design Options:
 ---------------
 
@@ -93,18 +102,22 @@ Design Options:
      - **Trade-Offs**
    * - Transformer-Coupled Input
      - Mic audio passed through 600-ohm transformer into ADC or amplifier.
-     - + Isolation  
+     - 
+       + Isolation  
        + Historical fidelity  
        − Requires amplification stage
    * - Preamp with Resistor Matching
      - FET or op-amp gain stage with input resistors matching impedance.
-     - + Compact and adjustable  
+     - 
+       + Compact and adjustable  
        − Sensitive to mic type
    * - Capacitive-Coupled Mic Bias
      - Carbon mic powered with DC bias; signal AC-coupled to ADC or amp.
-     - + Simulates carbon mic behavior  
+     - 
+       + Simulates carbon mic behavior  
        − May introduce DC offset issues
 
+  
 Tone Injection Path
 ===================
 
@@ -117,6 +130,7 @@ Circuit Requirements:
 - Match impedance and gain to earpiece driver path.
 - Support summing with voice audio if needed.
 
+  
 Design Options:
 ---------------
 
@@ -129,17 +143,21 @@ Design Options:
      - **Trade-Offs**
    * - Analog Summing Network
      - Mix tone and voice at input to transformer or amp.
-     - + No switching required  
+     - 
+       + No switching required  
        − Risk of signal bleed
    * - Relay or Analog Switch
      - Select voice or tone signal before amplification.
-     - + Clear signal path  
+     - 
+       + Clear signal path  
        − Added complexity
    * - Dedicated Tone Path
      - Use separate driver for tones, merged at transformer.
-     - + Full signal isolation  
+     - 
+       + Full signal isolation  
        − Higher component count
 
+  
 Echo Control Consideration
 ==========================
 
