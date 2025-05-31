@@ -49,3 +49,7 @@ Thumbs.db
 *.bak
 *.zip
 *.lck
+main/wifi copy.h
+main/scratchpad.txt
+hardware/kicad/MaBell/#auto_saved_files#
+hardware/kicad/MaBell/_autosave-*.kicad_sch

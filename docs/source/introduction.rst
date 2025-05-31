@@ -1,8 +1,37 @@
 Introduction
 ============
 
-The Ma Bell Emulator is a DIY project that brings the nostalgia of 1970s landline telephony into the modern wireless era by creating a functional mobile phone analog gateway connected via Bluetooth. Designed to work seamlessly with a vintage ITT Slimline rotary phone and a separate Western Electric ringer, this project replicates the authentic experience of 20th-century landline service, complete with dial tone simulation, pulse dialing, and proper ring delays.
+The Ma Bell ESP32 Gateway project began after a visit to the Vintage Computer Festival (VCF) Midwest in Chicago in September 2024. One of the exhibits featured a partially restored central office switch and a display of working rotary telephones — the kind once found in nearly every home. It was a glimpse into the infrastructure that powered everyday communication for decades.
 
-Using an ESP32-C2, the system bridges the gap between classic analog phones and modern mobile networks, enabling both inbound and outbound calls via Bluetooth. When the handset is lifted, the dial illuminates, and a simulated dial tone plays, allowing the user to dial out just as they would in a traditional landline system. Incoming Bluetooth calls trigger the ringer, complete with the authentic delay before answering, and if the phone is left off the hook, a reorder tone plays—just like in the old days.
+Seeing those phones in action brought back vivid memories of the telephone in my childhood kitchen — a lighted ITT Slimline rotary phone mounted on the wall, with a standalone Western Electric ringer mounted along the baseboard, its twin bells clearly audible throughout the house. 
 
-By blending retro hardware with modern embedded technology, this project faithfully recreates the full Ma Bell experience, preserving a piece of telephony history in a functional and interactive way. Whether for nostalgia, experimentation, or simply the joy of reviving vintage hardware, the Ma Bell Emulator allows users to relive the golden age of landline communication in a world dominated by mobile devices.
+After returning home, I browsed eBay for fun and happened to find a NOS Slimline ITT phone and ringer — just like the ones we used to rent from the phone company — and a question quickly followed:
+
+
+.. image:: /_images/slimline-ringer.jpg
+   :alt: ITT Slimline Phone and Ringer
+   :width: 400px
+   :align: center
+
+
+**Could I bring this phone fully back to life?**
+
+Of course, devices already exist that allow vintage telephones to connect to modern Bluetooth systems. But as a software developer with a growing interest in embedded systems and electronics, I wondered:
+
+**Could I build my own?**
+
+One that rings, lights up, dials, and behaves exactly as it did in its heyday — not just functionally, but authentically.
+
+That question evolved into a full embedded systems design and implementation challenge: one that would bridge mid-century analog hardware with modern digital tech, while staying faithful to the look, feel, and behavior of the original system.
+
+At a high level, the project required:
+
+- **Selecting a microcontroller** capable of handling Bluetooth audio (HFP), real-time signaling, and GPIO control. The ESP32-WROVER-IE was chosen for its robust feature set and community support.
+- **Designing analog and digital circuits** to simulate the phone company’s central office — including loop current, ringing voltage, tone generation, and rotary pulse decoding.
+- **Developing custom PCBs** to integrate power management, signal conditioning, audio routing, and isolation in a compact, reliable form.
+- **Prototyping and validating each subsystem**, from ringer triggering to audio passthrough and dial tone playback.
+- **Designing a rack-mountable or wall-mountable enclosure**, with standard RJ-11 ports and clearly labeled indicators.
+
+What began as a nostalgic side project became a multi-disciplinary engineering effort — blending firmware, circuit design, mechanical design, and a deep respect for the phone system that connected generations.
+
+This documentation walks through the journey from idea to fully operational gateway.

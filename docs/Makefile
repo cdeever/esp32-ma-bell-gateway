@@ -19,7 +19,21 @@ help:
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-github:
-	$(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html
-	rsync -av --delete $(BUILDDIR)/html/ ../ma-bell-docs/
-	cd ../ma-bell-docs && git add . && git commit -m "Update docs" && git push
+
+GHPAGES_DIR=../../ma-bell-docs
+
+publish: html
+	rsync -av --delete --exclude='.git' --exclude='.gitignore' build/html/ $(GHPAGES_DIR)/
+	touch $(GHPAGES_DIR)/.nojekyll
+	cd $(GHPAGES_DIR) && \
+		git add . && \
+		git commit -m "Update docs" && \
+		git push origin gh-pages
+
+.PHONY: check-links
+
+check-links:
+	@echo "🔎 Scanning for bad toctree references (e.g. 'design/index')..."
+	@grep -r --include="*.rst" -E "\.\. toctree::|^\s+.*\/index$$" source/ || true
+	@echo ""
+	@echo "✅ Tip: Replace paths like 'design/index' with just 'design' in toctrees."
