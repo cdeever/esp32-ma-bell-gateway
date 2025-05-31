@@ -15,8 +15,10 @@ The front panel presents the device’s user-facing controls and status indicato
 
 - **Power button** — momentary switch with integrated LED ring (e.g., 12V or 5V illuminated)
 - **Status LEDs** — at minimum:
+
   - `STATUS` (system operational)
   - `BT` (Bluetooth connection/activity)
+
 - **Display** — optional LCD or OLED panel (e.g., I2C 128x32) to show pairing status, call state, or diagnostics
 - **Optional ventilation slots or mesh** — depending on internal power supply heat dissipation
 - **Rack ears** — standard 19" mounting flanges with holes for rack screws
@@ -31,19 +33,22 @@ Back Panel
 
 The rear panel must handle all external I/O and power connections. The final design includes:
 
-- **PHONE**  
-  - **RJ45 jack** wired to support analog telephone output
+- **PHONE**
+
+  - RJ45 jack wired to support analog telephone output
   - Center pair (Green/Red) provides Tip and Ring for loop current and audio
-  - Outer pair (Yellow/Black) optionally carries **9V AC** to power the illuminated rotary dial lamp, as found in many ITT Slimline and Western Electric phones
+  - Outer pair (Yellow/Black) optionally carries **9V AC** to power an illuminated rotary dial
   - Internal circuitry provides ringing voltage, tone generation, and rotary pulse decoding
 
-- **BT/Wi-Fi Antenna**  
-  - **Single external SMA antenna connector**
+- **BT/Wi-Fi Antenna**
+
+  - Single external SMA antenna connector
   - The ESP32-WROVER-IE uses a shared RF front-end for both Bluetooth and Wi-Fi
   - ✅ External antenna connector – The “IE” version includes a u.FL connector for an external antenna, ensuring strong signal coverage throughout the home
 
-- **AC Power Inlet**  
-  - **Standard IEC 60320 C14 jack** for main AC input (e.g., 120V/240V)
+- **AC Power Inlet**
+
+  - Standard IEC 60320 C14 jack for main AC input (e.g., 120V/240V)
   - Powers the internal AC-DC supply that drives all system voltage rails
   - Internally fused and optionally switchable
 
