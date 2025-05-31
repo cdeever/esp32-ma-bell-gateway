@@ -152,33 +152,16 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Transformer-Coupled Output</p></td>
-<td><p>Audio signal passed through 600-ohm transformer to the earpiece.</p></td>
-<td><ul class="simple">
-<li><p>Historical accuracy</p></li>
-<li><p>Isolation</p></li>
-</ul>
-<p>− Requires output power stage</p>
-</td>
+<td><p>Audio signal passed through a 600-ohm transformer to the earpiece.</p></td>
+<td><p>Provides excellent isolation and historical authenticity. Requires an additional power amplifier stage to drive the transformer effectively.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Differential Amplifier Stage</p></td>
-<td><p>Op-amp or Class-D driver with impedance-matching resistors.</p></td>
-<td><ul class="simple">
-<li><p>Compact</p></li>
-<li><p>Easy gain control</p></li>
-</ul>
-<p>− Less historical fidelity
-− Requires careful layout</p>
-</td>
+<td><p>Uses an op-amp or Class-D driver with impedance-matching resistors.</p></td>
+<td><p>Compact design and easy gain control. However, it lacks historical fidelity and requires careful PCB layout to avoid noise.</p></td>
 </tr>
 <tr class="row-even"><td><p>Capacitive-Coupled Audio</p></td>
-<td><p>Uses DC-blocking capacitor with resistive load matching.</p></td>
-<td><ul class="simple">
-<li><p>Simpler</p></li>
-<li><p>Small footprint</p></li>
-</ul>
-<p>− Poor isolation
-− Less robust against noise</p>
-</td>
+<td><p>Routes signal through a DC-blocking capacitor with a resistive load.</p></td>
+<td><p>Very simple and low component count. Limited isolation and more vulnerable to noise and ground loops.</p></td>
 </tr>
 </tbody>
 </table>
@@ -213,29 +196,16 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Transformer-Coupled Input</p></td>
-<td><p>Mic audio passed through 600-ohm transformer into ADC or amplifier.</p></td>
-<td><ul class="simple">
-<li><p>Isolation</p></li>
-<li><p>Historical fidelity</p></li>
-</ul>
-<p>− Requires amplification stage</p>
-</td>
+<td><p>Audio from the mic is passed through a 600-ohm transformer before amplification.</p></td>
+<td><p>Provides strong electrical isolation and authentic signal characteristics. Requires additional gain circuitry after the transformer.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Preamp with Resistor Matching</p></td>
-<td><p>FET or op-amp gain stage with input resistors matching impedance.</p></td>
-<td><ul class="simple">
-<li><p>Compact and adjustable</p></li>
-</ul>
-<p>− Sensitive to mic type</p>
-</td>
+<td><p>FET or op-amp preamp with input resistors selected to match microphone impedance.</p></td>
+<td><p>Small and easily tunable for different mic types. Susceptible to mismatches and DC biasing issues.</p></td>
 </tr>
 <tr class="row-even"><td><p>Capacitive-Coupled Mic Bias</p></td>
-<td><p>Carbon mic powered with DC bias; signal AC-coupled to ADC or amp.</p></td>
-<td><ul class="simple">
-<li><p>Simulates carbon mic behavior</p></li>
-</ul>
-<p>− May introduce DC offset issues</p>
-</td>
+<td><p>Powers a carbon mic with DC, AC-couples the signal to an amplifier or ADC.</p></td>
+<td><p>Simulates original mic behavior well, but may require fine-tuned biasing and introduce DC offset risks.</p></td>
 </tr>
 </tbody>
 </table>
@@ -243,13 +213,13 @@
 </section>
 <section id="tone-injection-path">
 <h2>Tone Injection Path<a class="headerlink" href="#tone-injection-path" title="Link to this heading"></a></h2>
-<p>In addition to voice, tones (e.g. dial tone, busy signal) must be sent to the earpiece.</p>
+<p>In addition to voice, tones (e.g., dial tone, ringback, busy signal) must be injected into the earpiece path.</p>
 <section id="id3">
 <h3>Circuit Requirements:<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Inject tone signals without disturbing voice transmission circuit.</p></li>
-<li><p>Match impedance and gain to earpiece driver path.</p></li>
-<li><p>Support summing with voice audio if needed.</p></li>
+<li><p>Inject tone signals without disturbing the voice path.</p></li>
+<li><p>Match impedance and signal level to earpiece driver circuit.</p></li>
+<li><p>Support switching or summing strategies.</p></li>
 </ul>
 </section>
 <section id="id4">
@@ -268,28 +238,16 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Analog Summing Network</p></td>
-<td><p>Mix tone and voice at input to transformer or amp.</p></td>
-<td><ul class="simple">
-<li><p>No switching required</p></li>
-</ul>
-<p>− Risk of signal bleed</p>
-</td>
+<td><p>Mix tone and voice signals using passive or active summing network before final driver.</p></td>
+<td><p>Simple and always-on. Can introduce signal bleed-through or require careful gain balancing.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Relay or Analog Switch</p></td>
-<td><p>Select voice or tone signal before amplification.</p></td>
-<td><ul class="simple">
-<li><p>Clear signal path</p></li>
-</ul>
-<p>− Added complexity</p>
-</td>
+<td><p>Uses a mechanical relay or analog mux to select between tone or voice input.</p></td>
+<td><p>Clear signal isolation and full control over path selection. Adds complexity and latency to switching.</p></td>
 </tr>
-<tr class="row-even"><td><p>Dedicated Tone Path</p></td>
-<td><p>Use separate driver for tones, merged at transformer.</p></td>
-<td><ul class="simple">
-<li><p>Full signal isolation</p></li>
-</ul>
-<p>− Higher component count</p>
-</td>
+<tr class="row-even"><td><p>Dedicated Tone Driver</p></td>
+<td><p>Tone signal goes through its own amplifier or transformer and joins the earpiece path later.</p></td>
+<td><p>Clean isolation of tone source and adjustable path. Higher component count and more tuning required.</p></td>
 </tr>
 </tbody>
 </table>
@@ -298,8 +256,8 @@
 <section id="echo-control-consideration">
 <h2>Echo Control Consideration<a class="headerlink" href="#echo-control-consideration" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>While optional, an acoustic echo cancellation (AEC) module or hybrid circuit may be added in analog for improved realism or loopback suppression.</p></li>
-<li><p>Echo mitigation techniques often require four-wire separation of input/output audio, which can be simulated using transformers or op-amp networks.</p></li>
+<li><p>Acoustic echo cancellation (AEC) or analog hybrid circuits may be used to prevent feedback between speaker and microphone.</p></li>
+<li><p>These typically require a four-wire interface or active cancellation circuits, often simulated with transformers or op-amp networks.</p></li>
 </ul>
 </section>
 </section>

@@ -13,12 +13,10 @@ The circuit must support:
 - **Speaking**: Capturing voice from the microphone.
 - **Nominal Line Characteristics**:
 
-  
   - **Impedance**: 600 ohms (balanced)
   - **Voice Bandwidth**: 300 Hz – 3400 Hz
   - **Signal Level**: ~0 dBm transmitted, ~-10 dB received
 
-  
 Circuit Roles
 =============
 
@@ -42,7 +40,6 @@ Circuit Requirements:
 - Isolate the ESP32 system from the analog line.
 - Filter to restrict frequency to 300–3400 Hz.
 
-  
 Design Options:
 ---------------
 
@@ -54,27 +51,15 @@ Design Options:
      - **Description**
      - **Trade-Offs**
    * - Transformer-Coupled Output
-     - Audio signal passed through 600-ohm transformer to the earpiece.
-     - 
-       + Historical accuracy  
-       + Isolation  
-       − Requires output power stage
+     - Audio signal passed through a 600-ohm transformer to the earpiece.
+     - Provides excellent isolation and historical authenticity. Requires an additional power amplifier stage to drive the transformer effectively.
    * - Differential Amplifier Stage
-     - Op-amp or Class-D driver with impedance-matching resistors.
-     - 
-       + Compact  
-       + Easy gain control  
-       − Less historical fidelity  
-       − Requires careful layout
+     - Uses an op-amp or Class-D driver with impedance-matching resistors.
+     - Compact design and easy gain control. However, it lacks historical fidelity and requires careful PCB layout to avoid noise.
    * - Capacitive-Coupled Audio
-     - Uses DC-blocking capacitor with resistive load matching.
-     - 
-       + Simpler  
-       + Small footprint  
-       − Poor isolation  
-       − Less robust against noise
+     - Routes signal through a DC-blocking capacitor with a resistive load.
+     - Very simple and low component count. Limited isolation and more vulnerable to noise and ground loops.
 
-  
 Microphone Path (Transmitting)
 ==============================
 
@@ -89,7 +74,6 @@ Circuit Requirements:
 - Block DC where required.
 - Optional: support single-ended or differential input.
 
-  
 Design Options:
 ---------------
 
@@ -101,36 +85,27 @@ Design Options:
      - **Description**
      - **Trade-Offs**
    * - Transformer-Coupled Input
-     - Mic audio passed through 600-ohm transformer into ADC or amplifier.
-     - 
-       + Isolation  
-       + Historical fidelity  
-       − Requires amplification stage
+     - Audio from the mic is passed through a 600-ohm transformer before amplification.
+     - Provides strong electrical isolation and authentic signal characteristics. Requires additional gain circuitry after the transformer.
    * - Preamp with Resistor Matching
-     - FET or op-amp gain stage with input resistors matching impedance.
-     - 
-       + Compact and adjustable  
-       − Sensitive to mic type
+     - FET or op-amp preamp with input resistors selected to match microphone impedance.
+     - Small and easily tunable for different mic types. Susceptible to mismatches and DC biasing issues.
    * - Capacitive-Coupled Mic Bias
-     - Carbon mic powered with DC bias; signal AC-coupled to ADC or amp.
-     - 
-       + Simulates carbon mic behavior  
-       − May introduce DC offset issues
+     - Powers a carbon mic with DC, AC-couples the signal to an amplifier or ADC.
+     - Simulates original mic behavior well, but may require fine-tuned biasing and introduce DC offset risks.
 
-  
 Tone Injection Path
 ===================
 
-In addition to voice, tones (e.g. dial tone, busy signal) must be sent to the earpiece.
+In addition to voice, tones (e.g., dial tone, ringback, busy signal) must be injected into the earpiece path.
 
 Circuit Requirements:
 ---------------------
 
-- Inject tone signals without disturbing voice transmission circuit.
-- Match impedance and gain to earpiece driver path.
-- Support summing with voice audio if needed.
+- Inject tone signals without disturbing the voice path.
+- Match impedance and signal level to earpiece driver circuit.
+- Support switching or summing strategies.
 
-  
 Design Options:
 ---------------
 
@@ -142,24 +117,18 @@ Design Options:
      - **Description**
      - **Trade-Offs**
    * - Analog Summing Network
-     - Mix tone and voice at input to transformer or amp.
-     - 
-       + No switching required  
-       − Risk of signal bleed
+     - Mix tone and voice signals using passive or active summing network before final driver.
+     - Simple and always-on. Can introduce signal bleed-through or require careful gain balancing.
    * - Relay or Analog Switch
-     - Select voice or tone signal before amplification.
-     - 
-       + Clear signal path  
-       − Added complexity
-   * - Dedicated Tone Path
-     - Use separate driver for tones, merged at transformer.
-     - 
-       + Full signal isolation  
-       − Higher component count
+     - Uses a mechanical relay or analog mux to select between tone or voice input.
+     - Clear signal isolation and full control over path selection. Adds complexity and latency to switching.
+   * - Dedicated Tone Driver
+     - Tone signal goes through its own amplifier or transformer and joins the earpiece path later.
+     - Clean isolation of tone source and adjustable path. Higher component count and more tuning required.
 
-  
 Echo Control Consideration
 ==========================
 
-- While optional, an acoustic echo cancellation (AEC) module or hybrid circuit may be added in analog for improved realism or loopback suppression.
-- Echo mitigation techniques often require four-wire separation of input/output audio, which can be simulated using transformers or op-amp networks.
+- Acoustic echo cancellation (AEC) or analog hybrid circuits may be used to prevent feedback between speaker and microphone.
+- These typically require a four-wire interface or active cancellation circuits, often simulated with transformers or op-amp networks.
+
