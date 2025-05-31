@@ -1,4 +1,3 @@
-==========
 User Guide
 ==========
 
@@ -28,6 +27,14 @@ URL for Internal State
 ----------------------
 
 How to access the Gateway’s internal state and diagnostics via a web browser (local IP address or hostname). Includes example URLs and typical state information available.
+
+Serial Interface
+----------------
+
+Instructions for connecting to the Gateway’s serial port for debugging, setup, or recovery.  
+- Description of the serial jack or header location (back panel, internal header, or both)
+- Default serial parameters (baud rate, data bits, parity, stop bits)
+- Common troubleshooting or recovery procedures via serial console
 
 Log Configuration
 -----------------
