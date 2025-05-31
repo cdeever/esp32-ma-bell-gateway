@@ -51,6 +51,7 @@ Internal Layout Considerations
 ------------------------------
 
 The enclosure must accommodate and isolate:
+
 - **Custom PCB(s)** for power delivery, signal conditioning, and ESP32 control
 - **Audio coupling transformers and opto-isolated circuits**
 - **AC-DC power supply unit** — potentially a small enclosed module or DIN-rail PSU
@@ -62,6 +63,7 @@ Labeling and Aesthetics
 -----------------------
 
 For clarity and authenticity, the enclosure should include:
+
 - Silk-screened or engraved labeling for ports and indicators
 - Iconic "Ma Bell" or Bell System-style typography (optional)
 - A matte black or brushed aluminum finish for a professional appearance
