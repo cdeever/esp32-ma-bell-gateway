@@ -1,5 +1,6 @@
 =================
 Ringer Signaling 
+=================
 
 Most legacy Bell System ringers were designed to respond to approximately 90V RMS sine wave at 20 Hz. While modern designs may attempt to simulate this with lower voltages or simpler signals, the original sound and behavior is best reproduced with a true sine wave.
 

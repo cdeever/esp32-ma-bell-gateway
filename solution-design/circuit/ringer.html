@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Overview &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+  <title>Ringer Signaling &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
@@ -54,9 +54,12 @@
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Design</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="power.html">Power Supplies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#design-options">Design Options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#recommended-direction">Recommended Direction</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Ringer Signaling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#design-options">Design Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#recommended-direction">Recommended Direction</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../software/index.html">Software Design</a></li>
@@ -82,7 +85,7 @@
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../solution-design.html">Solution Design</a></li>
           <li class="breadcrumb-item"><a href="index.html">Circuit Design</a></li>
-      <li class="breadcrumb-item active">Overview</li>
+      <li class="breadcrumb-item active">Ringer Signaling</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/solution-design/circuit/ringer.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -92,9 +95,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <p>Most legacy Bell System ringers were designed to respond to approximately 90V RMS sine wave at 20 Hz. While modern designs may attempt to simulate this with lower voltages or simpler signals, the original sound and behavior is best reproduced with a true sine wave.</p>
+  <section id="ringer-signaling">
+<h1>Ringer Signaling<a class="headerlink" href="#ringer-signaling" title="Link to this heading"></a></h1>
+<p>Most legacy Bell System ringers were designed to respond to approximately 90V RMS sine wave at 20 Hz. While modern designs may attempt to simulate this with lower voltages or simpler signals, the original sound and behavior is best reproduced with a true sine wave.</p>
 <section id="overview">
-<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>All ringer options are expected to follow the standard North American cadence of 2 seconds ON and 4 seconds OFF, repeating for the duration of the ring. The difference lies in how the “ON” segment is energized, and particularly, what waveform is used to drive the ringer coil.</p>
 <p>Below is the target waveform used by historical central office equipment:</p>
 <figure class="align-center" id="id1">
@@ -107,7 +112,7 @@
 <p>Each waveform generation method offers a different level of authenticity and complexity, as described below.</p>
 </section>
 <section id="design-options">
-<h1>Design Options<a class="headerlink" href="#design-options" title="Link to this heading"></a></h1>
+<h2>Design Options<a class="headerlink" href="#design-options" title="Link to this heading"></a></h2>
 <p><strong>Option 1: Square Wave Switching with H-Bridge</strong></p>
 <ul class="simple">
 <li><p>Alternates polarity of 48V DC at 20 Hz to create a square-wave signal.</p></li>
@@ -132,9 +137,10 @@
 </ul>
 </section>
 <section id="recommended-direction">
-<h1>Recommended Direction<a class="headerlink" href="#recommended-direction" title="Link to this heading"></a></h1>
+<h2>Recommended Direction<a class="headerlink" href="#recommended-direction" title="Link to this heading"></a></h2>
 <p>For this project, the transformer-based oscillator approach (Option 3) is preferred. It provides the most authentic ring waveform and adheres closely to historical Bell System practices. While more complex than simple switching, it offers better compatibility with a wider range of legacy ringers and is ideal for a faithful recreation of vintage telephone behavior.</p>
 <p>The final implementation will allow the ESP32 to control the ring cadence by enabling or disabling the oscillator circuit as needed.</p>
+</section>
 </section>
 
 
