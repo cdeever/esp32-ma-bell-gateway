@@ -29,23 +29,23 @@ Back Panel
    :width: 600px
    :align: center
 
-The rear panel must handle all external I/O and power connections:
+The rear panel must handle all external I/O and power connections. The final design includes:
 
-- **Analog Phone Ports**
-  - **RJ45 jacks** for phone line (e.g., use inner pair for standard RJ11 wiring)
-  - Connected internally to circuitry providing ringing voltage, loop current, and rotary pulse decoding
+- **PHONE**  
+  - **RJ45 jack** wired to support analog telephone output
+  - Center pair (Green/Red) provides Tip and Ring for loop current and audio
+  - Outer pair (Yellow/Black) optionally carries **9V AC** to power the illuminated rotary dial lamp, as found in many ITT Slimline and Western Electric phones
+  - Internal circuitry provides ringing voltage, tone generation, and rotary pulse decoding
 
-- **Antenna Ports**
-  - **Bluetooth antenna** — external SMA connector for improved range
-  - **Wi-Fi antenna** — optional second SMA or integrated antenna cutout
-  - Use proper panel-mount pigtail leads to connect SMA to ESP32 U.FL or onboard headers
+- **BT/Wi-Fi Antenna**  
+  - **Single external SMA antenna connector**
+  - The ESP32-WROVER-IE uses a shared RF front-end for both Bluetooth and Wi-Fi
+  - ✅ External antenna connector – The “IE” version includes a u.FL connector for an external antenna, ensuring strong signal coverage throughout the home
 
-- **AC Power Section**
-  - **Dedicated 9V AC input jack** — used exclusively for rotary dial lamp or bell voltage simulation
-  - **Main AC inlet (IEC or barrel jack)** — powers the internal PSU
-  - Internally fused and possibly switched
-
-- **Grounding Lug (optional)** — for proper chassis grounding in vintage-friendly or lab environments
+- **AC Power Inlet**  
+  - **Standard IEC 60320 C14 jack** for main AC input (e.g., 120V/240V)
+  - Powers the internal AC-DC supply that drives all system voltage rails
+  - Internally fused and optionally switchable
 
 Internal Layout Considerations
 ------------------------------

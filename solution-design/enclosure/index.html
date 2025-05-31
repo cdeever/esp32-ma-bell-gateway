@@ -112,20 +112,21 @@
 <h2>Back Panel<a class="headerlink" href="#back-panel" title="Link to this heading"></a></h2>
 <a class="reference internal image-reference" href="../../_images/back-panel.png"><img alt="Ma Bell Gateway Back Panel" class="align-center" src="../../_images/back-panel.png" style="width: 600px;" />
 </a>
-<p>The rear panel must handle all external I/O and power connections:</p>
+<p>The rear panel must handle all external I/O and power connections. The final design includes:</p>
 <ul class="simple">
-<li><p><strong>Analog Phone Ports</strong>
-- <strong>RJ45 jacks</strong> for phone line (e.g., use inner pair for standard RJ11 wiring)
-- Connected internally to circuitry providing ringing voltage, loop current, and rotary pulse decoding</p></li>
-<li><p><strong>Antenna Ports</strong>
-- <strong>Bluetooth antenna</strong> — external SMA connector for improved range
-- <strong>Wi-Fi antenna</strong> — optional second SMA or integrated antenna cutout
-- Use proper panel-mount pigtail leads to connect SMA to ESP32 U.FL or onboard headers</p></li>
-<li><p><strong>AC Power Section</strong>
-- <strong>Dedicated 9V AC input jack</strong> — used exclusively for rotary dial lamp or bell voltage simulation
-- <strong>Main AC inlet (IEC or barrel jack)</strong> — powers the internal PSU
-- Internally fused and possibly switched</p></li>
-<li><p><strong>Grounding Lug (optional)</strong> — for proper chassis grounding in vintage-friendly or lab environments</p></li>
+<li><p><strong>PHONE</strong>
+- <strong>RJ45 jack</strong> wired to support analog telephone output
+- Center pair (Green/Red) provides Tip and Ring for loop current and audio
+- Outer pair (Yellow/Black) optionally carries <strong>9V AC</strong> to power the illuminated rotary dial lamp, as found in many ITT Slimline and Western Electric phones
+- Internal circuitry provides ringing voltage, tone generation, and rotary pulse decoding</p></li>
+<li><p><strong>BT/Wi-Fi Antenna</strong>
+- <strong>Single external SMA antenna connector</strong>
+- The ESP32-WROVER-IE uses a shared RF front-end for both Bluetooth and Wi-Fi
+- ✅ External antenna connector – The “IE” version includes a u.FL connector for an external antenna, ensuring strong signal coverage throughout the home</p></li>
+<li><p><strong>AC Power Inlet</strong>
+- <strong>Standard IEC 60320 C14 jack</strong> for main AC input (e.g., 120V/240V)
+- Powers the internal AC-DC supply that drives all system voltage rails
+- Internally fused and optionally switchable</p></li>
 </ul>
 </section>
 <section id="internal-layout-considerations">
