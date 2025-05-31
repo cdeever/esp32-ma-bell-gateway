@@ -4,6 +4,8 @@ Telephone Service Standards
 
 This section defines the electrical and signaling characteristics of analog telephone service in the United States and Canada, as used from the mid-20th century through the digital transition period. These specifications are rooted in standards developed by the Bell System (AT&T), later formalized by **Bellcore** (now Telcordia), and align with international guidelines from **ITU-T** (e.g., Q.23, Q.24, G.712). The parameters listed below are suitable for projects seeking to recreate the experience of analog telephony as deployed in the **North American Numbering Plan (NANP)** region.
 
+Understanding these standards is critical to the Ma Bell Gateway project, which aims to authentically simulate a legacy landline telephone interface. By replicating the signaling voltages, tones, and user experience of historical telephone service, we can ensure compatibility with real vintage devices and preserve the unmistakable feel of classic analog telephony.
+
 .. note::
    These specifications apply to **the United States and Canada** only. They **do not apply** to Central America, which uses other regional or ITU-based standards. Mexico, while part of NANP, uses some differing tone cadences and voltages and is not fully compatible.
 
@@ -100,4 +102,3 @@ These recordings typically follow SIT tones and indicate a failed or misdialed c
 - "If you need assistance, hang up and dial the operator."
 
 These recordings were standardized by the Bell System and later by regional carriers and independent telcos.
-
