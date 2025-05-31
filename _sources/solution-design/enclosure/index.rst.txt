@@ -1,7 +1,7 @@
 Enclosure Design
 ================
 
-The Ma Bell Bluetooth Gateway is designed to be housed in a 1U 19-inch rackmount enclosure, but beyond its form factor, the enclosure must accommodate a range of functional and electrical components, both legacy and modern. This section outlines the enclosure requirements and the design considerations for each face of the unit.
+The Ma Bell Bluetooth Gateway is designed to be housed in a 1U 19-inch rackmount enclosure. While the system provides support for legacy analog telephones, the internal design is built entirely with modern components. This section outlines the enclosure requirements and the design considerations for each face of the unit.
 
 Front Panel
 -----------
