@@ -145,4 +145,3 @@ Echo Control Consideration
 
 - While optional, an acoustic echo cancellation (AEC) module or hybrid circuit may be added in analog for improved realism or loopback suppression.
 - Echo mitigation techniques often require four-wire separation of input/output audio, which can be simulated using transformers or op-amp networks.
-
