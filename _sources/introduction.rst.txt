@@ -10,7 +10,8 @@ The Ma Bell ESP32 Gateway project began after a visit to the Vintage Computer Fe
    :width: 500px
    :align: center
 
-Seeing those old phones in action brought back vivid memories of my GenX childhood in the 1970s. The wall-mounted phone in the kitchen had a super-long cord that could reach nearly every corner of the room. The illuminated dial would cast a warm orange glow on your cheek as you talked. Just below it was a standalone ringer with oversized twin bells capable of being heard throughout the entire two-story house — the ringer that would inevitably deliver its distinctive “bing... bong” right at 6 o’clock, just as we were sitting down for family dinner.
+
+Seeing those old phones in action brought back vivid memories of my GenX childhood in the 1970s. The wall-mounted phone in the kitchen, with its super-long cord that could stretch across the room, was a constant presence — and when you lifted the handset, the illuminated dial cast a soft orange glow on your cheek. I can still picture the warm glow of the dial lighting up my mom’s face as she talked on the phone while preparing Hamburger Helper in the electric skillet. Just below the phone sat the ringer, with its beige plastic case and oversized twin bells, designed to be heard throughout the entire two-story house. Without fail, it would deliver its distinctive “bing... bong” right at 6 o’clock, just as we were sitting down for family dinner.
 
 After returning home, I browsed eBay for fun and wondered if I might find the same phone and ringer we used to have. Amazingly, I found the exact beige **ITT Trimline** wall phone and a matching **Western Electric** stand-alone ringer — both in near-perfect condition.
 
