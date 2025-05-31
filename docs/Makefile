@@ -30,10 +30,15 @@ publish: html
 		git commit -m "Update docs" && \
 		git push origin gh-pages
 
-.PHONY: check-links
+.PHONY: watch
 
-check-links:
-	@echo "🔎 Scanning for bad toctree references (e.g. 'design/index')..."
-	@grep -r --include="*.rst" -E "\.\. toctree::|^\s+.*\/index$$" source/ || true
-	@echo ""
-	@echo "✅ Tip: Replace paths like 'design/index' with just 'design' in toctrees."
+watch:
+	sphinx-autobuild source _build/html
+
+.PHONY: serve
+
+serve:
+	@$(MAKE) html
+	@echo "Serving documentation at http://localhost:8000"
+	@cd build/html && python3 -m http.server 8000
+	sphinx-autobuild source build/html
