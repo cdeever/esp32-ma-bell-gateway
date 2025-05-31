@@ -52,15 +52,20 @@
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Design</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Power Supplies</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#power-domains">Power Domains</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#power-sizing">Power Sizing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#v-dc-line-voltage-and-ringing">48V DC – Line Voltage and Ringing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#v-ac-dial-illumination">9V AC – Dial Illumination</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#v-5v-dc-esp32-and-peripherals">3.3V / 5V DC – ESP32 and Peripherals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fuse-and-surge-protection">Fuse and Surge Protection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#power-sequencing-and-fault-tolerance">Power Sequencing and Fault Tolerance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mechanical-and-environmental-considerations">Mechanical and Environmental Considerations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#power-routing-and-isolation">Power Routing and Isolation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html">Voice and Tone Audio</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../software/index.html">Software Design</a></li>
@@ -99,6 +104,10 @@
   <section id="power-supplies">
 <h1>Power Supplies<a class="headerlink" href="#power-supplies" title="Link to this heading"></a></h1>
 <p>The Ma Bell Gateway requires multiple voltage sources to support both legacy analog telephone hardware and modern embedded electronics. These supplies must be carefully chosen and isolated where necessary to provide the right voltages for ringer operation, illuminated dial lighting, logic control, and audio processing.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Safety First:</strong> Voltages above 48V can be hazardous. All high-voltage domains should be handled with care, properly isolated, and clearly labeled. This design is intended for experienced builders familiar with electrical safety.</p>
+</div>
 <section id="power-domains">
 <h2>Power Domains<a class="headerlink" href="#power-domains" title="Link to this heading"></a></h2>
 <p>This project uses three distinct power domains:</p>
@@ -109,11 +118,21 @@
 </ol>
 <p>Each serves a specific role in replicating the traditional analog phone experience.</p>
 </section>
+<section id="power-sizing">
+<h2>Power Sizing<a class="headerlink" href="#power-sizing" title="Link to this heading"></a></h2>
+<p>When selecting power supplies, ensure each domain can provide enough current for its worst-case load. Typical requirements are:</p>
+<ul class="simple">
+<li><p><strong>Mechanical ringer:</strong> up to 40 mA (pulsed)</p></li>
+<li><p><strong>Dial illumination:</strong> 10–50 mA (depending on lamp type)</p></li>
+<li><p><strong>ESP32 and peripherals:</strong> 200–500 mA (including WiFi transients, relays, displays, or audio amps)</p></li>
+</ul>
+<p>It is best practice to allow at least 25% overhead above calculated peak loads for safety and future expansion.</p>
+</section>
 <section id="v-dc-line-voltage-and-ringing">
 <h2>48V DC – Line Voltage and Ringing<a class="headerlink" href="#v-dc-line-voltage-and-ringing" title="Link to this heading"></a></h2>
 <p>The 48V DC supply simulates the nominal voltage found on Bell System phone lines when idle. It is applied across the red and green pair of a standard RJ11 connection and serves as the baseline “on-hook” voltage.</p>
-<p>This supply is also used to drive the mechanical ringer. Although traditional ringing voltages were closer to 90V AC, many ringer coils will activate with 48V DC if it is pulsed in a repeating cadence (e.g., 2 seconds on, 4 seconds off). The ESP32 will control this cadence via a relay or solid-state switch, with appropriate electrical isolation.</p>
-<p>Care must be taken to isolate this high-voltage DC from the ESP32 logic, typically through opto-isolators or relays.</p>
+<p>This supply is also used to drive the mechanical ringer. Although traditional ringing voltages were closer to 90V AC, many ringer coils will activate with 48V DC if it is pulsed in a repeating cadence (e.g., 2 seconds on, 4 seconds off). For maximum authenticity, the design could include a step-up converter or waveform generator to provide true 90V AC ringing, but the pulsed 48V DC approach is a practical and safer compromise for most projects.</p>
+<p>The ESP32 will control this cadence via a relay or solid-state switch, with appropriate electrical isolation. <strong>Care must be taken to isolate this high-voltage DC from the ESP32 logic</strong>, typically through opto-isolators or relays.</p>
 </section>
 <section id="v-ac-dial-illumination">
 <h2>9V AC – Dial Illumination<a class="headerlink" href="#v-ac-dial-illumination" title="Link to this heading"></a></h2>
@@ -126,6 +145,19 @@
 <p>The ESP32 requires 3.3V DC to operate, typically provided by a regulator built into its development board or module. If using a bare ESP32-WROVER-IE, an external 3.3V LDO or switching regulator will be required.</p>
 <p>Peripherals such as audio DACs, op-amps, or other digital logic components may require either 3.3V or 5V depending on their interface. Care must be taken to ensure level-shifting is applied if mixing logic levels.</p>
 <p>The ESP32’s onboard regulators can provide limited current on GPIO pins, but any peripherals drawing significant current—such as relays, audio amps, or OLED displays—should receive power directly from the 3.3V or 5V bus, not through GPIO.</p>
+<p><strong>Each power supply should have an isolated ground where possible; high-voltage and low-voltage (logic) grounds should not be directly connected.</strong></p>
+</section>
+<section id="fuse-and-surge-protection">
+<h2>Fuse and Surge Protection<a class="headerlink" href="#fuse-and-surge-protection" title="Link to this heading"></a></h2>
+<p>For safety, include a fast-blow fuse or PTC resettable fuse on each high-voltage supply (48V DC and 9V AC). TVS (transient voltage suppression) diodes on input lines are recommended to guard against surges and accidental miswiring. This adds another layer of protection for both equipment and user.</p>
+</section>
+<section id="power-sequencing-and-fault-tolerance">
+<h2>Power Sequencing and Fault Tolerance<a class="headerlink" href="#power-sequencing-and-fault-tolerance" title="Link to this heading"></a></h2>
+<p>For this design, no special sequencing of power domains is required, but ensure the ESP32 is not exposed to high voltages during power-on or while wiring. Loss of the 9V AC supply will only disable dial illumination; logic and ringer functions will continue. All power circuits should be designed to fail safe.</p>
+</section>
+<section id="mechanical-and-environmental-considerations">
+<h2>Mechanical and Environmental Considerations<a class="headerlink" href="#mechanical-and-environmental-considerations" title="Link to this heading"></a></h2>
+<p>All power supplies and high-voltage circuitry should be housed in a ventilated enclosure, with adequate spacing and creepage/clearance between high- and low-voltage domains. Follow best practices for wiring, mounting, and labeling to support safety and maintenance.</p>
 </section>
 <section id="power-routing-and-isolation">
 <h2>Power Routing and Isolation<a class="headerlink" href="#power-routing-and-isolation" title="Link to this heading"></a></h2>
@@ -134,12 +166,17 @@
 <li><p><strong>Relays</strong> (mechanical or solid-state) for high current or inductive loads</p></li>
 <li><p><strong>Opto-isolators</strong> for low-current signal switching</p></li>
 <li><p><strong>Snubber networks</strong> or flyback diodes where appropriate</p></li>
+<li><p><strong>Fuses</strong> and <strong>TVS diodes</strong> as discussed above</p></li>
 </ul>
 <p>Each supply should be clearly separated on the PCB and wiring harness, with appropriate labeling and spacing to meet safety guidelines.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Careful layout and physical separation of power domains will be addressed in the Hardware Implementation section.</p>
+</div>
 </section>
 <section id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h2>
-<p>The use of multiple, purpose-specific power supplies allows the Ma Bell Gateway to faithfully recreate the behavior of traditional phone equipment while protecting modern digital components. The 48V DC simulates the CO line and drives the ringer, 9V AC lights the rotary dial, and 3.3V or 5V DC powers the ESP32 and its modern electronics.</p>
+<p>The use of multiple, purpose-specific power supplies allows the Ma Bell Gateway to faithfully recreate the behavior of traditional phone equipment while protecting modern digital components. The 48V DC simulates the CO line and drives the ringer (via pulsed DC for safety), 9V AC lights the rotary dial, and 3.3V or 5V DC powers the ESP32 and its peripherals. Proper isolation, surge protection, and routing are essential to prevent high-voltage exposure to sensitive digital circuitry.</p>
 </section>
 </section>
 

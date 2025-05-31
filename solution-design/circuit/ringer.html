@@ -20,7 +20,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Software Design" href="../software/index.html" />
+    <link rel="next" title="Voice and Tone Audio" href="audio.html" />
     <link rel="prev" title="Off-Hook Detection" href="off-hook-detection.html" /> 
 </head>
 
@@ -54,10 +54,15 @@
 <li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Ringer Signaling</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#system-integration">System Integration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#design-options">Design Options</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#recommended-direction">Recommended Direction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ringing-timeout-and-safety">Ringing Timeout and Safety</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#block-diagram">Block Diagram</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html">Voice and Tone Audio</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../software/index.html">Software Design</a></li>
@@ -95,7 +100,7 @@
              
   <section id="ringer-signaling">
 <h1>Ringer Signaling<a class="headerlink" href="#ringer-signaling" title="Link to this heading"></a></h1>
-<p>Most legacy Bell System ringers were designed to respond to approximately 90V RMS sine wave at 20 Hz. While modern designs may attempt to simulate this with lower voltages or simpler signals, the original sound and behavior is best reproduced with a true sine wave.</p>
+<p>Most legacy Bell System ringers were designed to respond to approximately 90V RMS sine wave at 20 Hz. While modern designs may attempt to simulate this with lower voltages or simpler signals, the original sound and behavior is best reproduced with a true sine wave at the standard voltage.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>All ringer options are expected to follow the standard North American cadence of 2 seconds ON and 4 seconds OFF, repeating for the duration of the ring. The difference lies in how the “ON” segment is energized, and particularly, what waveform is used to drive the ringer coil.</p>
@@ -108,6 +113,10 @@
 </figcaption>
 </figure>
 <p>Each waveform generation method offers a different level of authenticity and complexity, as described below.</p>
+</section>
+<section id="system-integration">
+<h2>System Integration<a class="headerlink" href="#system-integration" title="Link to this heading"></a></h2>
+<p>The ESP32 monitors for incoming calls via Bluetooth. When a ring event is detected, it controls the ring cadence (2s ON / 4s OFF) by enabling or disabling the ringer oscillator. Ringing continues until the call is answered (off-hook detected) or terminated. The ESP32 must immediately disable the ring signal if the handset is lifted during ringing (“ring trip”), ensuring safe and correct system behavior.</p>
 </section>
 <section id="design-options">
 <h2>Design Options<a class="headerlink" href="#design-options" title="Link to this heading"></a></h2>
@@ -133,11 +142,50 @@
 <li><p><strong>Advantage:</strong> Closely replicates the way central offices originally generated ringing voltage.</p></li>
 <li><p><strong>Tradeoff:</strong> Slightly more complex analog design; requires sourcing or winding a suitable transformer.</p></li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The transformer in this design provides both the required voltage boost and critical galvanic isolation, protecting both the ESP32 logic and the user from hazardous voltages.</p>
+<p>Most legacy ringers operate best at 90V RMS, but some can respond to lower voltages (60–75V). If using vintage equipment, target the higher end for maximum reliability and authentic sound.</p>
+</div>
 </section>
 <section id="recommended-direction">
 <h2>Recommended Direction<a class="headerlink" href="#recommended-direction" title="Link to this heading"></a></h2>
 <p>For this project, the transformer-based oscillator approach (Option 3) is preferred. It provides the most authentic ring waveform and adheres closely to historical Bell System practices. While more complex than simple switching, it offers better compatibility with a wider range of legacy ringers and is ideal for a faithful recreation of vintage telephone behavior.</p>
 <p>The final implementation will allow the ESP32 to control the ring cadence by enabling or disabling the oscillator circuit as needed.</p>
+</section>
+<section id="ringing-timeout-and-safety">
+<h2>Ringing Timeout and Safety<a class="headerlink" href="#ringing-timeout-and-safety" title="Link to this heading"></a></h2>
+<p>The system needs to implement a <strong>maximum ring timeout</strong> (e.g., 60 seconds), after which ringing is forcibly disabled until reset. This prevents damage or excessive noise in the event of a fault, and avoids excessive wear or overheating of the ringer mechanism.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All high-voltage AC circuitry must be enclosed in a safe, insulated housing with proper clearance and isolation. Follow applicable electrical safety standards and local regulations for high-voltage design and construction.</p>
+</div>
+</section>
+<section id="block-diagram">
+<h2>Block Diagram<a class="headerlink" href="#block-diagram" title="Link to this heading"></a></h2>
+<p>The following diagram shows the flow of the ring signal from the ESP32 through the oscillator and transformer, and into the phone line and ringer:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[ESP32] ---&gt; [Oscillator] ---&gt; [Transformer] ---&gt; [Phone Line / Ringer]
+</pre></div>
+</div>
+<p>The ringer signaling path proceeds as follows:</p>
+<ul class="simple">
+<li><p><strong>ESP32:</strong> Generates timing and cadence signals for ringing events.</p></li>
+<li><p><strong>Oscillator:</strong> Converts the digital control signals into a low-frequency AC waveform (typically 20 Hz).</p></li>
+<li><p><strong>Transformer:</strong> Steps up the AC waveform to the required high voltage (~90V RMS) and provides galvanic isolation.</p></li>
+<li><p><strong>Phone Line / Ringer:</strong> Receives the 20 Hz, 90V RMS AC signal, activating the mechanical bell in a legacy phone.</p></li>
+</ul>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Target waveform: 20 Hz, ~90V RMS sine wave, 2s ON / 4s OFF cadence</p></li>
+<li><p>Use transformer-based oscillator for authenticity and isolation</p></li>
+<li><p>Ring trip: disable signal immediately when phone is answered</p></li>
+<li><p>Enforce maximum ring duration for safety</p></li>
+<li><p>All high-voltage AC must be securely enclosed and labeled</p></li>
+</ul>
+</div></blockquote>
 </section>
 </section>
 
@@ -146,7 +194,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="off-hook-detection.html" class="btn btn-neutral float-left" title="Off-Hook Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../software/index.html" class="btn btn-neutral float-right" title="Software Design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="audio.html" class="btn btn-neutral float-right" title="Voice and Tone Audio" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
