@@ -1,11 +1,67 @@
 Enclosure Design
 ================
 
-The Ma Bell Emulator is housed in a standard 19" rack-mountable chassis, aligning with modern home lab and telecom setups. This form factor allows it to integrate cleanly into existing infrastructure while preserving modularity and accessibility.
+The Ma Bell Bluetooth Gateway is designed to be housed in a 1U 19-inch rackmount enclosure, but beyond its form factor, the enclosure must accommodate a range of functional and electrical components, both legacy and modern. This section outlines the enclosure requirements and the design considerations for each face of the unit.
 
-The device serves as a central analog line emulator for traditional phone wiring throughout the house. While many homes still have legacy phone jacks, this project routes the phone service through RJ-45 connectors, supporting modern structured wiring conventions (e.g., using patch panels or wall plates with RJ-45).
+Front Panel
+-----------
 
-.. toctree::
-   :maxdepth: 1
+The front panel presents the device’s user-facing controls and status indicators. Key elements include:
 
-  
+- **Power button** — momentary switch with integrated LED ring (e.g., 12V or 5V illuminated)
+- **Status LEDs** — at minimum:
+  - `STATUS` (system operational)
+  - `BT` (Bluetooth connection/activity)
+- **Monochrome display** — optional LCD or OLED panel (e.g., I2C 128x32) to show pairing status, call state, or diagnostics
+- **Optional ventilation slots or mesh** — depending on internal power supply heat dissipation
+- **Rack ears** — standard 19" mounting flanges with holes for rack screws
+
+Back Panel
+----------
+
+The rear panel must handle all external I/O and power connections:
+
+- **Analog Phone Ports**
+  - **RJ45 jacks** for phone lines (e.g., use inner pair for standard RJ11 wiring)
+  - Marked clearly as `PHONE 1`, `PHONE 2`, etc.
+  - Connected internally to circuitry providing ringing voltage, loop current, and rotary pulse decoding
+
+- **Antenna Ports**
+  - **Bluetooth antenna** — external SMA connector for improved range
+  - **Wi-Fi antenna** — optional second SMA or integrated antenna cutout
+  - Use proper panel-mount pigtail leads to connect SMA to ESP32 U.FL or onboard headers
+
+- **AC Power Section**
+  - **Dedicated 9V AC input jack** — used exclusively for rotary dial lamp or bell voltage simulation
+  - **Main AC inlet (IEC or barrel jack)** — powers the internal PSU
+  - Internally fused and possibly switched
+
+- **Grounding Lug (optional)** — for proper chassis grounding in vintage-friendly or lab environments
+
+Internal Layout Considerations
+------------------------------
+
+The enclosure must accommodate and isolate:
+- **Custom PCB(s)** for power delivery, signal conditioning, and ESP32 control
+- **Audio coupling transformers and opto-isolated circuits**
+- **AC-DC power supply unit** — potentially a small enclosed module or DIN-rail PSU
+- **Voltage step-up/step-down regulators** — for bell voltage, lamp power, ESP32 logic, etc.
+- **Cable routing paths** — to keep AC and signal wires separated and reduce noise
+- **Standoffs or brackets** — for securely mounting boards and modules
+
+Labeling and Aesthetics
+-----------------------
+
+For clarity and authenticity, the enclosure should include:
+- Silk-screened or engraved labeling for ports and indicators
+- Iconic "Ma Bell" or Bell System-style typography (optional)
+- A matte black or brushed aluminum finish for a professional appearance
+
+Future-Proofing
+---------------
+
+Consider adding:
+- **Ventilation for PSU heat**
+- **Knockouts or blank panel areas** for expansion (e.g., Ethernet, USB debug port, SD card access)
+- **Access panel or removable lid** for serviceability
+

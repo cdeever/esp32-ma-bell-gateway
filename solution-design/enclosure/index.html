@@ -9,7 +9,7 @@
   <title>Enclosure Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=49b16a57" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
@@ -53,7 +53,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html#simultaneous-wi-fi-bluetooth">Simultaneous Wi-Fi + Bluetooth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../circuit/index.html">Circuit Design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../software/index.html">Software Design</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Enclosure Design</a><ul class="simple">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Enclosure Design</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#front-panel">Front Panel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-panel">Back Panel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#internal-layout-considerations">Internal Layout Considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#labeling-and-aesthetics">Labeling and Aesthetics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#future-proofing">Future-Proofing</a></li>
 </ul>
 </li>
 </ul>
@@ -88,10 +93,63 @@
              
   <section id="enclosure-design">
 <h1>Enclosure Design<a class="headerlink" href="#enclosure-design" title="Link to this heading"></a></h1>
-<p>The Ma Bell Emulator is housed in a standard 19” rack-mountable chassis, aligning with modern home lab and telecom setups. This form factor allows it to integrate cleanly into existing infrastructure while preserving modularity and accessibility.</p>
-<p>The device serves as a central analog line emulator for traditional phone wiring throughout the house. While many homes still have legacy phone jacks, this project routes the phone service through RJ-45 connectors, supporting modern structured wiring conventions (e.g., using patch panels or wall plates with RJ-45).</p>
-<div class="toctree-wrapper compound">
-</div>
+<p>The Ma Bell Bluetooth Gateway is designed to be housed in a 1U 19-inch rackmount enclosure, but beyond its form factor, the enclosure must accommodate a range of functional and electrical components, both legacy and modern. This section outlines the enclosure requirements and the design considerations for each face of the unit.</p>
+<section id="front-panel">
+<h2>Front Panel<a class="headerlink" href="#front-panel" title="Link to this heading"></a></h2>
+<p>The front panel presents the device’s user-facing controls and status indicators. Key elements include:</p>
+<ul class="simple">
+<li><p><strong>Power button</strong> — momentary switch with integrated LED ring (e.g., 12V or 5V illuminated)</p></li>
+<li><p><strong>Status LEDs</strong> — at minimum:
+- <cite>STATUS</cite> (system operational)
+- <cite>BT</cite> (Bluetooth connection/activity)</p></li>
+<li><p><strong>Monochrome display</strong> — optional LCD or OLED panel (e.g., I2C 128x32) to show pairing status, call state, or diagnostics</p></li>
+<li><p><strong>Optional ventilation slots or mesh</strong> — depending on internal power supply heat dissipation</p></li>
+<li><p><strong>Rack ears</strong> — standard 19” mounting flanges with holes for rack screws</p></li>
+</ul>
+</section>
+<section id="back-panel">
+<h2>Back Panel<a class="headerlink" href="#back-panel" title="Link to this heading"></a></h2>
+<p>The rear panel must handle all external I/O and power connections:</p>
+<ul class="simple">
+<li><p><strong>Analog Phone Ports</strong>
+- <strong>RJ45 jacks</strong> for phone lines (e.g., use inner pair for standard RJ11 wiring)
+- Marked clearly as <cite>PHONE 1</cite>, <cite>PHONE 2</cite>, etc.
+- Connected internally to circuitry providing ringing voltage, loop current, and rotary pulse decoding</p></li>
+<li><p><strong>Antenna Ports</strong>
+- <strong>Bluetooth antenna</strong> — external SMA connector for improved range
+- <strong>Wi-Fi antenna</strong> — optional second SMA or integrated antenna cutout
+- Use proper panel-mount pigtail leads to connect SMA to ESP32 U.FL or onboard headers</p></li>
+<li><p><strong>AC Power Section</strong>
+- <strong>Dedicated 9V AC input jack</strong> — used exclusively for rotary dial lamp or bell voltage simulation
+- <strong>Main AC inlet (IEC or barrel jack)</strong> — powers the internal PSU
+- Internally fused and possibly switched</p></li>
+<li><p><strong>Grounding Lug (optional)</strong> — for proper chassis grounding in vintage-friendly or lab environments</p></li>
+</ul>
+</section>
+<section id="internal-layout-considerations">
+<h2>Internal Layout Considerations<a class="headerlink" href="#internal-layout-considerations" title="Link to this heading"></a></h2>
+<p>The enclosure must accommodate and isolate:
+- <strong>Custom PCB(s)</strong> for power delivery, signal conditioning, and ESP32 control
+- <strong>Audio coupling transformers and opto-isolated circuits</strong>
+- <strong>AC-DC power supply unit</strong> — potentially a small enclosed module or DIN-rail PSU
+- <strong>Voltage step-up/step-down regulators</strong> — for bell voltage, lamp power, ESP32 logic, etc.
+- <strong>Cable routing paths</strong> — to keep AC and signal wires separated and reduce noise
+- <strong>Standoffs or brackets</strong> — for securely mounting boards and modules</p>
+</section>
+<section id="labeling-and-aesthetics">
+<h2>Labeling and Aesthetics<a class="headerlink" href="#labeling-and-aesthetics" title="Link to this heading"></a></h2>
+<p>For clarity and authenticity, the enclosure should include:
+- Silk-screened or engraved labeling for ports and indicators
+- Iconic “Ma Bell” or Bell System-style typography (optional)
+- A matte black or brushed aluminum finish for a professional appearance</p>
+</section>
+<section id="future-proofing">
+<h2>Future-Proofing<a class="headerlink" href="#future-proofing" title="Link to this heading"></a></h2>
+<p>Consider adding:
+- <strong>Ventilation for PSU heat</strong>
+- <strong>Knockouts or blank panel areas</strong> for expansion (e.g., Ethernet, USB debug port, SD card access)
+- <strong>Access panel or removable lid</strong> for serviceability</p>
+</section>
 </section>
 
 
