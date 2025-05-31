@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+  <title>User Guide &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=edc13519" />
@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Enclosure Design" href="solution-design/enclosure/index.html" /> 
+    <link rel="prev" title="Implementation" href="implementation.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,7 +47,16 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="standards.html">Telephone Service Standards</a></li>
 <li class="toctree-l1"><a class="reference internal" href="solution-design.html">Solution Design</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation.html">Implementation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#wiring-connections">Wiring Connections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bluetooth-syncing">Bluetooth Syncing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-wifi">Setting Up WiFi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#status-screen">Status Screen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#url-for-internal-state">URL for Internal State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#log-configuration">Log Configuration</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -64,7 +73,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Usage</li>
+      <li class="breadcrumb-item active">User Guide</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -74,16 +83,41 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
-<p>Using Ma Bell telephone gateway</p>
+  <section id="user-guide">
+<h1>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading"></a></h1>
+<p>This section provides step-by-step instructions for setting up, configuring, and using the Ma Bell Gateway. Each topic below will guide users through common tasks and troubleshooting.</p>
+<section id="wiring-connections">
+<h2>Wiring Connections<a class="headerlink" href="#wiring-connections" title="Link to this heading"></a></h2>
+<p>Instructions for connecting legacy telephone hardware, ringer modules, power supplies, and the Ma Bell Gateway itself.</p>
+</section>
+<section id="bluetooth-syncing">
+<h2>Bluetooth Syncing<a class="headerlink" href="#bluetooth-syncing" title="Link to this heading"></a></h2>
+<p>How to pair the Ma Bell Gateway with Bluetooth-enabled devices (e.g., mobile phones), including first-time setup and troubleshooting.</p>
+</section>
+<section id="setting-up-wifi">
+<h2>Setting Up WiFi<a class="headerlink" href="#setting-up-wifi" title="Link to this heading"></a></h2>
+<p>Steps to connect the Gateway to your home WiFi network, including network selection, entering credentials, and confirming connectivity.</p>
+</section>
+<section id="status-screen">
+<h2>Status Screen<a class="headerlink" href="#status-screen" title="Link to this heading"></a></h2>
+<p>Overview of the system status indicators (LEDs, OLED, or web UI), including ring/call state, Bluetooth connection, and fault/warning alerts.</p>
+</section>
+<section id="url-for-internal-state">
+<h2>URL for Internal State<a class="headerlink" href="#url-for-internal-state" title="Link to this heading"></a></h2>
+<p>How to access the Gateway’s internal state and diagnostics via a web browser (local IP address or hostname). Includes example URLs and typical state information available.</p>
+</section>
+<section id="log-configuration">
+<h2>Log Configuration<a class="headerlink" href="#log-configuration" title="Link to this heading"></a></h2>
+<p>Instructions for viewing logs via serial console, and options for sending logs to a central server (e.g., syslog, MQTT, or cloud logging integration).</p>
+<p>—</p>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="solution-design/enclosure/index.html" class="btn btn-neutral float-left" title="Enclosure Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="implementation.html" class="btn btn-neutral float-left" title="Implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
