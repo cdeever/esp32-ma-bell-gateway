@@ -22,9 +22,20 @@ After returning home, I browsed eBay for fun and wondered if I might find the sa
    :width: 400px
    :align: center
 
-Opening the box felt like peeling back a layer of history. The ITT Trimline phone, model **25413/BA/30M**, was still wrapped in its original plastic — untouched since it was packaged in **September 1982**, as confirmed by the ink-stamped label on the side: “**BEIGE 9/82 WALL RR**.” After more than 40 years in storage, the phone was in pristine condition — the coiled cord still neatly tucked, the rotary dial crystal clear, and the plastic smelling faintly of the era it came from. The illuminated rotary dial glowed warmly when the handset was lifted — casting that unmistakable orange light on your cheek as you chatted away.
+After returning home, I browsed eBay for fun and wondered if I might find the same phone and ringer we used to have. Amazingly, I came across a beige **ITT Trimline** wall phone that matched exactly what I remembered — complete with an illuminated rotary dial — along with a standalone **Western Electric** ringer, just like the one that sat below our kitchen phone in the 1970s.
 
-The Western Electric ringer was equally authentic — a device not seen since childhood. It was a solid, standalone unit with durable plastic and large twin bells, ready for duty once again.
+**Unboxing a Time Capsule**
+
+.. image:: /_images/slimline-ringer.jpg
+   :alt: ITT Trimline Phone and Ringer
+   :width: 400px
+   :align: center
+
+WWhen the box arrived, it felt like opening a piece of suspended time. The phone was still wrapped in its original factory plastic — untouched since it was packaged in **September 1982**, as marked on the ink-stamped label on the side: “**25413/BA/30M — BEIGE 9/82 WALL RR**.” The coiled cord was neatly bound, the yet to be lit illumincated rotary dial clear and smooth, and the plastic carried that distinct, slightly sweet vintage electronics smell.
+
+On the handset cradle, there was an empty label panel where the phone company would have placed the customer’s number. But this phone never got its home or its number. It has been waiting more than forty years for its first call that has yet to come, but I can fix that!
+
+The Western Electric ringer was equally familiar — a heavy, standalone unit with a durable beige shell and large twin bells, built to cut through the noise of a busy household. It looked ready to ring again.
 
 **Could I build my own device to bring this new-old phone a chance at life?**
 
