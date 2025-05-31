@@ -50,8 +50,7 @@ make html
 
 To view full documentation, including circuit diagrams, signaling waveforms, and hardware hookup details, visit:
 
-📘 **[Project Docs on GitHub Pages](https://yourusername.github.io/ma-bell-gateway/)**  
-*(Replace with your actual GitHub Pages link.)*
+📘 **[Project Docs on GitHub Pages](https://cdeever.github.io/esp32-ma-bell-gateway/index.html)**  
 
 ## Who It's For
 
