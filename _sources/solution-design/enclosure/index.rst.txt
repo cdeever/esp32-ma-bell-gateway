@@ -6,24 +6,33 @@ The Ma Bell Bluetooth Gateway is designed to be housed in a 1U 19-inch rackmount
 Front Panel
 -----------
 
+.. image:: /_images/front-panel.png
+   :alt: Ma Bell Gateway Front Panel
+   :width: 600px
+   :align: center
+
 The front panel presents the device’s user-facing controls and status indicators. Key elements include:
 
 - **Power button** — momentary switch with integrated LED ring (e.g., 12V or 5V illuminated)
 - **Status LEDs** — at minimum:
   - `STATUS` (system operational)
   - `BT` (Bluetooth connection/activity)
-- **Monochrome display** — optional LCD or OLED panel (e.g., I2C 128x32) to show pairing status, call state, or diagnostics
+- **Display** — optional LCD or OLED panel (e.g., I2C 128x32) to show pairing status, call state, or diagnostics
 - **Optional ventilation slots or mesh** — depending on internal power supply heat dissipation
 - **Rack ears** — standard 19" mounting flanges with holes for rack screws
 
 Back Panel
 ----------
 
+.. image:: /_images/back-panel.png
+   :alt: Ma Bell Gateway Back Panel
+   :width: 600px
+   :align: center
+
 The rear panel must handle all external I/O and power connections:
 
 - **Analog Phone Ports**
-  - **RJ45 jacks** for phone lines (e.g., use inner pair for standard RJ11 wiring)
-  - Marked clearly as `PHONE 1`, `PHONE 2`, etc.
+  - **RJ45 jacks** for phone line (e.g., use inner pair for standard RJ11 wiring)
   - Connected internally to circuitry providing ringing voltage, loop current, and rotary pulse decoding
 
 - **Antenna Ports**
@@ -56,12 +65,3 @@ For clarity and authenticity, the enclosure should include:
 - Silk-screened or engraved labeling for ports and indicators
 - Iconic "Ma Bell" or Bell System-style typography (optional)
 - A matte black or brushed aluminum finish for a professional appearance
-
-Future-Proofing
----------------
-
-Consider adding:
-- **Ventilation for PSU heat**
-- **Knockouts or blank panel areas** for expansion (e.g., Ethernet, USB debug port, SD card access)
-- **Access panel or removable lid** for serviceability
-

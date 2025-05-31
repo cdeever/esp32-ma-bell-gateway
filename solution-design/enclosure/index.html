@@ -58,7 +58,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#back-panel">Back Panel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#internal-layout-considerations">Internal Layout Considerations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#labeling-and-aesthetics">Labeling and Aesthetics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#future-proofing">Future-Proofing</a></li>
 </ul>
 </li>
 </ul>
@@ -96,24 +95,27 @@
 <p>The Ma Bell Bluetooth Gateway is designed to be housed in a 1U 19-inch rackmount enclosure, but beyond its form factor, the enclosure must accommodate a range of functional and electrical components, both legacy and modern. This section outlines the enclosure requirements and the design considerations for each face of the unit.</p>
 <section id="front-panel">
 <h2>Front Panel<a class="headerlink" href="#front-panel" title="Link to this heading"></a></h2>
+<a class="reference internal image-reference" href="../../_images/front-panel.png"><img alt="Ma Bell Gateway Front Panel" class="align-center" src="../../_images/front-panel.png" style="width: 600px;" />
+</a>
 <p>The front panel presents the device’s user-facing controls and status indicators. Key elements include:</p>
 <ul class="simple">
 <li><p><strong>Power button</strong> — momentary switch with integrated LED ring (e.g., 12V or 5V illuminated)</p></li>
 <li><p><strong>Status LEDs</strong> — at minimum:
 - <cite>STATUS</cite> (system operational)
 - <cite>BT</cite> (Bluetooth connection/activity)</p></li>
-<li><p><strong>Monochrome display</strong> — optional LCD or OLED panel (e.g., I2C 128x32) to show pairing status, call state, or diagnostics</p></li>
+<li><p><strong>Display</strong> — optional LCD or OLED panel (e.g., I2C 128x32) to show pairing status, call state, or diagnostics</p></li>
 <li><p><strong>Optional ventilation slots or mesh</strong> — depending on internal power supply heat dissipation</p></li>
 <li><p><strong>Rack ears</strong> — standard 19” mounting flanges with holes for rack screws</p></li>
 </ul>
 </section>
 <section id="back-panel">
 <h2>Back Panel<a class="headerlink" href="#back-panel" title="Link to this heading"></a></h2>
+<a class="reference internal image-reference" href="../../_images/back-panel.png"><img alt="Ma Bell Gateway Back Panel" class="align-center" src="../../_images/back-panel.png" style="width: 600px;" />
+</a>
 <p>The rear panel must handle all external I/O and power connections:</p>
 <ul class="simple">
 <li><p><strong>Analog Phone Ports</strong>
-- <strong>RJ45 jacks</strong> for phone lines (e.g., use inner pair for standard RJ11 wiring)
-- Marked clearly as <cite>PHONE 1</cite>, <cite>PHONE 2</cite>, etc.
+- <strong>RJ45 jacks</strong> for phone line (e.g., use inner pair for standard RJ11 wiring)
 - Connected internally to circuitry providing ringing voltage, loop current, and rotary pulse decoding</p></li>
 <li><p><strong>Antenna Ports</strong>
 - <strong>Bluetooth antenna</strong> — external SMA connector for improved range
@@ -142,13 +144,6 @@
 - Silk-screened or engraved labeling for ports and indicators
 - Iconic “Ma Bell” or Bell System-style typography (optional)
 - A matte black or brushed aluminum finish for a professional appearance</p>
-</section>
-<section id="future-proofing">
-<h2>Future-Proofing<a class="headerlink" href="#future-proofing" title="Link to this heading"></a></h2>
-<p>Consider adding:
-- <strong>Ventilation for PSU heat</strong>
-- <strong>Knockouts or blank panel areas</strong> for expansion (e.g., Ethernet, USB debug port, SD card access)
-- <strong>Access panel or removable lid</strong> for serviceability</p>
 </section>
 </section>
 
