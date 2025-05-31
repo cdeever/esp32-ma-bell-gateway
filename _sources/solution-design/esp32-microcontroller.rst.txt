@@ -16,6 +16,7 @@ This module strikes an ideal balance for the Ma Bell Gateway:
 - ✅ **PSRAM (typically 4MB)** – The WROVER series includes external pseudo-static RAM, which can be used for audio buffering, logging, or memory-intensive tasks. While not mandatory for this project, it provides headroom for future expansion.
 - ✅ **FreeRTOS included** – The ESP-IDF framework includes **FreeRTOS** as its built-in real-time operating system and exposes a rich API for multitasking, timers, and inter-task communication. The Ma Bell Gateway uses FreeRTOS to juggle Bluetooth events, off-hook signaling, tone generation, and status updates — all without blocking or missing real-time events.
 - ✅ **External antenna connector** – The “IE” version includes a u.FL connector for an external antenna, ensuring strong signal coverage throughout the home.
+- ✅ **Flexible audio I/O support** – The ESP32 supports multiple options for generating and capturing audio signals. These include I2S for high-quality digital audio, built-in DACs for simple tones, ADC input for analog microphones, and optional support for external audio codecs. This flexibility allows the Ma Bell Gateway to mix modern Bluetooth voice with vintage analog signaling.
 
 Bluetooth Classic vs BLE
 ------------------------
@@ -32,3 +33,26 @@ While Wi-Fi and Bluetooth share the same radio hardware, the ESP32 manages coexi
 - System tasks and phone logic remain responsive, even during heavy traffic.
 
 The ability to reliably run both wireless stacks alongside real-time GPIO handling was a key reason the WROVER-IE was selected.
+
+Audio Output Options
+--------------------
+
+The ESP32 supports several methods of delivering audio output for tones and Bluetooth-transmitted voice:
+
+- **I2S Digital Audio** – Sends high-quality digital audio over GPIO to an external DAC or amplifier. This is the preferred path for both tones and voice. It supports shared audio output, assuming only one source is active at a time.
+- **Built-in DAC (GPIO25/26)** – Offers basic 8-bit analog output. It works well for simple tone generation but lacks fidelity for voice transmission.
+- **PWM (LEDC)** – Uses high-speed pulse-width modulation to simulate analog audio. This is suitable for square-wave tone generation but not recommended for voice.
+- **Dedicated Audio Codec (via I2S)** – Advanced designs may use an external codec (e.g. PCM5102, MAX98357A) to handle both tones and voice with higher quality and proper analog outputs.
+
+Audio output is typically routed to the earpiece via a 600-ohm matching circuit, with optional amplification or transformer coupling depending on the selected driver hardware.
+
+Audio Input Options
+-------------------
+
+Capturing microphone audio for voice transmission over Bluetooth can be done through several methods:
+
+- **I2S Microphone** – A digital microphone (e.g. INMP441) sends raw PCM data over the I2S bus. Offers high clarity with good noise immunity.
+- **Analog Microphone with ADC** – A traditional analog mic is routed through an op-amp or transformer, then fed into one of the ESP32's ADC inputs (e.g. GPIO36–39). This approach is simple but requires careful gain and filtering to avoid distortion.
+- **External Audio Codec with Mic Input** – High-fidelity audio input is possible with an I2S-based codec (e.g. ES8388), which handles mic biasing, gain, and digitization externally.
+
+For the Ma Bell Gateway, the audio input path must interface cleanly with the Bluetooth HFP stack. Circuit design may involve impedance matching, echo mitigation, and DC blocking to ensure reliable voice transmission from a legacy phone microphone.
