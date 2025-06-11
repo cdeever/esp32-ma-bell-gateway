@@ -8,5 +8,7 @@ This section covers the analog and digital circuitry used to emulate POTS behavi
 
    power
    off-hook-detection
+   pulse-dialing-detection
+   dtmf-dialing-detection
    ringer
    audio

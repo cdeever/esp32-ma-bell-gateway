@@ -207,3 +207,4 @@ The implementation will require:
   - Optional use of a **Schmitt trigger or GPIO interrupt** for clean digital transitions
 
 This approach reflects how later-generation COs managed line isolation while providing a practical and safe solution for modern embedded design.
+
