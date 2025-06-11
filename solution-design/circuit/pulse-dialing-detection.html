@@ -1,0 +1,205 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulse Dialing Detection &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Ringer Signaling" href="ringer.html" />
+    <link rel="prev" title="Off-Hook Detection" href="off-hook-detection.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../solution-design.html">Solution Design</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html">ESP32 Microcontroller</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Design</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="power.html">Power Supplies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Pulse Dialing Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#implementation-approaches">Implementation Approaches</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#software-based-pulse-decoding">Software-Based Pulse Decoding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#unfiltered-edge-detection-path">Unfiltered Edge Detection Path</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dedicated-pulse-detection-hardware-optional">Dedicated Pulse Detection Hardware (Optional)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#recommended-approach">Recommended Approach</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html">Voice and Tone Audio</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../software/index.html">Software Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure Design</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../implementation.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../solution-design.html">Solution Design</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Circuit Design</a></li>
+      <li class="breadcrumb-item active">Pulse Dialing Detection</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/solution-design/circuit/pulse-dialing-detection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pulse-dialing-detection">
+<h1>Pulse Dialing Detection<a class="headerlink" href="#pulse-dialing-detection" title="Link to this heading"></a></h1>
+<p>In a rotary phone system, the same signal used for off-hook detection can also be used to decode dialed digits. Rotary dialing works by rapidly toggling the phone’s hook switch—momentarily breaking the loop current—to send a series of timed pulses representing each digit.</p>
+<p>For example:
+- Dialing “5” results in five brief on-hook pulses
+- Dialing “0” results in ten pulses
+- Each pulse is typically 60–70ms OFF followed by 40ms ON</p>
+<figure class="align-center" id="id1">
+<a class="reference internal image-reference" href="../../_images/dial_5_pulse_digits.png"><img alt="Dial pulse pattern for digit 5 with timing annotations" src="../../_images/dial_5_pulse_digits.png" style="width: 600px;" />
+</a>
+<figcaption>
+<p><span class="caption-text"><strong>Pulse Dialing Timing – Digit 5:</strong> Each pulse briefly opens the loop (on-hook) for ~60ms, then closes it again (off-hook) for ~40ms before the next pulse. This process repeats the number of times corresponding to the digit dialed.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>To support pulse dialing, the off-hook detection circuit must do more than just detect steady-state off-hook. It must also observe these rapid transitions and count them accurately.</p>
+<section id="implementation-approaches">
+<h2>Implementation Approaches<a class="headerlink" href="#implementation-approaches" title="Link to this heading"></a></h2>
+<p>Several strategies can be used to detect dial pulses using the same off-hook detection hardware.</p>
+</section>
+<section id="software-based-pulse-decoding">
+<h2>Software-Based Pulse Decoding<a class="headerlink" href="#software-based-pulse-decoding" title="Link to this heading"></a></h2>
+<p>This is the simplest and most flexible method. The off-hook signal is connected to a GPIO pin and monitored in software.</p>
+<ul class="simple">
+<li><p>Configure the pin as an interrupt (or poll it frequently)</p></li>
+<li><p>Watch for falling edges (off-hook → on-hook)</p></li>
+<li><p>Measure the time between transitions</p></li>
+<li><p>Count pulses within a timeout window (~800ms of silence means digit finished)</p></li>
+<li><p>Apply debouncing (e.g. ignore pulses &lt;20ms)</p></li>
+</ul>
+<p><strong>Advantages:</strong>
+- No hardware changes required
+- Easy to tweak behavior in firmware
+- Works with any detection method (optocoupler, relay, etc.)</p>
+<p><strong>Disadvantages:</strong>
+- Requires accurate software timing
+- Susceptible to noise or bounce without filtering</p>
+</section>
+<section id="unfiltered-edge-detection-path">
+<h2>Unfiltered Edge Detection Path<a class="headerlink" href="#unfiltered-edge-detection-path" title="Link to this heading"></a></h2>
+<p>If your off-hook detection circuit includes significant low-pass filtering (e.g., RC filters to avoid false triggers), you may lose the ability to see fast transitions.</p>
+<p>To solve this, you can split the signal path:
+- <strong>One filtered signal</strong> for basic off-hook detection
+- <strong>One unfiltered signal</strong> connected to a fast Schmitt trigger, comparator, or direct GPIO for pulse detection</p>
+<p>This preserves pulse edges while still allowing stable off-hook state monitoring.</p>
+<p><strong>Advantages:</strong>
+- Preserves clean logic level edges
+- Reduces false detections while maintaining responsiveness</p>
+<p><strong>Disadvantages:</strong>
+- Slightly more complex hardware
+- Requires signal buffering or branching</p>
+</section>
+<section id="dedicated-pulse-detection-hardware-optional">
+<h2>Dedicated Pulse Detection Hardware (Optional)<a class="headerlink" href="#dedicated-pulse-detection-hardware-optional" title="Link to this heading"></a></h2>
+<p>For high-reliability or analog-style builds, you may use classic circuits to convert hook pulses into digital edges:</p>
+<ul class="simple">
+<li><p>555-based monostable circuits</p></li>
+<li><p>Differentiator + comparator</p></li>
+<li><p>Commercial dial pulse decoder ICs (rare)</p></li>
+</ul>
+<p>This is typically overkill for a microcontroller-based project, but may be considered for advanced or nostalgic designs.</p>
+</section>
+<section id="recommended-approach">
+<h2>Recommended Approach<a class="headerlink" href="#recommended-approach" title="Link to this heading"></a></h2>
+<p>For this project, pulse detection will be implemented in <strong>software using the optocoupler output signal</strong>. The ESP32 will:</p>
+<ul class="simple">
+<li><p>Count transitions during off-hook state</p></li>
+<li><p>Parse digits from pulse counts</p></li>
+<li><p>Feed the resulting number into the Bluetooth dialer system</p></li>
+</ul>
+<p>This dual-use design leverages the existing detection circuit, avoids redundant hardware, and aligns well with the project’s embedded software architecture.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="off-hook-detection.html" class="btn btn-neutral float-left" title="Off-Hook Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ringer.html" class="btn btn-neutral float-right" title="Ringer Signaling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

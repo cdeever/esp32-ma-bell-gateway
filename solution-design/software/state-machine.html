@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>State Machine &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+  <title>Firmware State Machine &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Enclosure Design" href="../enclosure/index.html" />
-    <link rel="prev" title="Software Design" href="index.html" /> 
+    <link rel="prev" title="Firmware Overview" href="firmware-overview.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,8 +50,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../../solution-design.html">Solution Design</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html">ESP32 Microcontroller</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../circuit/index.html">Circuit Design</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="index.html">Software Design</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">State Machine</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Firmware Design</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="firmware-overview.html">Firmware Overview</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Firmware State Machine</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bluetooth-synchronization-states">Bluetooth Synchronization States</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#call-flow">Call Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#design-notes">Design Notes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure Design</a></li>
@@ -76,8 +82,8 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../solution-design.html">Solution Design</a></li>
-          <li class="breadcrumb-item"><a href="index.html">Software Design</a></li>
-      <li class="breadcrumb-item active">State Machine</li>
+          <li class="breadcrumb-item"><a href="index.html">Firmware Design</a></li>
+      <li class="breadcrumb-item active">Firmware State Machine</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/solution-design/software/state-machine.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -87,18 +93,176 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="state-machine">
-<h1>State Machine<a class="headerlink" href="#state-machine" title="Link to this heading"></a></h1>
-<p>The Ma Bell Emulator state diagram defines the system’s operational states, including idle (on-hook), dialing, call setup, active call, and termination. It models transitions for pulse dialing, Bluetooth connection handling, ringer activation, and tone generation, ensuring seamless integration between the vintage phone, ringer, and a mobile phone via Bluetooth.</p>
-<a class="reference internal image-reference" href="../../_images/state_diagram.png"><img alt="ESP32 Ma Bell State Diagram" class="align-center" src="../../_images/state_diagram.png" style="width: 1000px;" />
+  <section id="firmware-state-machine">
+<h1>Firmware State Machine<a class="headerlink" href="#firmware-state-machine" title="Link to this heading"></a></h1>
+<p>The Ma Bell Gateway firmware is organized around a deterministic state machine that governs the behavior of the system in response to physical events, dialing inputs, and Bluetooth call signaling. These states span power-on initialization, Bluetooth synchronization, and the complete lifecycle of both inbound and outbound calls.</p>
+<p>The diagram below presents the complete high-level state model. It serves as a conceptual reference for understanding how the system behaves during startup, idle periods, dialing sequences, and live call handling.</p>
+<a class="reference internal image-reference" href="../../_images/state_diagram.png"><img alt="Firmware State Diagram" class="align-center" src="../../_images/state_diagram.png" style="width: 600px;" />
 </a>
+<p>The firmware’s behavioral logic can be grouped into three primary categories of state transitions:</p>
+<ol class="arabic simple">
+<li><p><strong>Bluetooth Synchronization</strong> – Managing the link to a paired mobile device.</p></li>
+<li><p><strong>Inbound Call Flow</strong> – Responding to incoming calls with appropriate ringing and answer handling.</p></li>
+<li><p><strong>Outbound Call Flow</strong> – Handling dialing, tone generation, and call initiation from a rotary or DTMF-capable phone.</p></li>
+</ol>
+<p>These categories define the major operating modes of the device and form the foundation for how user input, hardware signals, and Bluetooth events translate into real-world telephone behavior.</p>
+<section id="bluetooth-synchronization-states">
+<h2>Bluetooth Synchronization States<a class="headerlink" href="#bluetooth-synchronization-states" title="Link to this heading"></a></h2>
+<p>Before calls can be made or received, the firmware must establish a connection with a previously paired mobile device. The following table outlines the current and planned Bluetooth sync behavior:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>From State</strong></p></th>
+<th class="head"><p><strong>To State</strong></p></th>
+<th class="head"><p><strong>Triggering Event</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Startup</p></td>
+<td><p>Unsynced</p></td>
+<td><p>Firmware powered on; no active Bluetooth link</p></td>
+</tr>
+<tr class="row-odd"><td><p>Unsynced</p></td>
+<td><p>Searching</p></td>
+<td><p>(Future) Auto-reconnect logic initiated</p></td>
+</tr>
+<tr class="row-even"><td><p>Searching</p></td>
+<td><p>Synced</p></td>
+<td><p>Target device found and Bluetooth connection established</p></td>
+</tr>
+<tr class="row-odd"><td><p>Unsynced</p></td>
+<td><p>Synced</p></td>
+<td><p>Manual pairing completed</p></td>
+</tr>
+<tr class="row-even"><td><p>Synced</p></td>
+<td><p>Unsynced</p></td>
+<td><p>Bluetooth disconnected or device goes out of range</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the current firmware, pairing must be initiated manually. Future updates will introduce auto-resync behavior by scanning for the most recently paired device when unsynced.</p>
+</div>
+</section>
+<section id="call-flow">
+<h2>Call Flow<a class="headerlink" href="#call-flow" title="Link to this heading"></a></h2>
+<p>Once Bluetooth is synced, the system is ready to handle calls. The call flow state machine branches depending on whether a call is inbound or outbound.</p>
+<section id="inbound-call-flow">
+<h3>Inbound Call Flow<a class="headerlink" href="#inbound-call-flow" title="Link to this heading"></a></h3>
+<p>Inbound calls are triggered externally by the mobile device and require minimal user interaction—typically just lifting the handset to answer.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>From State</strong></p></th>
+<th class="head"><p><strong>To State</strong></p></th>
+<th class="head"><p><strong>Triggering Event</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Synced (Idle)</p></td>
+<td><p>Ringing</p></td>
+<td><p>Incoming call detected over Bluetooth</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ringing</p></td>
+<td><p>Connected</p></td>
+<td><p>Handset lifted during ring</p></td>
+</tr>
+<tr class="row-even"><td><p>Ringing</p></td>
+<td><p>Idle</p></td>
+<td><p>Call dismissed or timed out</p></td>
+</tr>
+<tr class="row-odd"><td><p>Connected</p></td>
+<td><p>Call Ended</p></td>
+<td><p>Remote party ends call or handset placed down</p></td>
+</tr>
+<tr class="row-even"><td><p>Call Ended</p></td>
+<td><p>Idle</p></td>
+<td><p>Cleanup complete, call teardown finished</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="outbound-call-flow">
+<h3>Outbound Call Flow<a class="headerlink" href="#outbound-call-flow" title="Link to this heading"></a></h3>
+<p>Outbound calls involve multiple stages: detecting off-hook, collecting a number (via pulse or tone), placing the call, and handling the connection.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>From State</strong></p></th>
+<th class="head"><p><strong>To State</strong></p></th>
+<th class="head"><p><strong>Triggering Event</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Synced (Idle)</p></td>
+<td><p>Off Hook</p></td>
+<td><p>Handset lifted</p></td>
+</tr>
+<tr class="row-odd"><td><p>Off Hook</p></td>
+<td><p>Dial Tone</p></td>
+<td><p>Line seized, dial tone initiated</p></td>
+</tr>
+<tr class="row-even"><td><p>Dial Tone</p></td>
+<td><p>Dialing</p></td>
+<td><p>First digit detected</p></td>
+</tr>
+<tr class="row-odd"><td><p>Dialing</p></td>
+<td><p>Dialing</p></td>
+<td><p>More digits received</p></td>
+</tr>
+<tr class="row-even"><td><p>Dialing</p></td>
+<td><p>Call Initiated</p></td>
+<td><p>Final digit completes valid number</p></td>
+</tr>
+<tr class="row-odd"><td><p>Call Initiated</p></td>
+<td><p>Ringback</p></td>
+<td><p>Call initiated, awaiting answer</p></td>
+</tr>
+<tr class="row-even"><td><p>Ringback</p></td>
+<td><p>Connected</p></td>
+<td><p>Remote party answers</p></td>
+</tr>
+<tr class="row-odd"><td><p>Connected</p></td>
+<td><p>Call Ended</p></td>
+<td><p>Handset placed down or remote hangs up</p></td>
+</tr>
+<tr class="row-even"><td><p>Call Ended</p></td>
+<td><p>Idle</p></td>
+<td><p>Return to ready state</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="design-notes">
+<h2>Design Notes<a class="headerlink" href="#design-notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>All transitions are driven by either physical actions (e.g., handset lifted), signal detections (e.g., rotary pulse or DTMF), or Bluetooth events (e.g., <cite>ESP_HF_CLIENT_AUDIO_STATE_EVT</cite>).</p></li>
+<li><p>Timeouts and error recovery paths always return the firmware to a stable <cite>Idle</cite> or <cite>Unsynced</cite> state.</p></li>
+<li><p>Ringing simulation, tone playback, and voice routing are dynamically enabled or disabled based on the current state.</p></li>
+</ul>
+<p>This model enables the firmware to behave like an authentic analog phone, while ensuring robustness when integrating with modern mobile devices.</p>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Software Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="firmware-overview.html" class="btn btn-neutral float-left" title="Firmware Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../enclosure/index.html" class="btn btn-neutral float-right" title="Enclosure Design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

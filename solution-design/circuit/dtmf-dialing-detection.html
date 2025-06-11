@@ -1,0 +1,265 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DTMF Tone Detection &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Ringer Signaling" href="ringer.html" />
+    <link rel="prev" title="Pulse Dialing Detection" href="pulse-dialing-detection.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../solution-design.html">Solution Design</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html">ESP32 Microcontroller</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Design</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="power.html">Power Supplies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pulse-dialing-detection.html">Pulse Dialing Detection</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">DTMF Tone Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dtmf-tone-grid">DTMF Tone Grid</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#detection-options">Detection Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#esp32-integration">ESP32 Integration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#recommended-approach">Recommended Approach</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#future-enhancements">Future Enhancements</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html">Voice and Tone Audio</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../software/index.html">Software Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure Design</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../implementation.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../solution-design.html">Solution Design</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Circuit Design</a></li>
+      <li class="breadcrumb-item active">DTMF Tone Detection</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/solution-design/circuit/dtmf-dialing-detection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dtmf-tone-detection">
+<h1>DTMF Tone Detection<a class="headerlink" href="#dtmf-tone-detection" title="Link to this heading"></a></h1>
+<p>Dual-Tone Multi-Frequency (DTMF) signaling is used by modern touch-tone telephones to transmit digits over an audio channel. Each button press on the keypad generates a unique combination of two tones—one from a low-frequency group and one from a high-frequency group.</p>
+<p>The Ma Bell Gateway must support detection of DTMF tones in two primary use cases:</p>
+<ul class="simple">
+<li><p>When the user dials a number using a <strong>touch-tone phone keypad</strong> to place an outgoing call</p></li>
+<li><p>When the user sends DTMF tones <strong>during an active Bluetooth call</strong>, such as to interact with automated systems (e.g., voicemail or customer service menus)</p></li>
+</ul>
+<section id="dtmf-tone-grid">
+<h2>DTMF Tone Grid<a class="headerlink" href="#dtmf-tone-grid" title="Link to this heading"></a></h2>
+<p>Each DTMF digit is formed by combining one low-frequency and one high-frequency tone:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p><strong>1209 Hz</strong></p></th>
+<th class="head"><p><strong>1336 Hz</strong></p></th>
+<th class="head"><p><strong>1477 Hz</strong></p></th>
+<th class="head"><p><strong>1633 Hz</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>697 Hz</strong></p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>A</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>770 Hz</strong></p></td>
+<td><p>4</p></td>
+<td><p>5</p></td>
+<td><p>6</p></td>
+<td><p>B</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>852 Hz</strong></p></td>
+<td><p>7</p></td>
+<td><p>8</p></td>
+<td><p>9</p></td>
+<td><p>C</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>941 Hz</strong></p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>0</p></td>
+<td><p>#</p></td>
+<td><p>D</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="detection-options">
+<h2>Detection Options<a class="headerlink" href="#detection-options" title="Link to this heading"></a></h2>
+<p>Several approaches can be used to detect DTMF tones depending on system requirements and available resources.</p>
+<p><strong>Option 1: Software FFT-Based Detection</strong></p>
+<p>This method uses a Fast Fourier Transform (FFT) on blocks of audio samples to detect frequency peaks.</p>
+<ul class="simple">
+<li><p>Capture PCM audio via I2S or ADC</p></li>
+<li><p>Perform FFT over ~40–80ms of data</p></li>
+<li><p>Identify dominant frequency pair</p></li>
+<li><p>Map to keypad digit</p></li>
+</ul>
+<p><strong>Pros:</strong>
+- Flexible and visualizable
+- Uses standard DSP libraries</p>
+<p><strong>Cons:</strong>
+- Heavier CPU load
+- Prone to false positives in noisy environments</p>
+<p><strong>Option 2: Goertzel Algorithm</strong></p>
+<p>A more efficient approach optimized for detecting known fixed frequencies (like DTMF).</p>
+<ul class="simple">
+<li><p>Runs on small audio frames (10–20ms)</p></li>
+<li><p>Computes energy at DTMF-specific frequencies</p></li>
+<li><p>Detects tone pairs with low overhead</p></li>
+</ul>
+<p><strong>Pros:</strong>
+- Highly efficient for microcontrollers
+- Accurate and fast
+- Ideal for streaming audio detection</p>
+<p><strong>Cons:</strong>
+- Slightly more involved to implement than FFT</p>
+<p><strong>Option 3: External DTMF Decoder IC (e.g., MT8870)</strong></p>
+<p>Uses a dedicated hardware chip that decodes audio tones and outputs 4-bit binary values representing digits.</p>
+<ul class="simple">
+<li><p>Analog audio in, digital code out</p></li>
+<li><p>Outputs ready-to-use GPIO signals</p></li>
+</ul>
+<p><strong>Pros:</strong>
+- Zero CPU overhead
+- Hardware-level reliability
+- Simplifies software</p>
+<p><strong>Cons:</strong>
+- Requires additional circuitry
+- May need audio pre-conditioning (amplification/filtering)</p>
+</section>
+<section id="esp32-integration">
+<h2>ESP32 Integration<a class="headerlink" href="#esp32-integration" title="Link to this heading"></a></h2>
+<p>The chosen method will connect to the ESP32 via:</p>
+<ul class="simple">
+<li><p><strong>I2S input</strong>: For FFT or Goertzel-based detection of streaming audio</p></li>
+<li><p><strong>GPIO pins</strong>: If using a decoder IC like MT8870</p></li>
+<li><p><strong>FreeRTOS ring buffers</strong>: To capture and process audio frames efficiently</p></li>
+</ul>
+</section>
+<section id="recommended-approach">
+<h2>Recommended Approach<a class="headerlink" href="#recommended-approach" title="Link to this heading"></a></h2>
+<p>The Ma Bell Gateway will use the <strong>Goertzel algorithm</strong> for DTMF tone detection. It balances efficiency and accuracy, requires no extra hardware, and integrates well with the existing I2S audio path used for Bluetooth audio.</p>
+<p>This allows:</p>
+<ul class="simple">
+<li><p>Real-time tone decoding during active calls</p></li>
+<li><p>Dialing from a touch-tone phone</p></li>
+<li><p>Optional trigger of internal features or actions</p></li>
+</ul>
+</section>
+<section id="future-enhancements">
+<h2>Future Enhancements<a class="headerlink" href="#future-enhancements" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>DTMF tone playback</strong> via sine pair lookup</p></li>
+<li><p><strong>Logging or display</strong> of detected digits</p></li>
+<li><p><strong>In-call DTMF passthrough</strong> if supported by connected device</p></li>
+<li><p><strong>Setup code detection</strong> (e.g., “##42” for debug mode)</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pulse-dialing-detection.html" class="btn btn-neutral float-left" title="Pulse Dialing Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ringer.html" class="btn btn-neutral float-right" title="Ringer Signaling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
