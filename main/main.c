@@ -261,6 +261,53 @@ void app_main(void)
             xEventGroupClearBits(s_wifi_event_group, WIFI_FAIL_BIT);
         }
 
+        if (bits & WIFI_CONNECTED_BIT) {
+            // WiFi is connected, wait for IP address
+            static bool waiting_for_ip = true;
+            static uint32_t ip_wait_start = 0;
+            
+            if (waiting_for_ip) {
+                if (ip_wait_start == 0) {
+                    ip_wait_start = xTaskGetTickCount();
+                    ESP_LOGI(TAG, "WiFi connected, waiting for IP address...");
+                }
+                
+                // Check if we've waited too long (30 seconds)
+                if ((xTaskGetTickCount() - ip_wait_start) > pdMS_TO_TICKS(30000)) {
+                    ESP_LOGW(TAG, "Timeout waiting for IP address");
+                    waiting_for_ip = false;
+                }
+                
+                // Get IP address
+                esp_netif_ip_info_t ip_info;
+                esp_netif_t* netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+                if (esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
+                    if (ip_info.ip.addr != 0) {
+                        ESP_LOGI(TAG, "Got IP address: " IPSTR, IP2STR(&ip_info.ip));
+                        waiting_for_ip = false;
+                    }
+                }
+                
+                if (waiting_for_ip) {
+                    vTaskDelay(pdMS_TO_TICKS(1000));
+                    continue;
+                }
+            }
+
+            // Initialize web server if not already done
+            static bool web_server_initialized = false;
+            if (!web_server_initialized) {
+                ESP_LOGI(TAG, "Initializing web server");
+                ret = web_interface_init();
+                if (ret == ESP_OK) {
+                    web_server_initialized = true;
+                    ESP_LOGI(TAG, "Web server initialized successfully");
+                } else {
+                    ESP_LOGE(TAG, "Failed to initialize web server");
+                }
+            }
+        }
+
         // Main application logic here
         vTaskDelay(pdMS_TO_TICKS(1000));
     }

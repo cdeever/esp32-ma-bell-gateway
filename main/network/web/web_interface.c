@@ -1,15 +1,18 @@
 #include "web_interface.h"
-#include "state/ma_bell_state.h"
+#include "app/state/ma_bell_state.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <esp_log.h>
 #include <string.h>
 #include <inttypes.h>
+#include <esp_http_server.h>
 
-static const char *TAG = "WEB_INTERFACE";
+static const char *TAG = "WEB_IF";
 
 // Server handle
 static httpd_handle_t server = NULL;
+static bool server_running = false;
+static SemaphoreHandle_t server_mutex = NULL;
 
 // HTML content for the main page
 static const char *html_content =
@@ -99,15 +102,59 @@ static const char *html_content =
     "</body>"
     "</html>";
 
+// Error handler for the web server
+static esp_err_t http_error_handler(httpd_req_t *req, httpd_err_code_t err) {
+    ESP_LOGE(TAG, "HTTP error %d occurred", err);
+    
+    // Send error response
+    char error_msg[100];
+    snprintf(error_msg, sizeof(error_msg), "{\"error\":\"HTTP error %d\"}", err);
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_status(req, "500 Internal Server Error");
+    httpd_resp_send(req, error_msg, strlen(error_msg));
+    return ESP_OK;
+}
+
 // Handler for the main HTML page
 static esp_err_t html_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG, "Received request for HTML page");
+    
+    if (!server_running) {
+        ESP_LOGE(TAG, "Server not running when HTML request received");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server not running");
+        return ESP_FAIL;
+    }
+
     httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, html_content, strlen(html_content));
-    return ESP_OK;
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
+    httpd_resp_set_hdr(req, "Pragma", "no-cache");
+    httpd_resp_set_hdr(req, "Expires", "0");
+    
+    esp_err_t ret = httpd_resp_send(req, html_content, strlen(html_content));
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send HTML response");
+    } else {
+        ESP_LOGI(TAG, "Successfully sent HTML response");
+    }
+    return ret;
 }
 
 // Handler for the status JSON endpoint
 static esp_err_t status_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG, "Received request for status");
+    
+    if (!server_running) {
+        ESP_LOGE(TAG, "Server not running when status request received");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server not running");
+        return ESP_FAIL;
+    }
+
+    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        ESP_LOGE(TAG, "Failed to take mutex for status request");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server busy");
+        return ESP_FAIL;
+    }
+
     const ma_bell_state_t* state = ma_bell_state_get();
     char response[512];
     
@@ -155,13 +202,34 @@ static esp_err_t status_handler(httpd_req_t *req) {
              state->system.battery_level,
              state->system.temperature);
 
+    xSemaphoreGive(server_mutex);
+
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, response, strlen(response));
-    return ESP_OK;
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
+    httpd_resp_set_hdr(req, "Pragma", "no-cache");
+    httpd_resp_set_hdr(req, "Expires", "0");
+    
+    esp_err_t ret = httpd_resp_send(req, response, strlen(response));
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send status response");
+    } else {
+        ESP_LOGI(TAG, "Successfully sent status response");
+    }
+    return ret;
 }
 
 // Handler for the tasks JSON endpoint
 static esp_err_t tasks_handler(httpd_req_t *req) {
+    if (!server_running) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server not running");
+        return ESP_FAIL;
+    }
+
+    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server busy");
+        return ESP_FAIL;
+    }
+
     const int max_tasks = 10;
     TaskStatus_t task_array[max_tasks];
     uint32_t total_runtime;
@@ -183,17 +251,55 @@ static esp_err_t tasks_handler(httpd_req_t *req) {
 
     snprintf(response + offset, sizeof(response) - offset, "]");
 
+    xSemaphoreGive(server_mutex);
+
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, response, strlen(response));
-    return ESP_OK;
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
+    httpd_resp_set_hdr(req, "Pragma", "no-cache");
+    httpd_resp_set_hdr(req, "Expires", "0");
+    
+    esp_err_t ret = httpd_resp_send(req, response, strlen(response));
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send tasks response");
+    }
+    return ret;
 }
 
 // Public interface implementation
 esp_err_t web_interface_init(void) {
+    if (server_running) {
+        ESP_LOGW(TAG, "Web server already running");
+        return ESP_OK;
+    }
+
+    // Create mutex for server access
+    server_mutex = xSemaphoreCreateMutex();
+    if (server_mutex == NULL) {
+        ESP_LOGE(TAG, "Failed to create server mutex");
+        return ESP_FAIL;
+    }
+
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_uri_handlers = 8;      // Increase from default
+    config.stack_size = 8192;         // Increase stack size
+    config.core_id = 0;               // Run on core 0
+    config.server_port = 80;          // Standard HTTP port
+    config.ctrl_port = 32768;         // Control port for server management
+    config.send_wait_timeout = 5;     // 5 second timeout for sending responses
+    config.recv_wait_timeout = 5;     // 5 second timeout for receiving requests
+    config.lru_purge_enable = true;   // Enable LRU purge
+    config.max_resp_headers = 8;      // Increase max response headers
+    config.backlog_conn = 5;          // Allow 5 pending connections
+    
+    ESP_LOGI(TAG, "Starting web server on port %d with config:", config.server_port);
+    ESP_LOGI(TAG, "- Stack size: %d", config.stack_size);
+    ESP_LOGI(TAG, "- Max URI handlers: %d", config.max_uri_handlers);
+    ESP_LOGI(TAG, "- Max response headers: %d", config.max_resp_headers);
+    ESP_LOGI(TAG, "- Backlog connections: %d", config.backlog_conn);
     
     if (httpd_start(&server, &config) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start web server!");
+        vSemaphoreDelete(server_mutex);
         return ESP_FAIL;
     }
 
@@ -201,23 +307,78 @@ esp_err_t web_interface_init(void) {
     httpd_uri_t uri_html = {
         .uri = "/",
         .method = HTTP_GET,
-        .handler = html_handler
+        .handler = html_handler,
+        .user_ctx = NULL
     };
     httpd_uri_t uri_status = {
         .uri = "/status",
         .method = HTTP_GET,
-        .handler = status_handler
+        .handler = status_handler,
+        .user_ctx = NULL
     };
     httpd_uri_t uri_tasks = {
         .uri = "/tasks",
         .method = HTTP_GET,
-        .handler = tasks_handler
+        .handler = tasks_handler,
+        .user_ctx = NULL
     };
 
-    httpd_register_uri_handler(server, &uri_html);
-    httpd_register_uri_handler(server, &uri_status);
-    httpd_register_uri_handler(server, &uri_tasks);
+    // Register error handler
+    httpd_register_err_handler(server, HTTPD_404_NOT_FOUND, http_error_handler);
+    httpd_register_err_handler(server, HTTPD_500_INTERNAL_SERVER_ERROR, http_error_handler);
 
-    ESP_LOGI(TAG, "Web server started successfully");
+    // Register URI handlers
+    if (httpd_register_uri_handler(server, &uri_html) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register HTML handler");
+        httpd_stop(server);
+        vSemaphoreDelete(server_mutex);
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "Registered HTML handler for /");
+
+    if (httpd_register_uri_handler(server, &uri_status) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register status handler");
+        httpd_stop(server);
+        vSemaphoreDelete(server_mutex);
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "Registered status handler for /status");
+
+    if (httpd_register_uri_handler(server, &uri_tasks) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register tasks handler");
+        httpd_stop(server);
+        vSemaphoreDelete(server_mutex);
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "Registered tasks handler for /tasks");
+
+    server_running = true;
+    ESP_LOGI(TAG, "Web server started successfully on port %d", config.server_port);
+    return ESP_OK;
+}
+
+esp_err_t web_interface_stop(void) {
+    if (!server_running) {
+        return ESP_OK;
+    }
+
+    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        ESP_LOGE(TAG, "Failed to take server mutex during shutdown");
+        return ESP_FAIL;
+    }
+
+    if (httpd_stop(server) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to stop web server");
+        xSemaphoreGive(server_mutex);
+        return ESP_FAIL;
+    }
+
+    server = NULL;
+    server_running = false;
+    xSemaphoreGive(server_mutex);
+    vSemaphoreDelete(server_mutex);
+    server_mutex = NULL;
+
+    ESP_LOGI(TAG, "Web server stopped successfully");
     return ESP_OK;
 } 

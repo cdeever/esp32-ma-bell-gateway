@@ -2,15 +2,20 @@
 #define __WEB_INTERFACE_H__
 
 #include <esp_http_server.h>
+#include "esp_err.h"
 
 /**
- * @brief Initialize and start the web server
+ * @brief Initialize the web interface
  * 
- * This function initializes the HTTP server and registers all necessary
- * URI handlers for the web interface.
- * 
- * @return ESP_OK on success, ESP_FAIL on failure
+ * @return esp_err_t ESP_OK on success, ESP_FAIL on failure
  */
 esp_err_t web_interface_init(void);
+
+/**
+ * @brief Stop the web interface
+ * 
+ * @return esp_err_t ESP_OK on success, ESP_FAIL on failure
+ */
+esp_err_t web_interface_stop(void);
 
 #endif /* __WEB_INTERFACE_H__ */ 
