@@ -11,41 +11,56 @@
 #include <inttypes.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/event_groups.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "esp_system.h"
 #include "esp_log.h"
 #include "esp_bt.h"
-#include "bt_app_core.h"
 #include "esp_bt_main.h"
 #include "esp_bt_device.h"
 #include "esp_gap_bt_api.h"
-#include "esp_coexist.h" 
 #include "esp_hf_client_api.h"
-#include "bt_app_hf.h"
-#include "gpio_pcm_config.h"
+#include "esp_wifi.h"
+#include "esp_event.h"
+#include "esp_netif.h"
 #include "esp_console.h"
-#include "app_hf_msg_set.h"
-
-#include "tones.h"
-#include "web.h"
+#include "bluetooth/bt_app_core.h"
+#include "bluetooth/bt_app_hf.h"
+#include "app/bluetooth/app_hf_msg_set.h"
 #include "wifi.h"
+#include "storage/storage.h"
+#include "app/tones.h"
+#include "network/web/web_interface.h"
+#include "hardware/gpio_pcm_config.h"
 
 esp_bd_addr_t peer_addr = {0};
 static char peer_bdname[ESP_BT_GAP_MAX_BDNAME_LEN + 1];
 static uint8_t peer_bdname_len;
 
-static const char *TAG = "MAIN";
+static const char *TAG = "main";
 
 static const char remote_device_name[] = "MA BELL";
 
-static char *bda2str(esp_bd_addr_t bda, char *str, size_t size)
+// Default WiFi credentials are now defined in wifi.h
+
+// Maximum number of WiFi connection attempts
+#define MAX_WIFI_CONNECT_ATTEMPTS 3
+
+#define WIFI_CONNECT_TIMEOUT 30  // seconds
+
+// Define the WiFi event group
+static EventGroupHandle_t s_wifi_event_group;
+#define WIFI_CONNECTED_BIT BIT0
+#define WIFI_FAIL_BIT      BIT1
+
+static char *bda2str(const esp_bd_addr_t bda, char *str, size_t size)
 {
     if (bda == NULL || str == NULL || size < 18) {
         return NULL;
     }
 
-    uint8_t *p = bda;
+    const uint8_t *p = bda;
     sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x",
             p[0], p[1], p[2], p[3], p[4], p[5]);
     return str;
@@ -160,153 +175,93 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
     return;
 }
 
-/* event for handler "bt_av_hdl_stack_up */
-enum {
-    BT_APP_EVT_STACK_UP = 0,
-};
+void app_main(void)
+{
+    esp_err_t ret;
 
-/* handler for bluetooth stack enabled events */
-static void bt_hf_client_hdl_stack_evt(uint16_t event, void *p_param);
-
-void app_main(void) {
-
-    ESP_LOGI(TAG, "Starting MA Bell Bluetooth Gateway");
-
-    char bda_str[18] = {0};
-
-    esp_err_t ret = nvs_flash_init();
+    // Initialize NVS
+    ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_LOGI(TAG, "Erasing NVS flash...");
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
 
-    wifi_init_sta();
+    // Initialize storage
+    ESP_ERROR_CHECK(storage_init());
 
-    start_webserver();
+    // Create WiFi event group
+    s_wifi_event_group = xEventGroupCreate();
 
-    i2s_init();
+    // Initialize WiFi
+    ESP_ERROR_CHECK(wifi_init_sta(s_wifi_event_group));
+    
+    // Try to connect to WiFi
+    ret = wifi_connect();
+    if (ret != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to connect to WiFi, will retry in main loop");
+    }
 
-    xTaskCreatePinnedToCore(generate_tone_task, "generate_tone_task", 4096, NULL, 5, NULL, 0);
-
-    current_tone = CALL_WAITING_TONE;   // Start dial tone
-    vTaskDelay(pdMS_TO_TICKS(10000)); // Simulate 5 seconds of playing
-    current_tone = NUM_TONES;   // Stop tone
-
+    // Initialize Bluetooth
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    if ((ret = esp_bt_controller_init(&bt_cfg)) != ESP_OK) {
-        ESP_LOGE(BT_HF_TAG, "%s initialize controller failed: %s", __func__, esp_err_to_name(ret));
-        return;
-    }
+    ESP_ERROR_CHECK(esp_bt_controller_init(&bt_cfg));
+    ESP_ERROR_CHECK(esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT));
+    ESP_ERROR_CHECK(esp_bluedroid_init());
+    ESP_ERROR_CHECK(esp_bluedroid_enable());
 
-    if ((ret = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT)) != ESP_OK) {
-        ESP_LOGE(BT_HF_TAG, "%s enable controller failed: %s", __func__, esp_err_to_name(ret));
-        return;
-    }
+    // Set Bluetooth device name
+    ESP_ERROR_CHECK(esp_bt_gap_set_device_name("MA BELL"));
 
-    esp_bluedroid_config_t bluedroid_cfg = BT_BLUEDROID_INIT_CONFIG_DEFAULT();
-#if (CONFIG_EXAMPLE_SSP_ENABLED == false)
-    bluedroid_cfg.ssp_en = false;
-#endif
-    if ((ret = esp_bluedroid_init_with_cfg(&bluedroid_cfg)) != ESP_OK) {
-        ESP_LOGE(BT_HF_TAG, "%s initialize bluedroid failed: %s", __func__, esp_err_to_name(ret));
-        return;
-    }
+    // Register Bluetooth callback
+    ESP_ERROR_CHECK(esp_bt_gap_register_callback(esp_bt_gap_cb));
+    ESP_ERROR_CHECK(esp_hf_client_register_callback(bt_app_hf_client_cb));
 
-    if ((ret = esp_bluedroid_enable()) != ESP_OK) {
-        ESP_LOGE(BT_HF_TAG, "%s enable bluedroid failed: %s", __func__, esp_err_to_name(ret));
-        return;
-    }
+    // Initialize Bluetooth profiles
+    ESP_ERROR_CHECK(esp_hf_client_init());
 
-    // Set coexistence preference
-    esp_err_t coex_ret = esp_coex_preference_set(ESP_COEX_PREFER_BT);
-    if (coex_ret != ESP_OK) {
-        ESP_LOGE(BT_HF_TAG, "Failed to set coexistence preference: %s", esp_err_to_name(coex_ret));
-    } else {
-        ESP_LOGI(BT_HF_TAG, "Coexistence preference set to BALANCE mode");
-    }
-
-    ESP_LOGI(BT_HF_TAG, "Own address:[%s]", bda2str((uint8_t *)esp_bt_dev_get_address(), bda_str, sizeof(bda_str)));
-    /* create application task */
+    // Start Bluetooth task
     bt_app_task_start_up();
 
-    /* Bluetooth device name, connection mode and profile set up */
-    bt_app_work_dispatch(bt_hf_client_hdl_stack_evt, BT_APP_EVT_STACK_UP, NULL, 0, NULL);
+    // Set PIN code
+    esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_FIXED;
+    esp_bt_pin_code_t pin_code = {'0', '0', '0', '0'};
+    ESP_ERROR_CHECK(esp_bt_gap_set_pin(pin_type, 4, pin_code));
 
-#if CONFIG_BT_HFP_AUDIO_DATA_PATH_PCM
-    /* configure the PCM interface and PINs used */
+    // Set discoverable and connectable mode
+    ESP_ERROR_CHECK(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE));
+
+    // Configure GPIO and PCM
     app_gpio_pcm_io_cfg();
-#endif
 
-    /* configure external chip for acoustic echo cancellation */
-#if ACOUSTIC_ECHO_CANCELLATION_ENABLE
-    app_gpio_aec_io_cfg();
-#endif /* ACOUSTIC_ECHO_CANCELLATION_ENABLE */
-    esp_console_repl_t *repl = NULL;
-    esp_console_repl_config_t repl_config = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
-    esp_console_dev_uart_config_t uart_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
-    repl_config.prompt = "hfp_hf>";
+    // Log Bluetooth address
+    const uint8_t* bt_addr = esp_bt_dev_get_address();
+    char addr_str[18];
+    ESP_LOGI(TAG, "Bluetooth address: %s", bda2str(bt_addr, addr_str, sizeof(addr_str)));
 
-    // init console REPL environment
-    ESP_ERROR_CHECK(esp_console_new_repl_uart(&uart_config, &repl_config, &repl));
+    // Start device discovery
+    ESP_LOGI(TAG, "Starting device discovery...");
+    ESP_ERROR_CHECK(esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, 10, 0));
 
-    /* Register commands */
-    register_hfp_hf();
-    printf("\n ==================================================\n");
-    printf(" |       Steps to test hfp_hf                     |\n");
-    printf(" |                                                |\n");
-    printf(" |  1. Print 'help' to gain overview of commands  |\n");
-    printf(" |  2. Setup a service level connection           |\n");
-    printf(" |  3. Run hfp_hf to test                         |\n");
-    printf(" |                                                |\n");
-    printf(" =================================================\n\n");
+    // Main loop
+    while (1) {
+        // Check WiFi connection status
+        EventBits_t bits = xEventGroupGetBits(s_wifi_event_group);
+        if (!(bits & WIFI_CONNECTED_BIT) && !(bits & WIFI_FAIL_BIT)) {
+            // Still trying to connect, wait a bit
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
 
-    // start console REPL
-    ESP_ERROR_CHECK(esp_console_start_repl(repl));
+        if (bits & WIFI_FAIL_BIT) {
+            // WiFi connection failed, continue without it
+            ESP_LOGW(TAG, "WiFi connection failed, continuing without WiFi");
+            // Clear the failure bit to prevent repeated messages
+            xEventGroupClearBits(s_wifi_event_group, WIFI_FAIL_BIT);
+        }
 
-}
-
-
-static void bt_hf_client_hdl_stack_evt(uint16_t event, void *p_param)
-{
-    ESP_LOGD(BT_HF_TAG, "%s evt %d", __func__, event);
-    switch (event) {
-    case BT_APP_EVT_STACK_UP: {
-        /* set up device name */
-        char *dev_name = "ESP_HFP_HF";
-        esp_bt_gap_set_device_name(dev_name);
-
-        /* register GAP callback function */
-        esp_bt_gap_register_callback(esp_bt_gap_cb);
-        esp_hf_client_register_callback(bt_app_hf_client_cb);
-        esp_hf_client_init();
-
-#if (CONFIG_EXAMPLE_SSP_ENABLED == true)
-    /* Set default parameters for Secure Simple Pairing */
-    esp_bt_sp_param_t param_type = ESP_BT_SP_IOCAP_MODE;
-    esp_bt_io_cap_t iocap = ESP_BT_IO_CAP_IO;
-    esp_bt_gap_set_security_param(param_type, &iocap, sizeof(uint8_t));
-#endif
-
-        esp_bt_pin_type_t pin_type = ESP_BT_PIN_TYPE_FIXED;
-        esp_bt_pin_code_t pin_code;
-        pin_code[0] = '0';
-        pin_code[1] = '0';
-        pin_code[2] = '0';
-        pin_code[3] = '0';
-        esp_bt_gap_set_pin(pin_type, 4, pin_code);
-
-        /* set discoverable and connectable mode, wait to be connected */
-        esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
-
-        /* start device discovery */
-        ESP_LOGI(BT_HF_TAG, "Starting device discovery...");
-        esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, 10, 0);
-        break;
-    }
-    default:
-        ESP_LOGE(BT_HF_TAG, "%s unhandled evt %d", __func__, event);
-        break;
+        // Main application logic here
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

@@ -8,3 +8,4 @@ This section describes the firmware architecture, Bluetooth handling, call logic
 
    firmware-overview
    state-machine
+   input-detection

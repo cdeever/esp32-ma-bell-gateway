@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "esp_hf_client_api.h"
-#include "app_hf_msg_set.h"
+#include "app/bluetooth/app_hf_msg_set.h"
 #include "esp_console.h"
 #include "argtable3/argtable3.h"
 #include "esp_log.h"
