@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>State Management &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Enclosure" href="../enclosure/index.html" />
+    <link rel="prev" title="Architecture" href="architecture.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Implementation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../hardware/index.html">Hardware</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Firmware</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">State Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#key-features">Key Features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#state-categories">State Categories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#thread-safety">Thread Safety</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Implementation</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Firmware</a></li>
+      <li class="breadcrumb-item active">State Management</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/implementation/firmware/state-management.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="state-management">
+<h1>State Management<a class="headerlink" href="#state-management" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The Ma Bell Gateway uses a centralized state management system that provides efficient state tracking and task synchronization. The system is designed around bitmasks for state representation and FreeRTOS task notifications for state change awareness.</p>
+</section>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Bitmask-based State Representation
+- Each state category (phone, bluetooth, network, system) uses an 8-bit mask
+- Each bit represents a specific state condition
+- Multiple states can be active simultaneously</p></li>
+<li><p>State Change Notifications
+- Tasks can register to receive notifications when specific states change
+- Uses FreeRTOS task notifications for efficient task synchronization
+- No polling required - tasks sleep until state changes</p></li>
+</ol>
+</section>
+<section id="state-categories">
+<h2>State Categories<a class="headerlink" href="#state-categories" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Phone State (8 bits)
+- Off hook status
+- Ringing status
+- Dialing status
+- Various tone states</p></li>
+<li><p>Bluetooth State (8 bits)
+- Connection status
+- Call status
+- Audio status
+- Mute states</p></li>
+<li><p>Network State (8 bits)
+- WiFi connection
+- IP acquisition
+- DNS status
+- Web server status</p></li>
+<li><p>System State (8 bits)
+- Initialization status
+- Error conditions
+- Battery status
+- System modes</p></li>
+</ol>
+</section>
+<section id="thread-safety">
+<h2>Thread Safety<a class="headerlink" href="#thread-safety" title="Link to this heading"></a></h2>
+<p>The state engine is designed for use in a multi-threaded environment but requires careful consideration of thread safety. Here are the key points and patterns:</p>
+<section id="state-reading">
+<h3>State Reading<a class="headerlink" href="#state-reading" title="Link to this heading"></a></h3>
+<p>Reading state is thread-safe for individual operations, but when multiple related states need to be read together, use a critical section:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Example of safe multi-state reading</span>
+<span class="n">TaskHandle_t</span><span class="w"> </span><span class="n">current_task</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xTaskGetCurrentTaskHandle</span><span class="p">();</span>
+<span class="n">vTaskSuspendAll</span><span class="p">();</span><span class="w">  </span><span class="c1">// Prevent context switches</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">is_off_hook</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ma_bell_state_phone_bits_set</span><span class="p">(</span><span class="n">PHONE_STATE_OFF_HOOK</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">is_ringing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ma_bell_state_phone_bits_set</span><span class="p">(</span><span class="n">PHONE_STATE_RINGING</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Use both values together...</span>
+<span class="p">}</span>
+<span class="n">xTaskResumeAll</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="state-updates">
+<h3>State Updates<a class="headerlink" href="#state-updates" title="Link to this heading"></a></h3>
+<p>State updates are not atomic - use FreeRTOS primitives for synchronization. For coordinated updates, use a mutex:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Example of safe state updates</span>
+<span class="k">static</span><span class="w"> </span><span class="n">SemaphoreHandle_t</span><span class="w"> </span><span class="n">state_mutex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">update_phone_state</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">xSemaphoreTake</span><span class="p">(</span><span class="n">state_mutex</span><span class="p">,</span><span class="w"> </span><span class="n">portMAX_DELAY</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">pdTRUE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Update multiple related states</span>
+<span class="w">        </span><span class="n">ma_bell_state_update_phone_bits</span><span class="p">(</span><span class="n">PHONE_STATE_OFF_HOOK</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">        </span><span class="n">ma_bell_state_update_phone_bits</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">PHONE_STATE_RINGING</span><span class="p">);</span>
+<span class="w">        </span><span class="n">xSemaphoreGive</span><span class="p">(</span><span class="n">state_mutex</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="notification-handling">
+<h3>Notification Handling<a class="headerlink" href="#notification-handling" title="Link to this heading"></a></h3>
+<p>Notifications are delivered asynchronously. Handle them promptly to prevent task starvation and use timeouts to prevent deadlocks:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Example of safe notification handling</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">notification</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ma_bell_state_wait_for_notification</span><span class="p">(</span>
+<span class="w">        </span><span class="n">NOTIFY_PHONE_STATE_CHANGED</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">NOTIFY_BT_STATE_CHANGED</span><span class="p">,</span>
+<span class="w">        </span><span class="n">pdMS_TO_TICKS</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span><span class="w">  </span><span class="c1">// 1 second timeout</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">notification</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Handle timeout</span>
+<span class="w">        </span><span class="k">continue</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Process notifications</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">notification</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">NOTIFY_PHONE_STATE_CHANGED</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Handle phone state change</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="critical-sections">
+<h3>Critical Sections<a class="headerlink" href="#critical-sections" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Keep critical sections as short as possible</p></li>
+<li><p>Don’t call blocking functions inside critical sections</p></li>
+<li><p>Consider using task notifications for synchronization</p></li>
+</ul>
+</section>
+<section id="common-pitfalls">
+<h3>Common Pitfalls<a class="headerlink" href="#common-pitfalls" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Don’t assume state hasn’t changed between reads</p></li>
+<li><p>Don’t hold locks while waiting for notifications</p></li>
+<li><p>Don’t update state from ISRs (use task notifications)</p></li>
+<li><p>Don’t block in notification handlers</p></li>
+</ul>
+</section>
+<section id="isr-safety">
+<h3>ISR Safety<a class="headerlink" href="#isr-safety" title="Link to this heading"></a></h3>
+<p>State updates from ISRs should use task notifications:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// In ISR</span>
+<span class="n">BaseType_t</span><span class="w"> </span><span class="n">xHigherPriorityTaskWoken</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pdFALSE</span><span class="p">;</span>
+<span class="n">vTaskNotifyGiveFromISR</span><span class="p">(</span><span class="n">state_update_task</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">xHigherPriorityTaskWoken</span><span class="p">);</span>
+<span class="n">portYIELD_FROM_ISR</span><span class="p">(</span><span class="n">xHigherPriorityTaskWoken</span><span class="p">);</span>
+
+<span class="c1">// In task</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">state_update_task</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">pvParameters</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ulTaskNotifyTake</span><span class="p">(</span><span class="n">pdTRUE</span><span class="p">,</span><span class="w"> </span><span class="n">portMAX_DELAY</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Safe to update state here</span>
+<span class="w">            </span><span class="n">ma_bell_state_update_phone_bits</span><span class="p">(</span><span class="n">PHONE_STATE_OFF_HOOK</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Always initialize the state engine before use</p></li>
+<li><p>Use the provided bit manipulation functions instead of direct access</p></li>
+<li><p>Register for notifications early in task initialization</p></li>
+<li><p>Handle state changes promptly to maintain system responsiveness</p></li>
+<li><p>Use appropriate timeouts when waiting for notifications</p></li>
+<li><p>Keep critical sections as short as possible</p></li>
+<li><p>Use mutexes for coordinated state updates</p></li>
+<li><p>Handle ISR state updates through task notifications</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="architecture.html" class="btn btn-neutral float-left" title="Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../enclosure/index.html" class="btn btn-neutral float-right" title="Enclosure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

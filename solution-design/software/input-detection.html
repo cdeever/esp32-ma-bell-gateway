@@ -1,0 +1,195 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Input Detection and Line Signaling &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Enclosure Design" href="../enclosure/index.html" />
+    <link rel="prev" title="Firmware State Machine" href="state-machine.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Solution Design</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html">ESP32 Microcontroller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../circuit/index.html">Circuit Design</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Firmware Design</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="firmware-overview.html">Firmware Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state-machine.html">Firmware State Machine</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Input Detection and Line Signaling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hook-state-detection">Hook State Detection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rotary-pulse-dialing">Rotary Pulse Dialing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dtmf-tone-detection">DTMF Tone Detection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#line-signaling-and-ringing">Line Signaling and Ringing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#display-and-feedback-cues">Display and Feedback Cues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#design-considerations">Design Considerations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure Design</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../implementation/index.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Solution Design</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Firmware Design</a></li>
+      <li class="breadcrumb-item active">Input Detection and Line Signaling</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/solution-design/software/input-detection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="input-detection-and-line-signaling">
+<h1>Input Detection and Line Signaling<a class="headerlink" href="#input-detection-and-line-signaling" title="Link to this heading"></a></h1>
+<p>The Ma Bell Gateway firmware relies on real-world physical and audio signals to determine user intent and call activity. These signals are not just passively observed—they directly <strong>trigger state transitions</strong> within the firmware’s control logic.</p>
+<p>This page outlines how each class of input—hook transitions, rotary pulses, DTMF tones, and incoming ring events—is used to advance the state machine described earlier. These inputs form the dynamic interface between vintage hardware and modern software-driven behavior.</p>
+<section id="hook-state-detection">
+<h2>Hook State Detection<a class="headerlink" href="#hook-state-detection" title="Link to this heading"></a></h2>
+<p>The firmware must reliably detect when the handset is lifted (off-hook) or placed back in the cradle (on-hook). This physical event acts as a gatekeeper for both initiating and terminating calls.</p>
+<ul class="simple">
+<li><p><strong>Off-Hook Transition</strong>: Triggers dial tone and prepares for digit entry.</p></li>
+<li><p><strong>On-Hook Transition</strong>: Cancels dialing, ends a live call, or returns to idle.</p></li>
+<li><p><strong>Debounce Considerations</strong>: Mechanical transitions are noisy; filtering is conceptually required.</p></li>
+</ul>
+<p><em>→ Off-hook triggers transition from `Idle` to `Dial Tone`, or from `Ringing` to `Connected` during incoming calls.</em></p>
+</section>
+<section id="rotary-pulse-dialing">
+<h2>Rotary Pulse Dialing<a class="headerlink" href="#rotary-pulse-dialing" title="Link to this heading"></a></h2>
+<p>Rotary phones encode digits by briefly breaking the line current a number of times equal to the digit being dialed. The firmware must count these “make-break” cycles and convert them to numeric values.</p>
+<ul class="simple">
+<li><p><strong>Digit Encoding</strong>: 1 pulse = digit 1, … 10 pulses = digit 0</p></li>
+<li><p><strong>Timing Constraints</strong>: Pulses follow a predictable cadence (~10 pps), with short gaps between digits.</p></li>
+<li><p><strong>Challenges</strong>: Missed or spurious transitions can corrupt digit interpretation.</p></li>
+</ul>
+<p><em>→ Pulse sequences push the firmware from `Dial Tone` to `Dialing`, with accumulated digits advancing to `Call Initiated` once complete.</em></p>
+</section>
+<section id="dtmf-tone-detection">
+<h2>DTMF Tone Detection<a class="headerlink" href="#dtmf-tone-detection" title="Link to this heading"></a></h2>
+<p>Phones with touch-tone support emit dual-frequency tones that represent digits and control characters. The firmware analyzes incoming audio to detect valid DTMF pairs.</p>
+<ul class="simple">
+<li><p><strong>Tone Pairs</strong>: Each button generates a unique combination of two tones (e.g., 697 + 1209 Hz = “1”)</p></li>
+<li><p><strong>Validation</strong>: Both frequencies must be present simultaneously for a minimum duration.</p></li>
+<li><p><strong>Digit Mapping</strong>: Recognized tone pairs are translated directly to numeric or control values.</p></li>
+</ul>
+<p><em>→ Valid DTMF digits follow the same flow as rotary input, advancing the firmware through `Dialing` to `Call Initiated`.</em></p>
+</section>
+<section id="line-signaling-and-ringing">
+<h2>Line Signaling and Ringing<a class="headerlink" href="#line-signaling-and-ringing" title="Link to this heading"></a></h2>
+<p>In addition to input from the user, the firmware also responds to signaling conditions such as incoming call alerts.</p>
+<ul class="simple">
+<li><p><strong>Incoming Call Detection</strong>: Triggered by Bluetooth event, not line voltage.</p></li>
+<li><p><strong>Ringer Activation</strong>: Firmware instructs hardware to activate the ringer, mimicking legacy ring cadence.</p></li>
+<li><p><strong>Answer Trigger</strong>: Handset pickup during ring transitions the system into connected state.</p></li>
+</ul>
+<p><em>→ Incoming ring triggers a move from `Idle` to `Ringing`; pickup transitions to `Connected`.</em></p>
+</section>
+<section id="display-and-feedback-cues">
+<h2>Display and Feedback Cues<a class="headerlink" href="#display-and-feedback-cues" title="Link to this heading"></a></h2>
+<p>While not required for core signaling, the firmware also updates the front panel display in response to input events.</p>
+<ul class="simple">
+<li><p><strong>Digit Display</strong>: Shows pulse or tone digits as they are received</p></li>
+<li><p><strong>State Feedback</strong>: Indicates transitions like “Dialing,” “Connected,” or “Call Ended”</p></li>
+<li><p><strong>Error Prompts</strong>: Optional messaging for incomplete numbers or timeouts</p></li>
+</ul>
+<p><em>→ Display updates reflect current firmware state and serve as a visual interface for both user feedback and debugging.</em></p>
+</section>
+<section id="design-considerations">
+<h2>Design Considerations<a class="headerlink" href="#design-considerations" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Input detection must be tolerant of imperfect signals while still responsive.</p></li>
+<li><p>Different input modes (pulse vs. tone) must be treated uniformly at the behavioral level.</p></li>
+<li><p>All input ultimately serves to drive the state machine described in the previous section, maintaining a clear separation between physical signal interpretation and firmware decision logic.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="state-machine.html" class="btn btn-neutral float-left" title="Firmware State Machine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../enclosure/index.html" class="btn btn-neutral float-right" title="Enclosure Design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

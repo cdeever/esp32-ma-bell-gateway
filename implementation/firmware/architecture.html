@@ -1,0 +1,214 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firmware Architecture &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="State Management" href="state-management.html" />
+    <link rel="prev" title="Firmware" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Implementation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../hardware/index.html">Hardware</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Firmware</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Firmware Architecture</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#design-principles">Design Principles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#directory-layout">Directory Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-responsibilities">Module Responsibilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#development-guidelines">Development Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="state-management.html">State Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Implementation</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Firmware</a></li>
+      <li class="breadcrumb-item active">Firmware Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/implementation/firmware/architecture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="firmware-architecture">
+<h1>Firmware Architecture<a class="headerlink" href="#firmware-architecture" title="Link to this heading"></a></h1>
+<section id="design-principles">
+<h2>Design Principles<a class="headerlink" href="#design-principles" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Separation of Concerns:</strong> Each module focuses on a single responsibility—hardware, protocol, state, business logic, or UI.</p></li>
+<li><p><strong>Explicit APIs:</strong> Modules communicate through clear interfaces.</p></li>
+<li><p><strong>Scalability:</strong> Structure supports adding new features (web endpoints, hardware interfaces, state transitions) without creating spaghetti code.</p></li>
+<li><p><strong>Testability:</strong> Isolated logic is testable without hardware.</p></li>
+</ul>
+</section>
+<section id="directory-layout">
+<h2>Directory Layout<a class="headerlink" href="#directory-layout" title="Link to this heading"></a></h2>
+<p>The Ma Bell Gateway firmware is organized into logical modules and directories:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>main/
+  app/          # Application logic, state machine, and event coordination
+  hardware/     # Phone line, GPIO, tones, analog/digital hardware interface
+  bluetooth/    # Bluetooth stack, Hands-Free Profile (HFP), and related protocols
+  network/      # Wi-Fi management and web interface (REST API, device status)
+  storage/      # Persistent storage of configuration and device settings
+  platform/     # ESP32/RTOS-specific glue code and project entry point
+  include/      # Public headers (optional, if using)
+  CMakeLists.txt
+</pre></div>
+</div>
+</section>
+<section id="module-responsibilities">
+<h2>Module Responsibilities<a class="headerlink" href="#module-responsibilities" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>app/</strong></dt><dd><ul class="simple">
+<li><p>Contains the application’s core logic, including the state machine, event system, and all “business logic.”</p></li>
+<li><p>Coordinates between hardware, Bluetooth, network, and user interfaces.</p></li>
+</ul>
+</dd>
+<dt><strong>hardware/</strong></dt><dd><ul class="simple">
+<li><p>Manages all interaction with the physical hardware:
+- Pin configuration (GPIO, PCM/I2S)
+- Analog phone line interfacing (off-hook/ring detect, pulse dial)
+- Generation of all telephony tones and lamp/relay control</p></li>
+<li><p>Abstracts hardware details from application logic.</p></li>
+</ul>
+</dd>
+<dt><strong>bluetooth/</strong></dt><dd><ul class="simple">
+<li><p>Implements all Bluetooth functionality, including:
+- Stack integration
+- Hands-Free Profile (HFP) protocol handling
+- Audio routing and call event management</p></li>
+<li><p>Provides a clear API for application modules to initiate or respond to Bluetooth events.</p></li>
+</ul>
+</dd>
+<dt><strong>network/</strong></dt><dd><ul class="simple">
+<li><p>Responsible for network connectivity and device management:
+- Wi-Fi provisioning, status, and reconnection
+- Web server and REST API endpoints for status monitoring, configuration, and control</p></li>
+</ul>
+</dd>
+<dt><strong>storage/</strong></dt><dd><ul class="simple">
+<li><p>Provides persistent storage for configuration data (such as paired device info and user settings)</p></li>
+<li><p>Abstracts the ESP32’s NVS (non-volatile storage) details behind a simple interface</p></li>
+</ul>
+</dd>
+<dt><strong>platform/</strong></dt><dd><ul class="simple">
+<li><p>Contains project entry points and ESP32/RTOS glue:
+- Main firmware boot/init
+- Task registration and synchronization
+- Component registration (build system integration)</p></li>
+</ul>
+</dd>
+<dt><strong>include/</strong></dt><dd><ul class="simple">
+<li><p>Optionally holds public header files for modules that require global access</p></li>
+<li><p>Helps decouple modules and simplify dependency management</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="development-guidelines">
+<h2>Development Guidelines<a class="headerlink" href="#development-guidelines" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>New features</strong> should be added in the most appropriate module or directory—never spread logic across unrelated areas.</p></li>
+<li><p><strong>APIs</strong> between modules must be explicit and documented in header files.</p></li>
+<li><p><strong>Hardware and protocol details</strong> should be abstracted away from core application logic.</p></li>
+<li><p><strong>All project documentation and this architecture page should be updated as you refactor and extend the codebase.</strong></p></li>
+</ul>
+<p>By following this structure, the Ma Bell Gateway firmware will be maintainable, testable, and easy for new contributors to understand.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Firmware" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="state-management.html" class="btn btn-neutral float-right" title="State Management" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

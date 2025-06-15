@@ -1,14 +1,14 @@
 Circuit Design
 ==============
-
-This section covers the analog and digital circuitry used to emulate POTS behavior.
+This section details the circuit design for the Ma Bell Gateway.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :caption: Contents:
 
    power
-   off-hook-detection
-   pulse-dialing-detection
-   dtmf-dialing-detection
-   ringer
    audio
+   ringer
+   off-hook-detection
+   dtmf-dialing-detection
+   pulse-dialing-detection

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Firmware Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+  <title>Hardware &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
@@ -20,8 +20,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Firmware Overview" href="firmware-overview.html" />
-    <link rel="prev" title="Pulse Dialing Detection" href="../circuit/pulse-dialing-detection.html" /> 
+    <link rel="next" title="Pin Assignments" href="pin-assignments.html" />
+    <link rel="prev" title="Implementation" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,19 +47,16 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Solution Design</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html">ESP32 Microcontroller</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../circuit/index.html">Circuit Design</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Firmware Design</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="firmware-overview.html">Firmware Overview</a></li>
-<li class="toctree-l3"><a class="reference internal" href="state-machine.html">Firmware State Machine</a></li>
-<li class="toctree-l3"><a class="reference internal" href="input-detection.html">Input Detection and Line Signaling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Implementation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Hardware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pin-assignments.html">Pin Assignments</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../firmware/index.html">Firmware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../implementation/index.html">Implementation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
 </ul>
 
@@ -77,10 +74,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../index.html">Solution Design</a></li>
-      <li class="breadcrumb-item active">Firmware Design</li>
+          <li class="breadcrumb-item"><a href="../index.html">Implementation</a></li>
+      <li class="breadcrumb-item active">Hardware</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/solution-design/software/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/implementation/hardware/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -88,14 +85,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="firmware-design">
-<h1>Firmware Design<a class="headerlink" href="#firmware-design" title="Link to this heading"></a></h1>
-<p>This section describes the firmware architecture, Bluetooth handling, call logic, and audio processing within the Ma Bell Project.</p>
+  <section id="hardware">
+<h1>Hardware<a class="headerlink" href="#hardware" title="Link to this heading"></a></h1>
+<p>This section covers the electronic components, circuit design, wiring, and PCB layout required to assemble the Ma Bell Gateway.</p>
+<ul class="simple">
+<li><p><strong>Bill of Materials (BOM):</strong>
+List all required parts, including power supplies, microcontroller (ESP32), relays, optocouplers, transformers, connectors, and legacy phone hardware.</p></li>
+<li><p><strong>Schematic and Wiring:</strong>
+Provide schematics and wiring diagrams for the main power domains, off-hook detection, ringer signaling, and audio path.</p></li>
+<li><p><strong>PCB Layout:</strong>
+Discuss any custom PCB(s) used, highlighting isolation gaps, mounting holes, and connector placement. Include Gerber files or references to open-source layouts if available.</p></li>
+<li><p><strong>Assembly Notes:</strong>
+Give tips for soldering, cable management, testing for shorts/opens, and verifying voltages before applying power to vintage hardware.</p></li>
+</ul>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="firmware-overview.html">Firmware Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="state-machine.html">Firmware State Machine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="input-detection.html">Input Detection and Line Signaling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pin-assignments.html">Pin Assignments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pin-assignments.html#esp32-wrover-ie-pin-configuration">ESP32-WROVER-IE Pin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pin-assignments.html#power-and-ground-pins">Power and Ground Pins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pin-assignments.html#notes">Notes</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
@@ -104,8 +115,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../circuit/pulse-dialing-detection.html" class="btn btn-neutral float-left" title="Pulse Dialing Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="firmware-overview.html" class="btn btn-neutral float-right" title="Firmware Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../index.html" class="btn btn-neutral float-left" title="Implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pin-assignments.html" class="btn btn-neutral float-right" title="Pin Assignments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

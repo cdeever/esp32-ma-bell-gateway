@@ -47,22 +47,22 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../../solution-design.html">Solution Design</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Solution Design</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../esp32-microcontroller.html">ESP32 Microcontroller</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Circuit Design</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="power.html">Power Supplies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pulse-dialing-detection.html">Pulse Dialing Detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dtmf-dialing-detection.html">DTMF Tone Detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="audio.html">Voice and Tone Audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dtmf-dialing-detection.html">DTMF Tone Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pulse-dialing-detection.html">Pulse Dialing Detection</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../software/index.html">Software Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../software/index.html">Firmware Design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure Design</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../implementation.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../implementation/index.html">Implementation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
 </ul>
 
@@ -80,7 +80,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../../solution-design.html">Solution Design</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Solution Design</a></li>
       <li class="breadcrumb-item active">Circuit Design</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/solution-design/circuit/index.rst.txt" rel="nofollow"> View page source</a>
@@ -93,15 +93,72 @@
              
   <section id="circuit-design">
 <h1>Circuit Design<a class="headerlink" href="#circuit-design" title="Link to this heading"></a></h1>
-<p>This section covers the analog and digital circuitry used to emulate POTS behavior.</p>
+<p>This section details the circuit design for the Ma Bell Gateway.</p>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="power.html">Power Supplies</a></li>
-<li class="toctree-l1"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pulse-dialing-detection.html">Pulse Dialing Detection</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dtmf-dialing-detection.html">DTMF Tone Detection</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="audio.html">Voice and Tone Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="power.html">Power Supplies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="power.html#power-domains">Power Domains</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#power-sizing">Power Sizing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#v-dc-line-voltage-and-ringing">48V DC – Line Voltage and Ringing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#v-ac-dial-illumination">9V AC – Dial Illumination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#v-5v-dc-esp32-and-peripherals">3.3V / 5V DC – ESP32 and Peripherals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#fuse-and-surge-protection">Fuse and Surge Protection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#power-sequencing-and-fault-tolerance">Power Sequencing and Fault Tolerance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#mechanical-and-environmental-considerations">Mechanical and Environmental Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#power-routing-and-isolation">Power Routing and Isolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Voice and Tone Audio</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#circuit-roles">Circuit Roles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#earpiece-path-receiving">Earpiece Path (Receiving)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#microphone-path-transmitting">Microphone Path (Transmitting)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#tone-injection-path">Tone Injection Path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#echo-control-consideration">Echo Control Consideration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ringer.html">Ringer Signaling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ringer.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ringer.html#system-integration">System Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ringer.html#design-options">Design Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ringer.html#recommended-direction">Recommended Direction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ringer.html#ringing-timeout-and-safety">Ringing Timeout and Safety</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ringer.html#block-diagram">Block Diagram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ringer.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#system-behavior">System Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#electrical-detection-principle">Electrical Detection Principle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#historical-framing">Historical Framing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#detection-approach-options">Detection Approach Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#behavior-performance">Behavior &amp; Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#safety-power-integration">Safety, Power &amp; Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#complexity-cost-final-score">Complexity, Cost &amp; Final Score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#best-choice-based-on-score">Best Choice Based on Score</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#debouncing-and-safety">Debouncing and Safety</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#signal-flow-overview">Signal Flow Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="off-hook-detection.html#final-thoughts">Final Thoughts</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dtmf-dialing-detection.html">DTMF Tone Detection</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dtmf-dialing-detection.html#dtmf-tone-grid">DTMF Tone Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dtmf-dialing-detection.html#detection-options">Detection Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dtmf-dialing-detection.html#esp32-integration">ESP32 Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dtmf-dialing-detection.html#recommended-approach">Recommended Approach</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dtmf-dialing-detection.html#future-enhancements">Future Enhancements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pulse-dialing-detection.html">Pulse Dialing Detection</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pulse-dialing-detection.html#implementation-approaches">Implementation Approaches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pulse-dialing-detection.html#software-based-pulse-decoding">Software-Based Pulse Decoding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pulse-dialing-detection.html#unfiltered-edge-detection-path">Unfiltered Edge Detection Path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pulse-dialing-detection.html#dedicated-pulse-detection-hardware-optional">Dedicated Pulse Detection Hardware (Optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pulse-dialing-detection.html#recommended-approach">Recommended Approach</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
