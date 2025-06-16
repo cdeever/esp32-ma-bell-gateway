@@ -5,8 +5,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "tones.h"
+#include "pin_assignments.h"
+#include "esp_log.h"
+#include "driver/gpio.h"
 
 #define PLAY_DURATION 5 // Play each tone for 5 seconds
+
+static const char *TAG = "tones";
 
 // Define the tones
 tone_t tones[NUM_TONES] = {
@@ -27,30 +32,33 @@ volatile tone_type_t current_tone = NUM_TONES;  // Default: no tone playing
 i2s_chan_handle_t tx_handle;  // Handle for the I2S TX channel
 
 void i2s_init(void) {
-    // 1️⃣ Create the I2S TX channel
-    i2s_chan_config_t i2s_chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
-    ESP_ERROR_CHECK(i2s_new_channel(&i2s_chan_cfg, &tx_handle, NULL));
-
-    // 2️⃣ Configure standard I2S settings (GPIO, clock, slot format)
-    i2s_std_config_t i2s_std_cfg = {
-        .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG(16000),  // 16kHz sample rate
+    // I2S channel configuration
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
+    
+    // I2S standard configuration
+    i2s_std_config_t std_cfg = {
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(8000),
         .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO),
         .gpio_cfg = {
             .mclk = GPIO_NUM_0,   // Set MCLK if needed
-            .bclk = GPIO_NUM_26,  // Replace with actual BCLK pin
-            .ws   = GPIO_NUM_25,  // Replace with actual WS (LRCLK) pin
-            .dout = GPIO_NUM_22,  // Replace with actual Data Out pin
-            .din  = I2S_GPIO_UNUSED,  // Not needed for TX-only mode
-        }
+            .bclk = PIN_PCM_CLK_OUT,  // BCLK pin
+            .ws   = PIN_PCM_FSYNC,    // WS (LRCLK) pin
+            .dout = PIN_PCM_DOUT,     // Data Out pin
+            .din  = PIN_PCM_DIN,      // Data In pin
+            .invert_flags = {
+                .mclk_inv = false,
+                .bclk_inv = false,
+                .ws_inv = false,
+            },
+        },
     };
 
-    // 3️⃣ Apply the standard configuration to the I2S channel
-    ESP_ERROR_CHECK(i2s_channel_init_std_mode(tx_handle, &i2s_std_cfg));
-
-    // 4️⃣ Enable the I2S channel
+    // Install and start I2S driver
+    ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, &tx_handle, NULL));
+    ESP_ERROR_CHECK(i2s_channel_init_std_mode(tx_handle, &std_cfg));
     ESP_ERROR_CHECK(i2s_channel_enable(tx_handle));
+    ESP_LOGI(TAG, "I2S initialized successfully");
 }
-
 
 void generate_tone_task(void *param) {
 

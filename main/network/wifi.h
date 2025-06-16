@@ -26,8 +26,9 @@
 #define WIFI_FAIL_BIT      BIT1
 
 // Default WiFi credentials
-#define DEFAULT_WIFI_SSID "wifi-ssid"
-#define DEFAULT_WIFI_PASS "wifi-pass"
+#define DEFAULT_WIFI_SSID "DVNT-CORE"
+#define DEFAULT_WIFI_PASS "0l1v3r80"
+
 
 /**
  * @brief Initialize WiFi in station mode

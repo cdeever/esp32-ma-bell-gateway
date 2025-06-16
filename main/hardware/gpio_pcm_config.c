@@ -9,11 +9,13 @@
 #include "soc/gpio_sig_map.h"
 #include "gpio_pcm_config.h"
 #include "esp_rom_gpio.h"
+#include "pin_assignments.h"
 
-#define GPIO_OUTPUT_PCM_FSYNC      (25)
-#define GPIO_OUTPUT_PCM_CLK_OUT    (5)
-#define GPIO_OUTPUT_PCM_DOUT       (26)
-#define GPIO_INPUT_PCM_DIN         (35)
+// Use our centralized pin assignments
+#define GPIO_OUTPUT_PCM_FSYNC      PIN_PCM_FSYNC
+#define GPIO_OUTPUT_PCM_CLK_OUT    PIN_PCM_CLK_OUT
+#define GPIO_OUTPUT_PCM_DOUT       PIN_PCM_DOUT
+#define GPIO_INPUT_PCM_DIN         PIN_PCM_DIN
 
 #define GPIO_OUTPUT_PCM_PIN_SEL  ((1ULL<<GPIO_OUTPUT_PCM_FSYNC) | (1ULL<<GPIO_OUTPUT_PCM_CLK_OUT) | (1ULL<<GPIO_OUTPUT_PCM_DOUT))
 
@@ -58,9 +60,10 @@ void app_gpio_pcm_io_cfg(void)
 
 #if ACOUSTIC_ECHO_CANCELLATION_ENABLE
 
-#define GPIO_OUTPUT_AEC_1      (19)
-#define GPIO_OUTPUT_AEC_2      (21)
-#define GPIO_OUTPUT_AEC_3      (22)
+// Use our centralized pin assignments
+#define GPIO_OUTPUT_AEC_1      PIN_AEC_1
+#define GPIO_OUTPUT_AEC_2      PIN_AEC_2
+#define GPIO_OUTPUT_AEC_3      PIN_AEC_3
 #define GPIO_OUTPUT_AEC_PIN_SEL  ((1ULL<<GPIO_OUTPUT_AEC_1) | (1ULL<<GPIO_OUTPUT_AEC_2) | (1ULL<<GPIO_OUTPUT_AEC_3))
 
 void app_gpio_aec_io_cfg(void)
@@ -81,11 +84,8 @@ void app_gpio_aec_io_cfg(void)
 
     // set the output pins
     gpio_set_level(GPIO_OUTPUT_AEC_2, 0);
-
     gpio_set_level(GPIO_OUTPUT_AEC_1, 0);
-
     gpio_set_level(GPIO_OUTPUT_AEC_1, 1);
-
     gpio_set_level(GPIO_OUTPUT_AEC_3, 1);
 }
 #endif /* ACOUSTIC_ECHO_CANCELLATION_ENABLE */
