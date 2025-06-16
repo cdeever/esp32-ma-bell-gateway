@@ -11,6 +11,7 @@
 #include "esp_console.h"
 #include "argtable3/argtable3.h"
 #include "esp_log.h"
+#include "storage/storage.h"
 
 extern esp_bd_addr_t peer_addr;
 
@@ -505,4 +506,100 @@ void register_hfp_hf(void)
             .argtable = &bat_args,
         };
         ESP_ERROR_CHECK(esp_console_cmd_register(&bat_cmd));
+}
+
+static const char *TAG = "app_hf_msg_set";
+
+// Store the last paired device info
+esp_err_t app_hf_store_paired_device(const esp_bd_addr_t bd_addr, const char* device_name) {
+    char addr_str[18];
+    snprintf(addr_str, sizeof(addr_str), "%02x:%02x:%02x:%02x:%02x:%02x",
+             bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
+    
+    // Store the address
+    esp_err_t ret = storage_set_str(STORAGE_NAMESPACE_BT, STORAGE_KEY_BT_PAIRED_DEV, addr_str);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to store paired device address: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    
+    // Store the device name if provided
+    if (device_name) {
+        ret = storage_set_str(STORAGE_NAMESPACE_BT, "paired_name", device_name);
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to store paired device name: %s", esp_err_to_name(ret));
+            return ret;
+        }
+    }
+    
+    // Commit changes
+    ret = storage_commit(STORAGE_NAMESPACE_BT);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to commit paired device info: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    
+    ESP_LOGI(TAG, "Stored paired device: %s (%s)", device_name ? device_name : "Unknown", addr_str);
+    return ESP_OK;
+}
+
+// Get the last paired device info
+esp_err_t app_hf_get_paired_device(esp_bd_addr_t bd_addr, char* device_name, size_t name_len) {
+    char addr_str[18];
+    esp_err_t ret = storage_get_str(STORAGE_NAMESPACE_BT, STORAGE_KEY_BT_PAIRED_DEV, addr_str, sizeof(addr_str));
+    if (ret != ESP_OK) {
+        ESP_LOGD(TAG, "No paired device found in storage: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    
+    // Parse the address string
+    int values[6];
+    if (sscanf(addr_str, "%x:%x:%x:%x:%x:%x",
+               &values[0], &values[1], &values[2],
+               &values[3], &values[4], &values[5]) != 6) {
+        ESP_LOGE(TAG, "Invalid stored address format: %s", addr_str);
+        return ESP_FAIL;
+    }
+    
+    // Convert to bytes
+    for (int i = 0; i < 6; i++) {
+        bd_addr[i] = (uint8_t)values[i];
+    }
+    
+    // Get the device name if requested
+    if (device_name && name_len > 0) {
+        ret = storage_get_str(STORAGE_NAMESPACE_BT, "paired_name", device_name, name_len);
+        if (ret != ESP_OK) {
+            ESP_LOGW(TAG, "No device name found in storage: %s", esp_err_to_name(ret));
+            device_name[0] = '\0';
+        }
+    }
+    
+    ESP_LOGI(TAG, "Retrieved paired device: %s (%s)", 
+             device_name ? device_name : "Unknown", addr_str);
+    return ESP_OK;
+}
+
+// Clear the stored paired device info
+esp_err_t app_hf_clear_paired_device(void) {
+    esp_err_t ret = storage_delete(STORAGE_NAMESPACE_BT, STORAGE_KEY_BT_PAIRED_DEV);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to delete paired device address: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    
+    ret = storage_delete(STORAGE_NAMESPACE_BT, "paired_name");
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to delete paired device name: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    
+    ret = storage_commit(STORAGE_NAMESPACE_BT);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to commit paired device deletion: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    
+    ESP_LOGI(TAG, "Cleared paired device info");
+    return ESP_OK;
 }
