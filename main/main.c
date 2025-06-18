@@ -28,10 +28,10 @@
 #include "bluetooth/bt_app_core.h"
 #include "bluetooth/bt_app_hf.h"
 #include "app/bluetooth/app_hf_msg_set.h"
-#include "network/wifi.h"
+#include "network/wifi/wifi.h"
 #include "storage/storage.h"
 #include "app/tones.h"
-#include "network/web/web_interface.h"
+#include "app/web/web_interface.h"
 #include "hardware/gpio_pcm_config.h"
 #include "app/state/ma_bell_state.h"
 

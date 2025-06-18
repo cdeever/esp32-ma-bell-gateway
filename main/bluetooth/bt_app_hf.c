@@ -247,16 +247,71 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
             break;
 
         case ESP_HF_CLIENT_AUDIO_STATE_EVT:
-            ESP_LOGI(TAG, "Audio state: %d", param->audio_stat.state);
+            ESP_LOGI(TAG, "Audio state: %s", c_audio_state_str[param->audio_stat.state]);
+            if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED) {
+                // Audio connected
+                ma_bell_state_update_bluetooth_bits(BT_STATE_AUDIO_CONNECTED, 0);
+            } else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED) {
+                // Audio disconnected (usually happens after hangup)
+                ma_bell_state_update_bluetooth_bits(0, BT_STATE_AUDIO_CONNECTED);
+            }
             break;
 
         case ESP_HF_CLIENT_BVRA_EVT:
             ESP_LOGI(TAG, "VR state: %d", param->bvra.value);
             break;
 
+        case ESP_HF_CLIENT_RING_IND_EVT:
+            ESP_LOGI(TAG, "Incoming call ring indication");
+            // Update phone state to indicate ringing
+            ma_bell_state_update_phone_bits(PHONE_STATE_RINGING, 0);
+            break;
+
         case ESP_HF_CLIENT_CIND_CALL_EVT:
+            ESP_LOGI(TAG, "Call state changed: %s", c_call_str[param->call.status]);
+            if (param->call.status == 0) {  // No call in progress
+                // Call ended (hung up)
+                ESP_LOGI(TAG, "Call ended - returning to idle state");
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING | PHONE_STATE_OFF_HOOK);
+                ma_bell_state_update_bluetooth_bits(0, BT_STATE_IN_CALL | BT_STATE_AUDIO_CONNECTED);
+            } else if (param->call.status == 1) {  // Call in progress
+                // Call active
+                ESP_LOGI(TAG, "Call active - updating state");
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
+                ma_bell_state_update_bluetooth_bits(BT_STATE_IN_CALL, 0);
+            }
+            break;
+
         case ESP_HF_CLIENT_CIND_CALL_SETUP_EVT:
+            ESP_LOGI(TAG, "Call setup state: %s", c_call_setup_str[param->call_setup.status]);
+            if (param->call_setup.status == ESP_HF_CALL_SETUP_STATUS_INCOMING) {
+                // Incoming call
+                ESP_LOGI(TAG, "Incoming call detected");
+                ma_bell_state_update_phone_bits(PHONE_STATE_RINGING, 0);
+            } else if (param->call_setup.status == ESP_HF_CALL_SETUP_STATUS_IDLE) {
+                // Call setup ended (could be hangup, reject, or timeout)
+                ESP_LOGI(TAG, "Call setup ended - clearing ringing state");
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
+            }
+            break;
+
         case ESP_HF_CLIENT_CIND_CALL_HELD_EVT:
+            ESP_LOGI(TAG, "Call held state: %s", c_call_held_str[param->call_held.status]);
+            if (param->call_held.status == ESP_HF_CALL_HELD_STATUS_NONE) {
+                // Call released
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
+                ma_bell_state_update_bluetooth_bits(0, BT_STATE_IN_CALL);
+            } else if (param->call_held.status == ESP_HF_CALL_HELD_STATUS_HELD_AND_ACTIVE) {
+                // Call held and active
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
+                ma_bell_state_update_bluetooth_bits(BT_STATE_IN_CALL, 0);
+            } else if (param->call_held.status == ESP_HF_CALL_HELD_STATUS_HELD) {
+                // Call held
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
+                ma_bell_state_update_bluetooth_bits(BT_STATE_IN_CALL, 0);
+            }
+            break;
+
         case ESP_HF_CLIENT_CIND_SERVICE_AVAILABILITY_EVT:
         case ESP_HF_CLIENT_CIND_SIGNAL_STRENGTH_EVT:
         case ESP_HF_CLIENT_CIND_ROAMING_STATUS_EVT:
@@ -271,7 +326,6 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
         case ESP_HF_CLIENT_CNUM_EVT:
         case ESP_HF_CLIENT_BSIR_EVT:
         case ESP_HF_CLIENT_BINP_EVT:
-        case ESP_HF_CLIENT_RING_IND_EVT:
         case ESP_HF_CLIENT_PKT_STAT_NUMS_GET_EVT:
             // These events are not currently handled
             ESP_LOGD(TAG, "Unhandled event: %d", event);
