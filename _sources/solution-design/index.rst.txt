@@ -6,7 +6,7 @@ This section contains the high-level solution design documentation for the Ma Be
 ----
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    esp32-microcontroller

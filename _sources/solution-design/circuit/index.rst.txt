@@ -3,7 +3,7 @@ Circuit Design
 This section details the circuit design for the Ma Bell Gateway.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    power
