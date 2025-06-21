@@ -16,7 +16,7 @@ This section describes the firmware, control logic, and (optionally) the build e
   Document built-in logging, serial debug output, or any status LEDs/indicators to assist with troubleshooting.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    architecture

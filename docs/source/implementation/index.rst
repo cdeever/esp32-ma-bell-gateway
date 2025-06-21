@@ -6,7 +6,7 @@ This section contains the detailed implementation documentation for the Ma Bell 
 ----
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    hardware/index
