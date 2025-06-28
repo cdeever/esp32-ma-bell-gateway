@@ -1,94 +1,132 @@
-Power Supplies
-==============
+Power Supply Design
+===================
 
-The Ma Bell Gateway requires multiple voltage sources to support both legacy analog telephone hardware and modern embedded electronics. These supplies must be carefully chosen and isolated where necessary to provide the right voltages for ringer operation, illuminated dial lighting, logic control, and audio processing.
+Overview
+--------
+
+Legacy analog telephone systems operated across multiple voltage domains, each serving a distinct role—subscriber loop voltage, AC ringing, lamp power, and logic control. In recreating this behavior, the Ma Bell Gateway must provide safe and isolated supplies that replicate historical behavior while remaining compatible with modern digital components.
 
 .. note::
-   **Safety First:** Voltages above 48V can be hazardous. All high-voltage domains should be handled with care, properly isolated, and clearly labeled. This design is intended for experienced builders familiar with electrical safety.
+   **Safety First:** Voltages above 48V can be hazardous. High-voltage domains must be clearly labeled, well-isolated, and treated with care. Never connect unisolated high-voltage rails directly to logic circuits or USB-connected equipment.
+
+Historical Framing
+------------------
+
+The Bell System established standard voltages for line and subscriber equipment by the early 20th century:
+
+- **Subscriber Loop (-48V DC):** Established for consistent talk battery voltage and to minimize corrosion (see below)
+- **Ringing Signal (~90V AC @ 20Hz):** Used to activate electromechanical bells
+- **Lamp Circuits (6–12V AC or DC):** Powered dial illumination and panel indicators
+- **Logic Circuits (varied):** Central office and PBX logic voltages often used -24V or +5V DC depending on the technology
+
+As systems evolved, switchmode regulators, SLICs, and integrated isolation became common in embedded and VoIP equipment. However, traditional analog phones still require these distinct voltages to function authentically.
 
 Power Domains
 -------------
 
-This project uses three distinct power domains:
+This project replicates the classic telecom supply scheme using three distinct voltage sources:
 
-1. **48V DC** – Simulated Central Office (CO) Line
-2. **9V AC** – Dial Illumination
-3. **3.3V / 5V DC** – ESP32 and Digital Peripherals
+1. **-48V DC** – Simulated Central Office (CO) Subscriber Loop
+2. **90V AC (or pulsed DC)** – Mechanical Ringer Power
+3. **9V AC** – Rotary Dial Illumination
+4. **3.3V / 5V DC** – Control Logic and Audio
 
-Each serves a specific role in replicating the traditional analog phone experience.
+Each serves a unique function and must be properly isolated.
 
-Power Sizing
-------------
-
-When selecting power supplies, ensure each domain can provide enough current for its worst-case load. Typical requirements are:
-
-- **Mechanical ringer:** up to 40 mA (pulsed)
-- **Dial illumination:** 10–50 mA (depending on lamp type)
-- **ESP32 and peripherals:** 200–500 mA (including WiFi transients, relays, displays, or audio amps)
-
-It is best practice to allow at least 25% overhead above calculated peak loads for safety and future expansion.
-
-48V DC – Line Voltage and Ringing
+-48V DC – Subscriber Loop Voltage
 ---------------------------------
 
-The 48V DC supply simulates the nominal voltage found on Bell System phone lines when idle. It is applied across the red and green pair of a standard RJ11 connection and serves as the baseline "on-hook" voltage.
+Simulates the idle line voltage applied between **tip and ring**, with **tip at ground and ring at -48V DC**. This voltage powers the loop when a phone goes off-hook and serves as the baseline for tone injection and call supervision.
 
-This supply is also used to drive the mechanical ringer. Although traditional ringing voltages were closer to 90V AC, many ringer coils will activate with 48V DC if it is pulsed in a repeating cadence (e.g., 2 seconds on, 4 seconds off). For maximum authenticity, the design could include a step-up converter or waveform generator to provide true 90V AC ringing, but the pulsed 48V DC approach is a practical and safer compromise for most projects.
+.. note::
+   **Why is it negative?**  
+   The Bell System standardized on **-48V DC** to reduce corrosion.  
+   With **tip grounded** and **ring at -48V**, stray currents flow **into** exposed metal, inhibiting oxidation.  
+   This helped preserve outdoor connectors and relay contacts across millions of subscriber lines.
 
-The ESP32 will control this cadence via a relay or solid-state switch, with appropriate electrical isolation. **Care must be taken to isolate this high-voltage DC from the ESP32 logic**, typically through opto-isolators or relays.
+**Design Options:**
+
+- A **regulated bench power supply** can be used to provide -48V DC directly, with the positive terminal connected to ground (tip) and the negative terminal to ring. This is stable and authentic but bulky for embedded systems.
+
+- A **DC-DC boost converter** may be used to generate -48V from a lower voltage source. This allows compact integration and automation but requires careful filtering and isolation.
+
+- In some embedded designs, a **SLIC (Subscriber Line Interface Circuit)** can internally generate the loop voltage. These are ideal for VoIP integration but may not source enough current for electromechanical ringers.
+
+Ringer Power (~90V AC)
+----------------------
+
+Classic electromechanical ringers require a 20Hz, 90V RMS sine wave. In modern designs, this can be approximated using transformer-based oscillators or boosted Class-D drivers.
+
+**Design Options:**
+
+- A **transformer-based oscillator** is the most authentic method, using a 20Hz waveform (from a 555 or digital timer) to drive a push-pull transistor circuit that steps up to 90V AC. This closely replicates historical CO equipment.
+
+- A **PWM-based Class-D audio driver** combined with a step-up transformer can also produce the needed waveform. This approach is more digital but requires tuning and careful filtering.
+
+- A **pulsed 48V DC signal** is a simple alternative. While not a sine wave, many ringers will respond to 2s ON / 4s OFF pulses at 48V. This compromises authenticity but is safer and easier to implement.
 
 9V AC – Dial Illumination
 -------------------------
 
-The 9V AC supply powers the lighted rotary dial. Many classic telephones used neon or incandescent lamps wired to the outer black and yellow pair of the RJ11 connector. These lights expect a low-voltage AC source, often between 6V and 12V.
+Many rotary phones include a lamp behind the dial, powered by a low-voltage AC signal (often between 6–12V). This is typically delivered over the **black/yellow** pair on RJ11 jacks.
 
-This supply is kept entirely separate from the 48V DC line and is used only for the dial light. It may be left always on or optionally switched on/off in sync with off-hook detection.
+**Design Options:**
 
-If switched, this will be done using an electrically isolated relay or triac to ensure that the AC circuit is not directly exposed to the microcontroller.
+- A **9V wall adapter** (AC type) provides simple, isolated power for the dial lamp. This is straightforward and requires no internal transformer.
 
-3.3V / 5V DC – ESP32 and Peripherals
-------------------------------------
+- A **low-voltage winding on a custom transformer** can provide built-in illumination supply within the main PSU enclosure. This is compact and authentic but requires thermal planning.
 
-The ESP32 requires 3.3V DC to operate, typically provided by a regulator built into its development board or module. If using a bare ESP32-WROVER-IE, an external 3.3V LDO or switching regulator will be required.
+- If dynamic control is needed, an **electrically isolated relay or triac** can be used to switch the AC lamp circuit in sync with off-hook detection.
 
-Peripherals such as audio DACs, op-amps, or other digital logic components may require either 3.3V or 5V depending on their interface. Care must be taken to ensure level-shifting is applied if mixing logic levels.
+3.3V / 5V DC – Control and Audio
+--------------------------------
 
-The ESP32's onboard regulators can provide limited current on GPIO pins, but any peripherals drawing significant current—such as relays, audio amps, or OLED displays—should receive power directly from the 3.3V or 5V bus, not through GPIO.
+Used to power digital controllers, audio DACs, sensors, relays, and other low-voltage peripherals.
 
-**Each power supply should have an isolated ground where possible; high-voltage and low-voltage (logic) grounds should not be directly connected.**
+**Design Options:**
 
-Fuse and Surge Protection
--------------------------
+- A **USB power supply** combined with an LDO regulator is often the simplest way to deliver 3.3V. However, current is limited and this may not be suitable for peripherals with high demand.
 
-For safety, include a fast-blow fuse or PTC resettable fuse on each high-voltage supply (48V DC and 9V AC). TVS (transient voltage suppression) diodes on input lines are recommended to guard against surges and accidental miswiring. This adds another layer of protection for both equipment and user.
+- A **switchmode buck converter** can step down 12V or 24V to 3.3V or 5V with excellent efficiency. This is ideal for larger systems with audio amplifiers, displays, or relays.
 
-Power Sequencing and Fault Tolerance
-------------------------------------
+- **Pre-built PSU modules** with dedicated outputs (e.g., 3.3V 1A) are compact and offer clean power, but may increase BOM cost.
 
-For this design, no special sequencing of power domains is required, but ensure the ESP32 is not exposed to high voltages during power-on or while wiring. Loss of the 9V AC supply will only disable dial illumination; logic and ringer functions will continue. All power circuits should be designed to fail safe.
+Fuse & Surge Protection
+-----------------------
 
-Mechanical and Environmental Considerations
--------------------------------------------
+To protect logic and user interfaces, each power domain should include:
 
-All power supplies and high-voltage circuitry should be housed in a ventilated enclosure, with adequate spacing and creepage/clearance between high- and low-voltage domains. Follow best practices for wiring, mounting, and labeling to support safety and maintenance.
+- **Fast-blow or PTC fuses** on high-voltage inputs
+- **TVS diodes** or clamping zeners for surge suppression
+- **Flyback diodes** across relay coils
+- **Snubber networks** for AC ringing signals
+
+.. note::
+   Design for **fault tolerance**. Ensure no fault in one domain can backfeed into others. Power rails should be fused or decoupled.
 
 Power Routing and Isolation
 ---------------------------
 
-To protect the microcontroller and low-voltage circuitry, all high-voltage domains (48V DC and 9V AC) are switched using isolation methods:
+To prevent accidental cross-domain exposure:
 
-- **Relays** (mechanical or solid-state) for high current or inductive loads
-- **Opto-isolators** for low-current signal switching
-- **Snubber networks** or flyback diodes where appropriate
-- **Fuses** and **TVS diodes** as discussed above
+- Use **galvanic isolation** between power domains via:
 
-Each supply should be clearly separated on the PCB and wiring harness, with appropriate labeling and spacing to meet safety guidelines.
+  - Transformers  
+  - Opto-isolators  
+  - Relays
 
-.. note::
-   Careful layout and physical separation of power domains will be addressed in the Hardware Implementation section.
-
+- Keep grounds isolated: **Logic GND ≠ -48V GND**
+- Route each supply in its own section of PCB or enclosure
+- Label all connectors with voltage and polarity
 
 Summary
 -------
 
-The use of multiple, purpose-specific power supplies allows the Ma Bell Gateway to faithfully recreate the behavior of traditional phone equipment while protecting modern digital components. The 48V DC simulates the CO line and drives the ringer (via pulsed DC for safety), 9V AC lights the rotary dial, and 3.3V or 5V DC powers the ESP32 and its peripherals. Proper isolation, surge protection, and routing are essential to prevent high-voltage exposure to sensitive digital circuitry.
+The use of multiple, purpose-specific power supplies allows the Ma Bell Gateway to faithfully recreate the behavior of traditional phone equipment while protecting modern digital components.
+
+- **-48V DC**: Simulates the CO loop voltage and drives current to the phone when off-hook
+- **90V AC (or pulsed DC)**: Activates mechanical ringers in the authentic cadence
+- **9V AC**: Powers vintage dial lamps through the outer RJ11 pair
+- **3.3V / 5V DC**: Powers modern control logic and audio components
+
+Proper isolation, protection, and layout are essential for safe and functional operation across these mixed-voltage domains.
