@@ -1,97 +1,112 @@
-Ringer Signaling 
+Ringer Signaling
 ================
 
-Most legacy Bell System ringers were designed to respond to approximately 90V RMS sine wave at 20 Hz. While modern designs may attempt to simulate this with lower voltages or simpler signals, the original sound and behavior is best reproduced with a true sine wave at the standard voltage.
-
-Overview
---------
-
-All ringer options are expected to follow the standard North American cadence of 2 seconds ON and 4 seconds OFF, repeating for the duration of the ring. The difference lies in how the "ON" segment is energized, and particularly, what waveform is used to drive the ringer coil.
-
-Below is the target waveform used by historical central office equipment:
+Legacy analog telephone ringers—especially those from the Bell System—were designed to respond to a **90 V RMS, 20 Hz sine wave**, typically delivered in a 2-seconds-on, 4-seconds-off cadence. This waveform was applied between the **tip and ring** conductors of the subscriber loop. While modern systems may use approximations or lower-voltage signals, classic electromechanical ringers operate best when driven with this original waveform profile.
 
 .. figure:: /_images/ideal_co_ring_signal.png
    :alt: Ideal CO ring signal
    :width: 600px
    :align: center
 
-   **Ideal Central Office Ring Signal:** 20 Hz sine wave applied for 2 seconds, followed by 4 seconds off.
+   **Ideal Central Office Ring Signal:** 20 Hz sine wave applied for 2 seconds, followed by 4 seconds off.
 
-Each waveform generation method offers a different level of authenticity and complexity, as described below.
+Cadence Behavior
+----------------
+
+Standard North American ringing cadence is:
+
+- **2 seconds ON** – Apply 20 Hz sine wave at high voltage (~90 V RMS)
+- **4 seconds OFF** – Silence (open or high-impedance)
+
+This 6-second pattern repeats until the call is answered or canceled. Cadence generation is separate from waveform generation. Modern controllers (e.g., microcontrollers or line cards) typically gate the ringer oscillator circuit to enforce this timing.
+
+Historical Evolution
+--------------------
+
+Ringing signal generation evolved significantly during the 20th century, from simple electromechanical systems to precise solid-state circuits. Below is a historical progression of how the ringing waveform was created in central office and PBX systems.
+
+**Magneto Generators (1890s–1920s):**
+- Hand-cranked magnetos created high-voltage AC directly.
+- Common in manual systems or rural subscriber lines.
+- Produces variable-frequency ringing depending on crank speed.
+
+**Motor-Generator Sets (1920s–1950s):**
+- Electromechanical generator powered by line current or mains.
+- Produced consistent 20 Hz sine wave for CO applications.
+- Often part of early automatic exchanges.
+
+**Synchronous Vibrators / Interrupters (1950s–1960s):**
+- Used mechanical contacts and magnetic coils to chop DC into alternating current.
+- Stepped up with transformers to ~90 V AC.
+- Still relied on analog components and precise tuning.
+
+**Oscillator-Driven Transformers (1970s–1990s):**
+- Replaced mechanical elements with transistor-based oscillators (e.g., Wien bridge, multivibrators).
+- 20 Hz waveform amplified and fed into a step-up transformer.
+- Galvanic isolation and voltage swing achieved via transformer.
+- Dominant method in later analog PBX systems.
+
+**Line Interface ICs (1990s–Present):**
+- VoIP ATAs and digital PBXs use **Subscriber Line Interface Circuits (SLICs)** with integrated ringing generators.
+- Some SLICs produce true 20 Hz sine waves internally, while others use waveform tables and DACs.
+- Voltage often limited (~50–75 V RMS), sufficient for modern phones but marginal for older bells.
+
+Approaches to Emulating Ring Signal
+-----------------------------------
+
+Several methods are used today to generate ring signals in embedded or hobbyist systems:
+
+**1. Square Wave with H-Bridge Switching**
+- Alternates polarity of DC power (e.g., ±48 V) using an H-bridge.
+- Simple and effective for some ringers, but waveform is harsh.
+- May fail to trigger high-impedance or frequency-sensitive bells.
+
+**2. PWM-Filtered Sine Simulation**
+- Uses high-speed PWM to approximate a sine wave, then filters it.
+- Can generate low-frequency AC with minimal hardware.
+- Requires tuning and cannot easily achieve high voltages.
+
+**3. Transformer-Based Oscillator**
+- Transistor or IC-based oscillator (e.g., using a 555 timer) drives a push-pull or half-bridge stage.
+- Output is passed through a step-up transformer to produce ~90 V RMS at 20 Hz.
+- Provides galvanic isolation and authentic signal shape.
+- Closely mirrors late-era Bell System and PBX designs.
+
+.. note::
+   Vintage ringers perform best when driven with 90 V RMS. Some units may ring at 60–75 V, but higher voltage ensures reliable activation and correct mechanical response.
 
 System Integration
 ------------------
 
-The ESP32 monitors for incoming calls via Bluetooth. When a ring event is detected, it controls the ring cadence (2s ON / 4s OFF) by enabling or disabling the ringer oscillator. Ringing continues until the call is answered (off-hook detected) or terminated. The ESP32 must immediately disable the ring signal if the handset is lifted during ringing (“ring trip”), ensuring safe and correct system behavior.
+In modern designs, a controller (e.g., ESP32, PBX CPU, or SLIC logic) manages ring timing and gating. This is usually implemented by toggling the oscillator or enabling a driver stage, with provisions for:
 
-Design Options
---------------
-
-**Option 1: Square Wave Switching with H-Bridge**
-
-- Alternates polarity of 48V DC at 20 Hz to create a square-wave signal.
-- Mimics ringing with sufficient voltage swing to activate the bell.
-- Easy to implement with an H-bridge and GPIO timing.
-- **Drawback:** Not a true sine wave. Some vintage ringers may sound harsh or fail to trigger.
-
-**Option 2: PWM-Based Pseudo-Sine with Filtering**
-
-- Generates a 20 Hz sine wave using high-frequency PWM from the ESP32.
-- Output is passed through a low-pass filter to smooth into a sine-like signal.
-- May be amplified using a Class D topology.
-- **Drawback:** More complex, requires tuning filter and may not deliver high enough voltage.
-
-**Option 3: Transformer-Based Oscillator (Recommended)**
-
-- Uses a low-frequency oscillator circuit (or 555 timer) to toggle a push-pull driver or half-bridge.
-- Feeds a step-up transformer to produce ~90V RMS sine-like AC.
-- Transformer provides natural galvanic isolation and impedance matching.
-- **Advantage:** Closely replicates the way central offices originally generated ringing voltage.
-- **Tradeoff:** Slightly more complex analog design; requires sourcing or winding a suitable transformer.
-
-.. note::
-   The transformer in this design provides both the required voltage boost and critical galvanic isolation, protecting both the ESP32 logic and the user from hazardous voltages.
-
-   Most legacy ringers operate best at 90V RMS, but some can respond to lower voltages (60–75V). If using vintage equipment, target the higher end for maximum reliability and authentic sound.
-
-Recommended Direction
----------------------
-
-For this project, the transformer-based oscillator approach (Option 3) is preferred. It provides the most authentic ring waveform and adheres closely to historical Bell System practices. While more complex than simple switching, it offers better compatibility with a wider range of legacy ringers and is ideal for a faithful recreation of vintage telephone behavior.
-
-The final implementation will allow the ESP32 to control the ring cadence by enabling or disabling the oscillator circuit as needed.
-
-Ringing Timeout and Safety
---------------------------
-
-The system needs to implement a **maximum ring timeout** (e.g., 60 seconds), after which ringing is forcibly disabled until reset. This prevents damage or excessive noise in the event of a fault, and avoids excessive wear or overheating of the ringer mechanism.
-
-.. note::
-   All high-voltage AC circuitry must be enclosed in a safe, insulated housing with proper clearance and isolation. Follow applicable electrical safety standards and local regulations for high-voltage design and construction.
-
-Block Diagram
--------------
-
-The following diagram shows the flow of the ring signal from the ESP32 through the oscillator and transformer, and into the phone line and ringer:
+- **Cadence control:** 2s ON / 4s OFF timing
+- **Ring trip detection:** Disable ring immediately when off-hook is detected
+- **Timeout:** Ringing disabled after a maximum time (e.g., 60s) to prevent overheating or user fatigue
 
 .. code-block:: none
 
-    [ESP32] ---> [Oscillator] ---> [Transformer] ---> [Phone Line / Ringer]
+    [Controller] ---> [Oscillator or DAC] ---> [Amplifier or Transformer] ---> [Phone Line / Ringer]
 
-The ringer signaling path proceeds as follows:
+Signal Flow Summary:
 
-- **ESP32:** Generates timing and cadence signals for ringing events.
-- **Oscillator:** Converts the digital control signals into a low-frequency AC waveform (typically 20 Hz).
-- **Transformer:** Steps up the AC waveform to the required high voltage (~90V RMS) and provides galvanic isolation.
-- **Phone Line / Ringer:** Receives the 20 Hz, 90V RMS AC signal, activating the mechanical bell in a legacy phone.
+- **Timing logic** creates the cadence.
+- **Oscillator** produces 20 Hz waveform.
+- **Driver + Transformer** amplifies and isolates signal to reach 90 V RMS.
+- **Ringer coil** responds by physically striking the bell.
 
+Safety Considerations
+---------------------
+
+- Ring signal circuits must be **fully isolated** from low-voltage logic and user-accessible surfaces.
+- Use **enclosed transformers, insulated wiring**, and appropriate creepage/clearance rules.
+- Follow applicable safety codes for high-voltage AC systems.
 
 Summary
 -------
 
-   - Target waveform: 20 Hz, ~90V RMS sine wave, 2s ON / 4s OFF cadence
-   - Use transformer-based oscillator for authenticity and isolation
-   - Ring trip: disable signal immediately when phone is answered
-   - Enforce maximum ring duration for safety
-   - All high-voltage AC must be securely enclosed and labeled
-
+- Target waveform: **20 Hz sine wave**, ~90 V RMS, **2s ON / 4s OFF** cadence
+- Historical generation: From magnetos to transformer-based oscillators to SLICs
+- Transformer-based circuits remain the **closest modern analog** to Bell System designs
+- Ring signal must cease immediately on **ring trip** (off-hook detection)
+- Include timeout and **fail-safe logic** to avoid continuous ringing in fault conditions

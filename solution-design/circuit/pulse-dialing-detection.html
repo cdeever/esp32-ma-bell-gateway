@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Firmware Design" href="../software/index.html" />
-    <link rel="prev" title="DTMF Tone Detection" href="dtmf-dialing-detection.html" /> 
+    <link rel="prev" title="DTMF Signaling (Detection and Generation)" href="dtmf-dialing-detection.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -54,13 +54,14 @@
 <li class="toctree-l3"><a class="reference internal" href="audio.html">Voice and Tone Audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="off-hook-detection.html">Off-Hook Detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dtmf-dialing-detection.html">DTMF Tone Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dtmf-dialing-detection.html">DTMF Signaling (Detection and Generation)</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Pulse Dialing Detection</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#implementation-approaches">Implementation Approaches</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#software-based-pulse-decoding">Software-Based Pulse Decoding</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#unfiltered-edge-detection-path">Unfiltered Edge Detection Path</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#dedicated-pulse-detection-hardware-optional">Dedicated Pulse Detection Hardware (Optional)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#recommended-approach">Recommended Approach</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#historical-evolution">Historical Evolution</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#anti-tinkle-suppression">Anti-Tinkle Suppression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#detection-requirements">Detection Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#detection-options">Detection Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
 </ul>
@@ -101,74 +102,105 @@
              
   <section id="pulse-dialing-detection">
 <h1>Pulse Dialing Detection<a class="headerlink" href="#pulse-dialing-detection" title="Link to this heading"></a></h1>
-<p>In a rotary phone system, the same signal used for off-hook detection can also be used to decode dialed digits. Rotary dialing works by rapidly toggling the phone’s hook switch—momentarily breaking the loop current—to send a series of timed pulses representing each digit.</p>
-<p>For example:
-- Dialing “5” results in five brief on-hook pulses
-- Dialing “0” results in ten pulses
-- Each pulse is typically 60–70ms OFF followed by 40ms ON</p>
+<p><strong>Pulse dialing</strong> was the standard method of digit signaling in rotary telephone systems from the early 1900s through the 1980s. Each digit was transmitted as a series of timed <strong>loop break pulses</strong>, created by rapidly toggling the telephone’s internal switch hook contacts as the dial rotated back to rest.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Each digit generates a specific number of pulses:</p>
+<ul class="simple">
+<li><p>Digit “1” = 1 pulse</p></li>
+<li><p>Digit “2” = 2 pulses</p></li>
+<li><p>…</p></li>
+<li><p>Digit “0” = 10 pulses</p></li>
+</ul>
+<p>Each pulse consists of:</p>
+<ul class="simple">
+<li><p><strong>Break</strong> (on-hook): ~60–70 ms (open loop)</p></li>
+<li><p><strong>Make</strong> (off-hook): ~40 ms (closed loop)</p></li>
+<li><p>A ~700–800 ms pause after all pulses marks the end of the digit</p></li>
+</ul>
 <figure class="align-center" id="id1">
 <a class="reference internal image-reference" href="../../_images/dial_5_pulse_digits.png"><img alt="Dial pulse pattern for digit 5 with timing annotations" src="../../_images/dial_5_pulse_digits.png" style="width: 600px;" />
 </a>
 <figcaption>
-<p><span class="caption-text"><strong>Pulse Dialing Timing – Digit 5:</strong> Each pulse briefly opens the loop (on-hook) for ~60ms, then closes it again (off-hook) for ~40ms before the next pulse. This process repeats the number of times corresponding to the digit dialed.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+<p><span class="caption-text"><strong>Pulse Dialing – Digit 5:</strong> Five loop break pulses, each ~60 ms open and ~40 ms closed, followed by a post-digit pause.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<p>To support pulse dialing, the off-hook detection circuit must do more than just detect steady-state off-hook. It must also observe these rapid transitions and count them accurately.</p>
-<section id="implementation-approaches">
-<h2>Implementation Approaches<a class="headerlink" href="#implementation-approaches" title="Link to this heading"></a></h2>
-<p>Several strategies can be used to detect dial pulses using the same off-hook detection hardware.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Why does “0” send 10 pulses?</strong>
+This legacy behavior comes from early switchgear that had no concept of “digit zero.” The switch simply counted pulses, so “0” was encoded as the maximum—<strong>10 pulses</strong>—and positioned last on the rotary dial.</p>
+</div>
 </section>
-<section id="software-based-pulse-decoding">
-<h2>Software-Based Pulse Decoding<a class="headerlink" href="#software-based-pulse-decoding" title="Link to this heading"></a></h2>
-<p>This is the simplest and most flexible method. The off-hook signal is connected to a GPIO pin and monitored in software.</p>
+<section id="historical-evolution">
+<h2>Historical Evolution<a class="headerlink" href="#historical-evolution" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Configure the pin as an interrupt (or poll it frequently)</p></li>
-<li><p>Watch for falling edges (off-hook → on-hook)</p></li>
-<li><p>Measure the time between transitions</p></li>
-<li><p>Count pulses within a timeout window (~800ms of silence means digit finished)</p></li>
-<li><p>Apply debouncing (e.g. ignore pulses &lt;20ms)</p></li>
+<li><p><strong>1900s–1940s:</strong> Step-by-step switches and rotary selectors mechanically counted loop breaks.</p></li>
+<li><p><strong>1950s–1970s:</strong> Electromechanical relays and early transistor circuits refined accuracy and reduced noise.</p></li>
+<li><p><strong>1980s–2000s:</strong> Modems and fax machines began using microcontrollers to decode rotary pulses.</p></li>
+<li><p><strong>Present:</strong> Embedded systems and GPIO edge detection provide precise, software-based pulse decoding.</p></li>
 </ul>
-<p><strong>Advantages:</strong>
-- No hardware changes required
-- Easy to tweak behavior in firmware
-- Works with any detection method (optocoupler, relay, etc.)</p>
-<p><strong>Disadvantages:</strong>
-- Requires accurate software timing
-- Susceptible to noise or bounce without filtering</p>
 </section>
-<section id="unfiltered-edge-detection-path">
-<h2>Unfiltered Edge Detection Path<a class="headerlink" href="#unfiltered-edge-detection-path" title="Link to this heading"></a></h2>
-<p>If your off-hook detection circuit includes significant low-pass filtering (e.g., RC filters to avoid false triggers), you may lose the ability to see fast transitions.</p>
-<p>To solve this, you can split the signal path:
-- <strong>One filtered signal</strong> for basic off-hook detection
-- <strong>One unfiltered signal</strong> connected to a fast Schmitt trigger, comparator, or direct GPIO for pulse detection</p>
-<p>This preserves pulse edges while still allowing stable off-hook state monitoring.</p>
-<p><strong>Advantages:</strong>
-- Preserves clean logic level edges
-- Reduces false detections while maintaining responsiveness</p>
-<p><strong>Disadvantages:</strong>
-- Slightly more complex hardware
-- Requires signal buffering or branching</p>
-</section>
-<section id="dedicated-pulse-detection-hardware-optional">
-<h2>Dedicated Pulse Detection Hardware (Optional)<a class="headerlink" href="#dedicated-pulse-detection-hardware-optional" title="Link to this heading"></a></h2>
-<p>For high-reliability or analog-style builds, you may use classic circuits to convert hook pulses into digital edges:</p>
+<section id="anti-tinkle-suppression">
+<h2>Anti-Tinkle Suppression<a class="headerlink" href="#anti-tinkle-suppression" title="Link to this heading"></a></h2>
+<p>One challenge with pulse dialing was the <strong>“tinkle”</strong> sound — faint bell rings caused by pulse transitions during dialing. This occurred when the ringer briefly saw inductive spikes from loop current changes.</p>
+<p>To suppress tinkle:</p>
 <ul class="simple">
-<li><p>555-based monostable circuits</p></li>
-<li><p>Differentiator + comparator</p></li>
-<li><p>Commercial dial pulse decoder ICs (rare)</p></li>
+<li><p>CO equipment muted the ringer path during dialing</p></li>
+<li><p>Some phones included <strong>anti-tinkle circuits</strong> using rectifiers or spark gaps</p></li>
+<li><p>Advanced PBX gear actively blocked ringers during loop break sequences</p></li>
 </ul>
-<p>This is typically overkill for a microcontroller-based project, but may be considered for advanced or nostalgic designs.</p>
 </section>
-<section id="recommended-approach">
-<h2>Recommended Approach<a class="headerlink" href="#recommended-approach" title="Link to this heading"></a></h2>
-<p>For this project, pulse detection will be implemented in <strong>software using the optocoupler output signal</strong>. The ESP32 will:</p>
+<section id="detection-requirements">
+<h2>Detection Requirements<a class="headerlink" href="#detection-requirements" title="Link to this heading"></a></h2>
+<p>Any pulse detection circuit must:</p>
 <ul class="simple">
-<li><p>Count transitions during off-hook state</p></li>
-<li><p>Parse digits from pulse counts</p></li>
-<li><p>Feed the resulting number into the Bluetooth dialer system</p></li>
+<li><p>Observe rapid transitions (10–15 pulses per second)</p></li>
+<li><p>Count accurately, even with contact bounce</p></li>
+<li><p>Distinguish digits via pause detection</p></li>
+<li><p>Remain isolated from -48V DC line voltage</p></li>
 </ul>
-<p>This dual-use design leverages the existing detection circuit, avoids redundant hardware, and aligns well with the project’s embedded software architecture.</p>
+</section>
+<section id="detection-options">
+<h2>Detection Options<a class="headerlink" href="#detection-options" title="Link to this heading"></a></h2>
+<p><strong>Option 1: Software-Based Detection (Modern Embedded Style)</strong></p>
+<ul class="simple">
+<li><p>Monitor loop status via GPIO or interrupt</p></li>
+<li><p>Measure transitions and timing in firmware</p></li>
+<li><p>Debounce and group pulses into digits</p></li>
+</ul>
+<p>✅ Simple and flexible
+✅ No extra hardware
+❌ Requires reliable software timing</p>
+<p>—</p>
+<p><strong>Option 2: Dual-Path Detection</strong></p>
+<ul class="simple">
+<li><p>Split the signal from the off-hook circuit:
+- One path with filtering for steady-state hook detection
+- One fast path for raw edge detection (via Schmitt trigger or comparator)</p></li>
+</ul>
+<p>✅ Preserves clean edges
+✅ Reduces false detection
+❌ Slightly more complex circuit</p>
+<p>—</p>
+<p><strong>Option 3: Dedicated Pulse Decoder Circuit (Historical/Nostalgic)</strong></p>
+<ul class="simple">
+<li><p>Use analog building blocks:
+- Monostable 555 timers
+- RC differentiators and comparators
+- Custom relay-based pulse counters</p></li>
+</ul>
+<p>✅ Vintage authenticity
+❌ Bulky and obsolete
+❌ Less flexible than software</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Rotary dialing encodes digits as timed loop break pulses</p></li>
+<li><p>Reliable detection requires clean edge sensing, debouncing, and pause tracking</p></li>
+<li><p>Options include pure software, hybrid circuits, or dedicated analog logic</p></li>
+<li><p>Pulse dialing remains an essential compatibility feature in vintage phone systems</p></li>
+</ul>
 </section>
 </section>
 
@@ -176,7 +208,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="dtmf-dialing-detection.html" class="btn btn-neutral float-left" title="DTMF Tone Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dtmf-dialing-detection.html" class="btn btn-neutral float-left" title="DTMF Signaling (Detection and Generation)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../software/index.html" class="btn btn-neutral float-right" title="Firmware Design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

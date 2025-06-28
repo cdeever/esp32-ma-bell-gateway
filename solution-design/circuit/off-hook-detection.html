@@ -54,17 +54,12 @@
 <li class="toctree-l3"><a class="reference internal" href="audio.html">Voice and Tone Audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Off-Hook Detection</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#system-behavior">System Behavior</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#electrical-detection-principle">Electrical Detection Principle</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#historical-framing">Historical Framing</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#detection-approach-options">Detection Approach Options</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#behavior-performance">Behavior &amp; Performance</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#safety-power-integration">Safety, Power &amp; Integration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#complexity-cost-final-score">Complexity, Cost &amp; Final Score</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#best-choice-based-on-score">Best Choice Based on Score</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#debouncing-and-safety">Debouncing and Safety</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#functional-role">Functional Role</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#engineering-approaches-over-time">Engineering Approaches Over Time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#key-considerations">Key Considerations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#debouncing-and-supervisory-logic">Debouncing and Supervisory Logic</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#signal-flow-overview">Signal Flow Overview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#final-thoughts">Final Thoughts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#final-notes">Final Notes</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="dtmf-dialing-detection.html">DTMF Tone Detection</a></li>
@@ -110,249 +105,76 @@
 <p>An <strong>off-hook detection circuit</strong> is required to sense when a telephone receiver is lifted—completing the subscriber loop between tip and ring—so that the system can recognize an attempt to place or answer a call.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><strong>Safety:</strong> The subscriber loop may carry up to 48V DC and 90V AC ringing. All detection methods must provide robust isolation to protect the ESP32 and the user. Never connect microcontroller logic directly to line voltage.</p>
+<p><strong>Safety:</strong> The subscriber loop may carry up to –48 V DC and 90 V AC ringing. All detection methods must provide robust isolation from line voltages to protect downstream circuitry and users. Never connect microcontroller logic directly to line voltage.</p>
 </div>
-<section id="system-behavior">
-<h2>System Behavior<a class="headerlink" href="#system-behavior" title="Link to this heading"></a></h2>
-<p>When the phone goes <strong>off-hook</strong> (receiver lifted), the Ma Bell Gateway:</p>
+<section id="functional-role">
+<h2>Functional Role<a class="headerlink" href="#functional-role" title="Link to this heading"></a></h2>
+<p>Off-hook detection plays a critical role in managing call flow. When the telephone goes <strong>off-hook</strong> (receiver lifted), a closed current path is created across the tip and ring conductors, typically resulting in 20–60 mA of DC loop current. This signals intent to place or answer a call.</p>
+<p>When the phone returns <strong>on-hook</strong> (receiver replaced), loop current ceases, indicating call termination or cancellation.</p>
+<p>Telephone systems use this state change to:</p>
 <ul class="simple">
-<li><p>Senses the closed loop and increased current via the off-hook detection circuit</p></li>
-<li><p>Activates dial illumination</p></li>
-<li><p>Starts dial tone generation</p></li>
-<li><p>Prepares the Bluetooth subsystem for call placement or to answer incoming calls</p></li>
-</ul>
-<p>When the phone returns <strong>on-hook</strong> (receiver replaced), the system:</p>
-<ul class="simple">
-<li><p>Stops dial illumination and dial tone</p></li>
-<li><p>Ends or cancels any active Bluetooth call or call setup</p></li>
+<li><p>Initiate or answer calls</p></li>
+<li><p>Control dial tone and ringing behavior</p></li>
+<li><p>Manage call supervision, timeout, and billing</p></li>
+<li><p>Trigger switching or Bluetooth pairing logic in modern integrations</p></li>
 </ul>
 </section>
-<section id="electrical-detection-principle">
-<h2>Electrical Detection Principle<a class="headerlink" href="#electrical-detection-principle" title="Link to this heading"></a></h2>
-<p>Off-hook is detected as a significant increase in loop current (typically 20–60mA), as the subscriber loop is closed by lifting the receiver. The selected detection circuit senses this current or voltage change and provides a safe, isolated logic signal to the ESP32.</p>
+<section id="engineering-approaches-over-time">
+<h2>Engineering Approaches Over Time<a class="headerlink" href="#engineering-approaches-over-time" title="Link to this heading"></a></h2>
+<p>The methods used to detect the off-hook condition have evolved with changes in switching technology and safety standards. Historically, this detection occurred at the central office (CO) or within PBX systems using one of several approaches:</p>
+<p><strong>Mechanical Relays (Early 1900s–1940s):</strong>
+- Early systems used relays in series with the subscriber loop.
+- When the phone was lifted, loop current energized the relay coil.
+- Relay contacts would activate the switching path.
+- Reliable but bulky and prone to mechanical wear.</p>
+<p><strong>Discrete Transistor Circuits (1950s–1970s):</strong>
+- As solid-state components became common, relay logic was replaced.
+- Loop current flowed through a sensing resistor; the resulting voltage drop activated a transistor.
+- Lower cost and fewer moving parts, but lacked electrical isolation.</p>
+<p><strong>Optical Isolation (1970s–1990s):</strong>
+- Optocoupler-based designs provided safe galvanic isolation between line voltage and logic systems.
+- Loop current was used to drive the internal LED of an optocoupler, with the output side connected to digital logic.
+- Widely adopted in PBX systems, modems, and early embedded telephony.</p>
+<p><strong>Line Interface ICs / SLICs (1990s–Present):</strong>
+- Subscriber Line Interface Circuits integrate loop current sensing with additional features such as:
+- Battery feed
+- Ring injection
+- 2-wire to 4-wire audio conversion (hybrid)
+- Over-voltage protection
+- Off-hook detection is often integrated into these chips, especially in VoIP adapters, FXS ports, and telecom-grade line cards.</p>
+<p><strong>Solid-State Relays (Recent Embedded Systems):</strong>
+- Some embedded systems use SSRs with built-in optical isolation.
+- These can sense or switch based on loop current with no mechanical contacts.
+- Leakage current and cost may be trade-offs depending on application.</p>
 </section>
-<section id="historical-framing">
-<h2>Historical Framing<a class="headerlink" href="#historical-framing" title="Link to this heading"></a></h2>
-<p>Telephone systems—whether classic analog or modern digital—have always required reliable methods to detect when a subscriber lifts the receiver (“goes off-hook”). Over time, the technology for sensing this condition has evolved to meet new demands for safety, durability, integration, and compatibility with advancing switching systems. Each stage in this progression reflects broader shifts in both available technology and network requirements.</p>
+<section id="key-considerations">
+<h2>Key Considerations<a class="headerlink" href="#key-considerations" title="Link to this heading"></a></h2>
+<p>Regardless of the method used, all off-hook detection circuits must meet several design requirements:</p>
 <ul class="simple">
-<li><p><strong>1900s–1940s:</strong> Mechanical relays sensed loop current and physically closed contacts to engage switching equipment.</p></li>
-<li><p><strong>1950s–1970s:</strong> Solid-state transistor circuits began replacing relays in central office and PBX gear.</p></li>
-<li><p><strong>1970s–1990s:</strong> Optocouplers introduced safe isolation between analog lines and digital switching logic.</p></li>
-<li><p><strong>2000s–present:</strong> Solid-state relays (SSRs) and line interface ICs became common in VoIP and embedded systems.</p></li>
+<li><p><strong>Safe voltage handling</strong> – Must tolerate and isolate –48 V DC and ringing voltages.</p></li>
+<li><p><strong>Reliable detection threshold</strong> – Should trigger cleanly within the expected 20–60 mA range.</p></li>
+<li><p><strong>Fast response</strong> – Should detect hook state changes promptly to support switching logic.</p></li>
+<li><p><strong>Long-term durability</strong> – Especially in CO and PBX applications, components must handle millions of cycles.</p></li>
 </ul>
 </section>
-<section id="detection-approach-options">
-<h2>Detection Approach Options<a class="headerlink" href="#detection-approach-options" title="Link to this heading"></a></h2>
-<p>Several hardware approaches were considered for off-hook detection. Each method reflects a different era or technology, with distinct advantages and drawbacks:</p>
+<section id="debouncing-and-supervisory-logic">
+<h2>Debouncing and Supervisory Logic<a class="headerlink" href="#debouncing-and-supervisory-logic" title="Link to this heading"></a></h2>
+<p>Mechanical hookswitches may bounce when transitioning between on-hook and off-hook states. To ensure stable behavior:</p>
 <ul class="simple">
-<li><p><strong>Mechanical Relay:</strong>
-The classic approach—uses a relay coil in series with the phone line. When the handset is lifted, loop current flows, energizing the coil and closing relay contacts. This method provides satisfying audible/physical feedback (“click”), but relays are bulky, slow, and eventually wear out due to mechanical contacts.</p></li>
-<li><p><strong>Resistor + Transistor:</strong>
-An early solid-state solution—places a current-sensing resistor in the line. When enough current flows, it creates a voltage drop that turns on a transistor, which then signals the logic input. Simple and cheap, but offers no isolation and exposes sensitive electronics to high voltages.</p></li>
-<li><p><strong>Optocoupler:</strong>
-The modern, best-practice method. The loop current drives an LED inside the optocoupler, which activates an isolated phototransistor connected to the ESP32. Provides safe galvanic isolation, is compact and reliable, and integrates easily with microcontrollers.</p></li>
-<li><p><strong>Solid-State Relay (SSR):</strong>
-Uses an internal opto-isolated switch or MOSFET pair. SSRs offer “plug and play” operation, are fully silent, have no moving parts, and provide isolation. They are sometimes more expensive and may leak a small current even when “off.”</p></li>
+<li><p>Implement <strong>debounce filtering</strong> in software (or optionally in hardware).</p></li>
+<li><p>Consider <strong>timeout supervision</strong> to detect calls left off-hook too long (e.g., abandoned handsets, stuck relays).</p></li>
+<li><p>Systems may respond by playing a reorder tone, logging an error, or releasing the line.</p></li>
 </ul>
-</section>
-<section id="behavior-performance">
-<h2>Behavior &amp; Performance<a class="headerlink" href="#behavior-performance" title="Link to this heading"></a></h2>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 22.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
-<th class="head"><p><strong>Mechanical Relay</strong></p></th>
-<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
-<th class="head"><p><strong>Optocoupler</strong></p></th>
-<th class="head"><p><strong>SSR</strong></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><strong>Sound / Feel</strong></p></td>
-<td><p>✅ Clunky click</p></td>
-<td><p>❌ Silent</p></td>
-<td><p>❌ Silent</p></td>
-<td><p>❌ Silent</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Speed</strong></p></td>
-<td><p>❌ Slower</p></td>
-<td><p>✅ Fast</p></td>
-<td><p>✅ Fast</p></td>
-<td><p>✅ Fast</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Wear</strong></p></td>
-<td><p>❌ Wears out</p></td>
-<td><p>✅ No wear</p></td>
-<td><p>✅ No wear</p></td>
-<td><p>✅ No wear</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Reliability</strong></p></td>
-<td><p>❌ Contact wear</p></td>
-<td><p>✅ Stable</p></td>
-<td><p>✅ Very stable</p></td>
-<td><p>✅ Some leakage</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="safety-power-integration">
-<h2>Safety, Power &amp; Integration<a class="headerlink" href="#safety-power-integration" title="Link to this heading"></a></h2>
-<p>All methods connect to an ESP32 using basic GPIO—no special peripherals needed.</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 22.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
-<th class="head"><p><strong>Mechanical Relay</strong></p></th>
-<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
-<th class="head"><p><strong>Optocoupler</strong></p></th>
-<th class="head"><p><strong>SSR</strong></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><strong>Voltage Isolation</strong></p></td>
-<td><p>✅ Isolated</p></td>
-<td><p>❌ Direct risk</p></td>
-<td><p>✅ Isolated</p></td>
-<td><p>✅ Isolated</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Current Draw</strong></p></td>
-<td><p>20–60mA</p></td>
-<td><p>20–60mA</p></td>
-<td><p>20–60mA</p></td>
-<td><p>Very low</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Power Needs</strong></p></td>
-<td><p>❌ Extra power</p></td>
-<td><p>✅ None</p></td>
-<td><p>✅ None</p></td>
-<td><p>✅ None</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="complexity-cost-final-score">
-<h2>Complexity, Cost &amp; Final Score<a class="headerlink" href="#complexity-cost-final-score" title="Link to this heading"></a></h2>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 22.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-<col style="width: 19.4%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p><strong>Feature</strong></p></th>
-<th class="head"><p><strong>Mechanical Relay</strong></p></th>
-<th class="head"><p><strong>Resistor + Transistor</strong></p></th>
-<th class="head"><p><strong>Optocoupler</strong></p></th>
-<th class="head"><p><strong>SSR</strong></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><strong>Simplicity</strong></p></td>
-<td><p>❌ Needs driver</p></td>
-<td><p>❌ Needs protection</p></td>
-<td><p>✅ Simple</p></td>
-<td><p>✅ PnP</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Complexity</strong></p></td>
-<td><p>❌ Moderate</p></td>
-<td><p>✅ Low</p></td>
-<td><p>✅ Low</p></td>
-<td><p>✅ Low</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Cost</strong></p></td>
-<td><p>❌ Moderate</p></td>
-<td><p>✅ Cheapest</p></td>
-<td><p>✅ Affordable</p></td>
-<td><p>❌ Higher</p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Pitfalls</strong></p></td>
-<td><p>Debounce needed</p></td>
-<td><p>Needs Zener</p></td>
-<td><p>Vf matching</p></td>
-<td><p>Leakage</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>🔥 Final Score</strong></p></td>
-<td><p><strong>34</strong></p></td>
-<td><p><strong>27</strong></p></td>
-<td><p><strong>45</strong></p></td>
-<td><p><strong>42</strong></p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="best-choice-based-on-score">
-<h2>Best Choice Based on Score<a class="headerlink" href="#best-choice-based-on-score" title="Link to this heading"></a></h2>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 71.4%" />
-<col style="width: 28.6%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p><strong>Detection Method</strong></p></th>
-<th class="head"><p><strong>Final Score (Max 50)</strong></p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>✅ <strong>Optocoupler (Modern Isolation)</strong> → <em>Best Overall</em></p></td>
-<td><p><strong>45</strong></p></td>
-</tr>
-<tr class="row-odd"><td><p>✅ <strong>SSR (No Click)</strong> → <em>PnP Option</em></p></td>
-<td><p><strong>42</strong></p></td>
-</tr>
-<tr class="row-even"><td><p>✅ <strong>Mechanical Relay (Clicky CO Feel)</strong></p></td>
-<td><p><strong>34</strong></p></td>
-</tr>
-<tr class="row-odd"><td><p>✅ <strong>Resistor + Transistor (Vintage Style)</strong></p></td>
-<td><p><strong>27</strong></p></td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>In modern commercial telephony and VoIP/FXS hardware, optocouplers and line interface ICs are the preferred method for safety, integration, and cost. SSRs are also viable, but may introduce leakage and are less common for low-current analog loops.</p>
-</div>
-</section>
-<section id="debouncing-and-safety">
-<h2>Debouncing and Safety<a class="headerlink" href="#debouncing-and-safety" title="Link to this heading"></a></h2>
-<p>To ensure reliable operation, the system <strong>needs to implement software debouncing</strong> on the optocoupler signal. This prevents false triggers caused by voltage spikes or rapid toggling. Additionally, a supervisory timeout should be included to detect and respond appropriately if the phone remains off-hook for an extended period (e.g., playing a reorder tone or releasing a call after a timeout).</p>
 </section>
 <section id="signal-flow-overview">
 <h2>Signal Flow Overview<a class="headerlink" href="#signal-flow-overview" title="Link to this heading"></a></h2>
-<p>The following diagram illustrates the off-hook detection signal path, from the high-voltage line, through the detection circuit, to the ESP32 microcontroller. This ensures both isolation and accurate sensing of the phone’s status.</p>
-<a class="reference internal image-reference" href="../../_images/off_hook_signal_flow.png"><img alt="Off-hook detection signal flow from phone line to ESP32" class="align-center" src="../../_images/off_hook_signal_flow.png" style="width: 400px;" />
+<p>The following diagram illustrates a generalized off-hook detection signal path—from the subscriber loop through the detection mechanism and into a logic or control system:</p>
+<a class="reference internal image-reference" href="../../_images/off_hook_signal_flow.png"><img alt="Off-hook detection signal flow from phone line to digital control" class="align-center" src="../../_images/off_hook_signal_flow.png" style="width: 400px;" />
 </a>
 </section>
-<section id="final-thoughts">
-<h2>Final Thoughts<a class="headerlink" href="#final-thoughts" title="Link to this heading"></a></h2>
-<p>In this project, the <strong>optocoupler-based circuit</strong> will be used for off-hook detection. It provides galvanic isolation from the phone line and allows the ESP32 to monitor the line safely.</p>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p><strong>Before connecting to real phone voltages, always validate your optocoupler circuit with a scaled-down (low-voltage) DC source first.</strong> This ensures reliable triggering and confirms isolation, helping protect both you and your hardware.</p>
-</div>
-<p>The implementation will require:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>A <strong>current-limiting resistor</strong> on the optocoupler’s input side</p></li>
-<li><p>Careful matching of the <strong>forward voltage (Vf)</strong> and current for reliable triggering</p></li>
-<li><p>A <strong>pull-up resistor</strong> or logic input to the ESP32 on the output side</p></li>
-<li><p>Optional use of a <strong>Schmitt trigger or GPIO interrupt</strong> for clean digital transitions</p></li>
-</ul>
-</div></blockquote>
-<p>This approach reflects how later-generation COs managed line isolation while providing a practical and safe solution for modern embedded design.</p>
+<section id="final-notes">
+<h2>Final Notes<a class="headerlink" href="#final-notes" title="Link to this heading"></a></h2>
+<p>Modern embedded systems often draw from historical practices when implementing off-hook detection, blending safety, isolation, and responsiveness. While discrete designs are still used for hobbyist and low-volume applications, commercial systems frequently rely on integrated line interface chips for robust and efficient detection.</p>
 </section>
 </section>
 

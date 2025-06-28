@@ -52,12 +52,14 @@
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Design</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="power.html">Power Supplies</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Voice and Tone Audio</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#circuit-roles">Circuit Roles</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#earpiece-path-receiving">Earpiece Path (Receiving)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#microphone-path-transmitting">Microphone Path (Transmitting)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#tone-injection-path">Tone Injection Path</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#echo-control-consideration">Echo Control Consideration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#target-parameters">Target Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#audio-functions">Audio Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#historical-evolution">Historical Evolution</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#receive-path-earpiece-driver">Receive Path: Earpiece Driver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#transmit-path-microphone-input">Transmit Path: Microphone Input</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tone-injection">Tone Injection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hybrid-and-echo-control">Hybrid and Echo Control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="ringer.html">Ringer Signaling</a></li>
@@ -102,45 +104,57 @@
              
   <section id="voice-and-tone-audio">
 <h1>Voice and Tone Audio<a class="headerlink" href="#voice-and-tone-audio" title="Link to this heading"></a></h1>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>This page outlines the analog circuitry needed to support both <strong>voice</strong> and <strong>tone</strong> audio signals in the Ma Bell Gateway project. These signals must be audible on a traditional telephone headset and comply with historical North American telco audio standards.</p>
-<p>The circuit must support:</p>
+<p>The analog telephone interface must support <strong>bidirectional voice transmission</strong> and <strong>in-band signaling tones</strong>, all delivered across just two wires: <strong>tip and ring</strong>. These audio paths must replicate the expectations of legacy Bell System telephony while remaining compatible with modern embedded systems and Bluetooth audio routing.</p>
+<section id="target-parameters">
+<h2>Target Parameters<a class="headerlink" href="#target-parameters" title="Link to this heading"></a></h2>
+<p>Historically, analog telephone audio adheres to the following standards:</p>
 <ul class="simple">
-<li><p><strong>Listening</strong>: Receiving voice and tones to the earpiece.</p></li>
-<li><p><strong>Speaking</strong>: Capturing voice from the microphone.</p></li>
-<li><p><strong>Nominal Line Characteristics</strong>:</p>
-<ul>
-<li><p><strong>Impedance</strong>: 600 ohms (balanced)</p></li>
-<li><p><strong>Voice Bandwidth</strong>: 300 Hz – 3400 Hz</p></li>
-<li><p><strong>Signal Level</strong>: ~0 dBm transmitted, ~-10 dB received</p></li>
+<li><p><strong>Impedance:</strong> 600 Ω balanced (nominal)</p></li>
+<li><p><strong>Voice Bandwidth:</strong> 300 Hz to 3400 Hz (standard “voice band”)</p></li>
+<li><p><strong>Signal Level:</strong>
+- Transmit (talk-out): ~0 dBm nominal
+- Receive (talk-in): –10 to –20 dBm typical</p></li>
+<li><p><strong>Isolation:</strong> Galvanic isolation from line circuitry is essential</p></li>
+<li><p><strong>Tones:</strong> In-band tones (dial tone, ringback, busy, etc.) occupy same audio path as speech</p></li>
 </ul>
-</li>
-</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>What is Galvanic Isolation?</strong>
+Galvanic isolation means there is <strong>no direct electrical connection</strong> between two circuits—only signal transfer via magnetic, optical, or capacitive coupling. This prevents high voltages or ground loops from damaging sensitive electronics or endangering users.
+Common methods include transformers and optocouplers.</p>
+</div>
 </section>
-<section id="circuit-roles">
-<h2>Circuit Roles<a class="headerlink" href="#circuit-roles" title="Link to this heading"></a></h2>
-<p>Two distinct signal paths must be designed:</p>
+<section id="audio-functions">
+<h2>Audio Functions<a class="headerlink" href="#audio-functions" title="Link to this heading"></a></h2>
+<p>Two independent analog paths must be supported:</p>
 <ul class="simple">
-<li><p><strong>Earpiece Path (Receiving)</strong></p></li>
-<li><p><strong>Microphone Path (Transmitting)</strong></p></li>
+<li><p><strong>Earpiece / Receive Path (to headset):</strong>
+- Delivers voice and tones from the system into the phone’s earpiece</p></li>
+<li><p><strong>Microphone / Transmit Path (from handset):</strong>
+- Accepts voice from the microphone and routes it into the system for digitization or Bluetooth transmission</p></li>
 </ul>
-<p>Each must interface with a high-impedance, low-voltage digital system on one end and 600-ohm analog audio hardware on the other.</p>
+<p>Both paths share the same tip-ring pair, requiring either a <strong>hybrid</strong> circuit (2-wire to 4-wire conversion) or <strong>time-domain multiplexing</strong> to avoid feedback or echo.</p>
 </section>
-<section id="earpiece-path-receiving">
-<h2>Earpiece Path (Receiving)<a class="headerlink" href="#earpiece-path-receiving" title="Link to this heading"></a></h2>
-<p>This circuit drives the headset’s earpiece using audio or tone signals generated elsewhere in the system.</p>
-<section id="circuit-requirements">
-<h3>Circuit Requirements:<a class="headerlink" href="#circuit-requirements" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p>Match 600-ohm impedance to the earpiece.</p></li>
-<li><p>Drive enough current for audibility (~0 dBm).</p></li>
-<li><p>Isolate the ESP32 system from the analog line.</p></li>
-<li><p>Filter to restrict frequency to 300–3400 Hz.</p></li>
-</ul>
+<section id="historical-evolution">
+<h2>Historical Evolution<a class="headerlink" href="#historical-evolution" title="Link to this heading"></a></h2>
+<p>The Bell System employed a variety of techniques over the decades to achieve clear, isolated, full-duplex audio across a two-wire line:</p>
+<p><strong>Carbon Microphone &amp; Induction Coil (1900s–1940s):</strong>
+- Carbon mics modulated DC current; an induction coil (hybrid transformer) separated mic and speaker paths.
+- Tone signals were generated centrally and injected via coupling networks.
+- Very robust, but audio fidelity was limited.</p>
+<p><strong>Hybrid Transformers and Voice Frequency Signaling (1950s–1980s):</strong>
+- Voice signals and tones shared a 2-wire loop.
+- Hybrids converted between 2-wire (loop) and 4-wire (switching equipment) to manage echo and gain.
+- Sine wave tones (e.g., DTMF, dial tone) were injected and filtered per ITU-T Q.23 standards.</p>
+<p><strong>Integrated Line Interface Circuits (1990s–Present):</strong>
+- SLICs include balanced drivers, hybrids, and filters internally.
+- Audio is digitized near the line, with signal paths managed digitally.
+- Provide built-in gain, echo cancellation, and tone injection in VoIP gear.</p>
 </section>
-<section id="design-options">
-<h3>Design Options:<a class="headerlink" href="#design-options" title="Link to this heading"></a></h3>
+<section id="receive-path-earpiece-driver">
+<h2>Receive Path: Earpiece Driver<a class="headerlink" href="#receive-path-earpiece-driver" title="Link to this heading"></a></h2>
+<p>The earpiece must be driven with filtered voice-band signals at ~0 dBm nominal. This requires impedance matching and isolation from logic circuitry.</p>
+<p><strong>Design Options:</strong></p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -148,43 +162,31 @@
 <col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>Option</strong></p></th>
+<tr class="row-odd"><th class="head"><p><strong>Method</strong></p></th>
 <th class="head"><p><strong>Description</strong></p></th>
 <th class="head"><p><strong>Trade-Offs</strong></p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Transformer-Coupled Output</p></td>
-<td><p>Audio signal passed through a 600-ohm transformer to the earpiece.</p></td>
-<td><p>Provides excellent isolation and historical authenticity. Requires an additional power amplifier stage to drive the transformer effectively.</p></td>
+<tr class="row-even"><td><p><strong>Transformer Output Stage</strong></p></td>
+<td><p>Audio passed through a 600 Ω transformer to the earpiece coil.</p></td>
+<td><p>Excellent isolation and historic fidelity. Requires amplification.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Differential Amplifier Stage</p></td>
-<td><p>Uses an op-amp or Class-D driver with impedance-matching resistors.</p></td>
-<td><p>Compact design and easy gain control. However, it lacks historical fidelity and requires careful PCB layout to avoid noise.</p></td>
+<tr class="row-odd"><td><p><strong>Differential Amplifier</strong></p></td>
+<td><p>Op-amp or Class-D driver configured for 600 Ω output.</p></td>
+<td><p>Compact, tunable, but less authentic and requires filtering.</p></td>
 </tr>
-<tr class="row-even"><td><p>Capacitive-Coupled Audio</p></td>
-<td><p>Routes signal through a DC-blocking capacitor with a resistive load.</p></td>
-<td><p>Very simple and low component count. Limited isolation and more vulnerable to noise and ground loops.</p></td>
+<tr class="row-even"><td><p><strong>Capacitive Coupling</strong></p></td>
+<td><p>Simple capacitor + resistive load to block DC.</p></td>
+<td><p>Low component count but limited isolation and prone to noise.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
-</section>
-<section id="microphone-path-transmitting">
-<h2>Microphone Path (Transmitting)<a class="headerlink" href="#microphone-path-transmitting" title="Link to this heading"></a></h2>
-<p>This circuit accepts input from a traditional carbon or dynamic microphone and prepares it for digitization.</p>
-<section id="id1">
-<h3>Circuit Requirements:<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p>Present 600-ohm input impedance.</p></li>
-<li><p>Capture voice between 300–3400 Hz.</p></li>
-<li><p>Provide gain to bring microphone output to usable level.</p></li>
-<li><p>Block DC where required.</p></li>
-<li><p>Optional: support single-ended or differential input.</p></li>
-</ul>
-</section>
-<section id="id2">
-<h3>Design Options:<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<section id="transmit-path-microphone-input">
+<h2>Transmit Path: Microphone Input<a class="headerlink" href="#transmit-path-microphone-input" title="Link to this heading"></a></h2>
+<p>Carbon or dynamic microphones require impedance matching, gain, and DC biasing. Older mics modulate line current; newer ones output low-level AC signals.</p>
+<p><strong>Design Options:</strong></p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -192,41 +194,31 @@
 <col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>Option</strong></p></th>
+<tr class="row-odd"><th class="head"><p><strong>Method</strong></p></th>
 <th class="head"><p><strong>Description</strong></p></th>
 <th class="head"><p><strong>Trade-Offs</strong></p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Transformer-Coupled Input</p></td>
-<td><p>Audio from the mic is passed through a 600-ohm transformer before amplification.</p></td>
-<td><p>Provides strong electrical isolation and authentic signal characteristics. Requires additional gain circuitry after the transformer.</p></td>
+<tr class="row-even"><td><p><strong>Transformer Input Stage</strong></p></td>
+<td><p>Mic signal passed through 600 Ω transformer to preamp.</p></td>
+<td><p>High isolation and noise immunity. Requires post-gain.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Preamp with Resistor Matching</p></td>
-<td><p>FET or op-amp preamp with input resistors selected to match microphone impedance.</p></td>
-<td><p>Small and easily tunable for different mic types. Susceptible to mismatches and DC biasing issues.</p></td>
+<tr class="row-odd"><td><p><strong>Preamp with Matched Resistors</strong></p></td>
+<td><p>Op-amp or FET with input resistor matched to mic impedance.</p></td>
+<td><p>Compact, but more sensitive to DC offset and mismatch.</p></td>
 </tr>
-<tr class="row-even"><td><p>Capacitive-Coupled Mic Bias</p></td>
-<td><p>Powers a carbon mic with DC, AC-couples the signal to an amplifier or ADC.</p></td>
-<td><p>Simulates original mic behavior well, but may require fine-tuned biasing and introduce DC offset risks.</p></td>
+<tr class="row-even"><td><p><strong>Capacitive-Biased Carbon Mic</strong></p></td>
+<td><p>Bias voltage applied; AC coupled to gain stage.</p></td>
+<td><p>Mimics original circuit behavior. Requires tuning and stability considerations.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
-</section>
-<section id="tone-injection-path">
-<h2>Tone Injection Path<a class="headerlink" href="#tone-injection-path" title="Link to this heading"></a></h2>
-<p>In addition to voice, tones (e.g., dial tone, ringback, busy signal) must be injected into the earpiece path.</p>
-<section id="id3">
-<h3>Circuit Requirements:<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p>Inject tone signals without disturbing the voice path.</p></li>
-<li><p>Match impedance and signal level to earpiece driver circuit.</p></li>
-<li><p>Support switching or summing strategies.</p></li>
-</ul>
-</section>
-<section id="id4">
-<h3>Design Options:<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<section id="tone-injection">
+<h2>Tone Injection<a class="headerlink" href="#tone-injection" title="Link to this heading"></a></h2>
+<p>All tones used in legacy telephony (e.g., dial tone, ringback, busy, reorder) fall within the voice band and are <strong>injected into the same path</strong> as the receive audio.</p>
+<p><strong>Tone Injection Strategies:</strong></p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -234,34 +226,52 @@
 <col style="width: 35.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p><strong>Option</strong></p></th>
+<tr class="row-odd"><th class="head"><p><strong>Method</strong></p></th>
 <th class="head"><p><strong>Description</strong></p></th>
 <th class="head"><p><strong>Trade-Offs</strong></p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Analog Summing Network</p></td>
-<td><p>Mix tone and voice signals using passive or active summing network before final driver.</p></td>
-<td><p>Simple and always-on. Can introduce signal bleed-through or require careful gain balancing.</p></td>
+<tr class="row-even"><td><p><strong>Passive Analog Mixing</strong></p></td>
+<td><p>Resistor-based summing network to blend tone + voice signals.</p></td>
+<td><p>Simple, but fixed blend. Can cause bleed-through or level conflicts.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Relay or Analog Switch</p></td>
-<td><p>Uses a mechanical relay or analog mux to select between tone or voice input.</p></td>
-<td><p>Clear signal isolation and full control over path selection. Adds complexity and latency to switching.</p></td>
+<tr class="row-odd"><td><p><strong>Active Summing Amplifier</strong></p></td>
+<td><p>Op-amp mixer sums multiple audio sources.</p></td>
+<td><p>Tunable gain and impedance. More complexity.</p></td>
 </tr>
-<tr class="row-even"><td><p>Dedicated Tone Driver</p></td>
-<td><p>Tone signal goes through its own amplifier or transformer and joins the earpiece path later.</p></td>
-<td><p>Clean isolation of tone source and adjustable path. Higher component count and more tuning required.</p></td>
+<tr class="row-even"><td><p><strong>Relay or Analog Switch</strong></p></td>
+<td><p>Physically switch between tone and voice sources.</p></td>
+<td><p>Full isolation. May introduce switching noise or latency.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
-</section>
-<section id="echo-control-consideration">
-<h2>Echo Control Consideration<a class="headerlink" href="#echo-control-consideration" title="Link to this heading"></a></h2>
+<section id="hybrid-and-echo-control">
+<h2>Hybrid and Echo Control<a class="headerlink" href="#hybrid-and-echo-control" title="Link to this heading"></a></h2>
+<p>To prevent speaker signal from leaking into the mic path, legacy systems used <strong>hybrid transformers</strong> or <strong>2-wire to 4-wire converters</strong>. These circuits separate transmit and receive audio over the same line.</p>
+<p>Modern methods include:</p>
 <ul class="simple">
-<li><p>Acoustic echo cancellation (AEC) or analog hybrid circuits may be used to prevent feedback between speaker and microphone.</p></li>
-<li><p>These typically require a four-wire interface or active cancellation circuits, often simulated with transformers or op-amp networks.</p></li>
+<li><p><strong>Transformer hybrids</strong> (inductive and matched for best rejection)</p></li>
+<li><p><strong>Op-amp hybrids</strong> (active differential networks)</p></li>
+<li><p><strong>Digital echo cancellation</strong> (in SLICs or DSP chips)</p></li>
 </ul>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Voice and tone audio share the same physical pair: tip and ring</p></li>
+<li><p>Line audio is balanced 600 Ω, 300–3400 Hz bandwidth</p></li>
+<li><p>Earpiece path must drive ~0 dBm across 600 Ω</p></li>
+<li><p>Microphone path must present matching impedance and provide gain</p></li>
+<li><p>Tone signals must mix or switch into the receive path</p></li>
+<li><p>Use transformers or hybrids for best isolation and echo control</p></li>
+<li><p>SLICs now handle these functions in a single IC, but discrete circuits remain viable and educational</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For audio experimentation, always use <strong>isolated test setups</strong> and appropriate impedance loads. Never connect ESP32 audio outputs directly to phone line wiring without proper coupling.</p>
+</div>
 </section>
 </section>
 
