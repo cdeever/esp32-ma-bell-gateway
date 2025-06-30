@@ -13,5 +13,5 @@ This section addresses mechanical design, safety, and aesthetics for housing the
   Offer guidance for assembling the final product, accessing internal components for maintenance, and securing the enclosure against accidental contact with live circuits.
 
 .. toctree::
-   :maxdepth: 1:
-
+   :maxdepth: 1
+   :caption: Contents:
