@@ -9,7 +9,6 @@ This section contains the detailed implementation documentation for the Ma Bell 
    :maxdepth: 1
    :caption: Contents:
 
-   historical-perspective
    hardware/index
    firmware/index
    enclosure/index

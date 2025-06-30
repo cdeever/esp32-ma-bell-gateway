@@ -36,18 +36,19 @@ BORSCHT Explained
    * - **T** - Test  
      - Supports remote testing of the subscriber line from the central office.
 
-A Modern Tribute
-----------------
-
-This project—the **Ma Bell Gateway**—is a modern, microcontroller-based reimagining of the subscriber line card. But instead of switching a real call through copper trunks, it hands off audio to a Bluetooth headset. And instead of being mounted in a climate-controlled CO, it lives in your workshop or home lab.
-
-Still, it honors the same **functional separation and design philosophy** that powered the public switched telephone network (PSTN) for over a hundred years.
-
 Why It Matters
 --------------
 
 By organizing this project around the **Bell System’s BORSCHT model**, we’re not just recreating a piece of vintage hardware—we’re paying tribute to an engineering tradition that defined voice communication for over a century.
 
 Every element of the Ma Bell Gateway, from loop supervision to ringing voltage, follows principles laid down by generations of telecom engineers who built systems to last decades, serve millions, and work flawlessly under all conditions.
+
+
+A Modern Tribute
+----------------
+
+This project—the **Ma Bell Gateway**—is a modern, microcontroller-based reimagining of the subscriber line card. But instead of switching a real call through copper trunks, it hands off audio to a Bluetooth headset. And instead of being mounted in a climate-controlled CO, it lives in your workshop or home lab.
+
+Still, it honors the same **functional separation and design philosophy** that powered the public switched telephone network (PSTN) for over a hundred years.
 
 This project embraces that legacy—not just for nostalgia’s sake, but to learn from its clarity, its modularity, and its remarkable longevity. In the spirit of those engineers, we carry the signal forward.
