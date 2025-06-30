@@ -1,0 +1,182 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Bell System Blueprint &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Hardware" href="hardware/index.html" />
+    <link rel="prev" title="Implementation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Implementation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">The Bell System Blueprint</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-is-a-subscriber-line">What Is a Subscriber Line?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#borscht-explained">BORSCHT Explained</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#a-modern-tribute">A Modern Tribute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#why-it-matters">Why It Matters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hardware/index.html">Hardware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="firmware/index.html">Firmware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enclosure/index.html">Enclosure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Implementation</a></li>
+      <li class="breadcrumb-item active">The Bell System Blueprint</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/implementation/historical-perspective.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-bell-system-blueprint">
+<h1>The Bell System Blueprint<a class="headerlink" href="#the-bell-system-blueprint" title="Link to this heading"></a></h1>
+<p>Before the rise of digital switching and VoIP, the <strong>Bell System</strong> established a rigorous engineering model for delivering reliable analog phone service across millions of subscriber lines. At the heart of this model was the <strong>subscriber line interface</strong>—the circuit that connected each individual phone to the central office (CO).</p>
+<p>To standardize the functions of these circuits, Bell Labs engineers coined the acronym <strong>BORSCHT</strong>, which neatly summarizes the core services every line interface must provide. This framework guided the design of <strong>line cards</strong> like the Western Electric 400E and its descendants—modular units that delivered service to one subscriber each and operated faithfully for decades inside CO switching racks.</p>
+<section id="what-is-a-subscriber-line">
+<h2>What Is a Subscriber Line?<a class="headerlink" href="#what-is-a-subscriber-line" title="Link to this heading"></a></h2>
+<p>A subscriber line refers to the physical two-wire connection between a customer’s telephone and the central office. This pair—known as <strong>tip and ring</strong>—carries everything: DC power, ringing signals, supervision, and full-duplex audio. It’s a deceptively simple interface with astonishing versatility.</p>
+<p>To manage all this on just two wires, the Bell System broke the problem into discrete responsibilities—each handled by part of the line card circuit. That’s where <strong>BORSCHT</strong> comes in.</p>
+</section>
+<section id="borscht-explained">
+<h2>BORSCHT Explained<a class="headerlink" href="#borscht-explained" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 12.0%" />
+<col style="width: 88.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Letter</strong></p></th>
+<th class="head"><p><strong>Function</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>B</strong> - Battery Feed</p></td>
+<td><p>Supplies loop current to power the telephone, typically –48 V DC.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>O</strong> - Overvoltage Protection</p></td>
+<td><p>Protects equipment from lightning strikes, surges, and accidental shorts.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>R</strong> - Ringing</p></td>
+<td><p>Applies an AC ringing voltage (~90 V RMS at 20 Hz) to alert the subscriber of incoming calls.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>S</strong> - Supervision</p></td>
+<td><p>Monitors line status—detecting off-hook, on-hook, pulse dialing, and ring trip events.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>C</strong> - Codec</p></td>
+<td><p>Converts analog voice signals into digital form (and back), typically via μ-law or A-law encoding.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>H</strong> - Hybrid</p></td>
+<td><p>Splits the 2-wire line into separate transmit and receive paths, enabling full-duplex audio.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>T</strong> - Test</p></td>
+<td><p>Supports remote testing of the subscriber line from the central office.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="a-modern-tribute">
+<h2>A Modern Tribute<a class="headerlink" href="#a-modern-tribute" title="Link to this heading"></a></h2>
+<p>This project—the <strong>Ma Bell Gateway</strong>—is a modern, microcontroller-based reimagining of the subscriber line card. But instead of switching a real call through copper trunks, it hands off audio to a Bluetooth headset. And instead of being mounted in a climate-controlled CO, it lives in your workshop or home lab.</p>
+<p>Still, it honors the same <strong>functional separation and design philosophy</strong> that powered the public switched telephone network (PSTN) for over a hundred years.</p>
+</section>
+<section id="why-it-matters">
+<h2>Why It Matters<a class="headerlink" href="#why-it-matters" title="Link to this heading"></a></h2>
+<p>By organizing this project around the <strong>Bell System’s BORSCHT model</strong>, we’re not just recreating a piece of vintage hardware—we’re paying tribute to an engineering tradition that defined voice communication for over a century.</p>
+<p>Every element of the Ma Bell Gateway, from loop supervision to ringing voltage, follows principles laid down by generations of telecom engineers who built systems to last decades, serve millions, and work flawlessly under all conditions.</p>
+<p>This project embraces that legacy—not just for nostalgia’s sake, but to learn from its clarity, its modularity, and its remarkable longevity. In the spirit of those engineers, we carry the signal forward.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hardware/index.html" class="btn btn-neutral float-right" title="Hardware" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
