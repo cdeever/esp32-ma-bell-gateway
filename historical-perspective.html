@@ -49,8 +49,9 @@
 <li class="toctree-l1"><a class="reference internal" href="standards.html">Telephone Service Standards</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The Bell System Blueprint</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-is-a-subscriber-line">What Is a Subscriber Line?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#borscht-explained">BORSCHT Explained</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#why-it-matters">Why It Matters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#borscht-model">BORSCHT Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#design-details-with-purpose">Design Details with Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-borscht-represents">What BORSCHT Represents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#a-modern-tribute">A Modern Tribute</a></li>
 </ul>
 </li>
@@ -92,8 +93,9 @@
 <p>A subscriber line refers to the physical two-wire connection between a customer’s telephone and the central office. This pair—known as <strong>tip and ring</strong>—carries everything: DC power, ringing signals, supervision, and full-duplex audio. It’s a deceptively simple interface with astonishing versatility.</p>
 <p>To manage all this on just two wires, the Bell System broke the problem into discrete responsibilities—each handled by part of the line card circuit. That’s where <strong>BORSCHT</strong> comes in.</p>
 </section>
-<section id="borscht-explained">
-<h2>BORSCHT Explained<a class="headerlink" href="#borscht-explained" title="Link to this heading"></a></h2>
+<section id="borscht-model">
+<h2>BORSCHT Model<a class="headerlink" href="#borscht-model" title="Link to this heading"></a></h2>
+<p>The BORSCHT model defines the seven core functions every subscriber line interface must provide. Each responsibility is essential for delivering power, signaling, audio, and diagnostic capabilities over a simple two-wire phone line.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 12.0%" />
@@ -129,16 +131,37 @@
 </tbody>
 </table>
 </section>
-<section id="why-it-matters">
-<h2>Why It Matters<a class="headerlink" href="#why-it-matters" title="Link to this heading"></a></h2>
-<p>By organizing this project around the <strong>Bell System’s BORSCHT model</strong>, we’re not just recreating a piece of vintage hardware—we’re paying tribute to an engineering tradition that defined voice communication for over a century.</p>
-<p>Every element of the Ma Bell Gateway, from loop supervision to ringing voltage, follows principles laid down by generations of telecom engineers who built systems to last decades, serve millions, and work flawlessly under all conditions.</p>
+<section id="design-details-with-purpose">
+<h2>Design Details with Purpose<a class="headerlink" href="#design-details-with-purpose" title="Link to this heading"></a></h2>
+<p>Each element of BORSCHT wasn’t arbitrary—it was engineered with care to balance <strong>functionality, safety, serviceability, and longevity</strong>. Here are just a few of the clever design decisions behind the acronym:</p>
+<ul class="simple">
+<li><p><strong>–48 V DC (Battery Feed)</strong>
+This negative voltage helps prevent electrolytic corrosion at wiring joints. With the central office (CO) negative relative to earth ground, stray currents flow into the ground instead of pulling oxygen into copper connections—prolonging cable life across thousands of miles.</p></li>
+<li><p><strong>Gas Tube Arrestors and Carbon Blocks (Overvoltage Protection)</strong>
+Subscriber loops often span outdoor lines, prone to lightning strikes. Telcos added surge protection at both ends—sometimes with audible “pops” when a strike occurred—preserving line cards and phones alike.</p></li>
+<li><p><strong>90 V RMS, 20 Hz Ringing (Ringing)</strong>
+This frequency and voltage combo was optimized to mechanically resonate electromechanical bell clappers while avoiding interference with voice frequencies or excessive current draw.</p></li>
+<li><p><strong>Loop Current Detection (Supervision)</strong>
+A simple current sensor could detect if a handset was lifted, if dialing was in progress (via pulses), or if a call had been answered—all without extra wiring.</p></li>
+<li><p><strong>μ-law and A-law Companding (Codec)</strong>
+These logarithmic encoding schemes compressed dynamic range efficiently for long-distance trunk lines, ensuring quiet voices weren’t drowned out and loud signals didn’t overload.</p></li>
+<li><p><strong>Transformer Hybrids (Hybrid)</strong>
+Audio transformers or active circuits cleverly separated transmit and receive signals on the same pair of wires—enabling full-duplex conversations on just two conductors.</p></li>
+<li><p><strong>Central Office Line Testing (Test)</strong>
+Technicians could remotely inject tones, measure resistance, or verify loop status without ever visiting the subscriber’s home—a remarkable feat in the pre-digital era.</p></li>
+</ul>
+</section>
+<section id="what-borscht-represents">
+<h2>What BORSCHT Represents<a class="headerlink" href="#what-borscht-represents" title="Link to this heading"></a></h2>
+<p>By organizing this model around <strong>BORSCHT</strong>, Bell System engineers distilled decades of evolving requirements into a modular, scalable standard. Whether servicing a rural home or a city high-rise, the network could be expanded one line card at a time, each implementing the exact same set of functions.</p>
+<p>That consistency, adaptability, and deep engineering discipline made the subscriber line interface one of the most quietly brilliant systems in 20th-century electronics.</p>
 </section>
 <section id="a-modern-tribute">
 <h2>A Modern Tribute<a class="headerlink" href="#a-modern-tribute" title="Link to this heading"></a></h2>
 <p>This project—the <strong>Ma Bell Gateway</strong>—is a modern, microcontroller-based reimagining of the subscriber line card. But instead of switching a real call through copper trunks, it hands off audio to a Bluetooth headset. And instead of being mounted in a climate-controlled CO, it lives in your workshop or home lab.</p>
 <p>Still, it honors the same <strong>functional separation and design philosophy</strong> that powered the public switched telephone network (PSTN) for over a hundred years.</p>
-<p>This project embraces that legacy—not just for nostalgia’s sake, but to learn from its clarity, its modularity, and its remarkable longevity. In the spirit of those engineers, we carry the signal forward.</p>
+<p>This project embraces that legacy—not just for nostalgia’s sake, but to learn from its clarity, its modularity, and its remarkable longevity.</p>
+<p>In the spirit of those engineers, we carry the signal forward.</p>
 </section>
 </section>
 

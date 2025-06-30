@@ -12,8 +12,11 @@ A subscriber line refers to the physical two-wire connection between a customer'
 
 To manage all this on just two wires, the Bell System broke the problem into discrete responsibilities—each handled by part of the line card circuit. That’s where **BORSCHT** comes in.
 
-BORSCHT Explained
------------------
+BORSCHT Model
+-------------
+
+The BORSCHT model defines the seven core functions every subscriber line interface must provide. Each responsibility is essential for delivering power, signaling, audio, and diagnostic capabilities over a simple two-wire phone line.
+
 
 .. list-table::
    :header-rows: 1
@@ -36,13 +39,38 @@ BORSCHT Explained
    * - **T** - Test  
      - Supports remote testing of the subscriber line from the central office.
 
-Why It Matters
---------------
+Design Details with Purpose
+---------------------------
 
-By organizing this project around the **Bell System’s BORSCHT model**, we’re not just recreating a piece of vintage hardware—we’re paying tribute to an engineering tradition that defined voice communication for over a century.
+Each element of BORSCHT wasn’t arbitrary—it was engineered with care to balance **functionality, safety, serviceability, and longevity**. Here are just a few of the clever design decisions behind the acronym:
 
-Every element of the Ma Bell Gateway, from loop supervision to ringing voltage, follows principles laid down by generations of telecom engineers who built systems to last decades, serve millions, and work flawlessly under all conditions.
+- **–48 V DC (Battery Feed)**  
+  This negative voltage helps prevent electrolytic corrosion at wiring joints. With the central office (CO) negative relative to earth ground, stray currents flow into the ground instead of pulling oxygen into copper connections—prolonging cable life across thousands of miles.
 
+- **Gas Tube Arrestors and Carbon Blocks (Overvoltage Protection)**  
+  Subscriber loops often span outdoor lines, prone to lightning strikes. Telcos added surge protection at both ends—sometimes with audible "pops" when a strike occurred—preserving line cards and phones alike.
+
+- **90 V RMS, 20 Hz Ringing (Ringing)**  
+  This frequency and voltage combo was optimized to mechanically resonate electromechanical bell clappers while avoiding interference with voice frequencies or excessive current draw.
+
+- **Loop Current Detection (Supervision)**  
+  A simple current sensor could detect if a handset was lifted, if dialing was in progress (via pulses), or if a call had been answered—all without extra wiring.
+
+- **μ-law and A-law Companding (Codec)**  
+  These logarithmic encoding schemes compressed dynamic range efficiently for long-distance trunk lines, ensuring quiet voices weren’t drowned out and loud signals didn’t overload.
+
+- **Transformer Hybrids (Hybrid)**  
+  Audio transformers or active circuits cleverly separated transmit and receive signals on the same pair of wires—enabling full-duplex conversations on just two conductors.
+
+- **Central Office Line Testing (Test)**  
+  Technicians could remotely inject tones, measure resistance, or verify loop status without ever visiting the subscriber’s home—a remarkable feat in the pre-digital era.
+
+What BORSCHT Represents
+-----------------------
+
+By organizing this model around **BORSCHT**, Bell System engineers distilled decades of evolving requirements into a modular, scalable standard. Whether servicing a rural home or a city high-rise, the network could be expanded one line card at a time, each implementing the exact same set of functions.
+
+That consistency, adaptability, and deep engineering discipline made the subscriber line interface one of the most quietly brilliant systems in 20th-century electronics.
 
 A Modern Tribute
 ----------------
@@ -51,4 +79,6 @@ This project—the **Ma Bell Gateway**—is a modern, microcontroller-based reim
 
 Still, it honors the same **functional separation and design philosophy** that powered the public switched telephone network (PSTN) for over a hundred years.
 
-This project embraces that legacy—not just for nostalgia’s sake, but to learn from its clarity, its modularity, and its remarkable longevity. In the spirit of those engineers, we carry the signal forward.
+This project embraces that legacy—not just for nostalgia’s sake, but to learn from its clarity, its modularity, and its remarkable longevity.
+
+In the spirit of those engineers, we carry the signal forward.
