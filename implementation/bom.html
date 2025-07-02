@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Implementation &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+  <title>Bill of Materials &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=edc13519" />
@@ -20,8 +20,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Bill of Materials" href="bom.html" />
-    <link rel="prev" title="Enclosure Design" href="../solution-design/enclosure/index.html" /> 
+    <link rel="next" title="Circuit Implementation" href="circuit/index.html" />
+    <link rel="prev" title="Implementation" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,11 +49,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../standards.html">Telephone Service Standards</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../historical-perspective.html">The Bell System Blueprint</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../solution-design/index.html">Solution Design</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Implementation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="bom.html">Bill of Materials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Implementation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Bill of Materials</a></li>
 <li class="toctree-l2"><a class="reference internal" href="circuit/index.html">Circuit Implementation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="firmware/index.html">Firmware</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcb/index.html">PCB Design &amp; Assembly</a></li>
 <li class="toctree-l2"><a class="reference internal" href="enclosure/index.html">Enclosure</a></li>
 </ul>
 </li>
@@ -74,9 +73,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Implementation</li>
+          <li class="breadcrumb-item"><a href="index.html">Implementation</a></li>
+      <li class="breadcrumb-item active">Bill of Materials</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/implementation/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/implementation/bom.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -84,28 +84,103 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="implementation">
-<h1>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h1>
-<p>This section contains the detailed implementation documentation for the Ma Bell Gateway project.</p>
-<hr class="docutils" />
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="bom.html">Bill of Materials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="circuit/index.html">Circuit Implementation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="firmware/index.html">Firmware</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pcb/index.html">PCB Design &amp; Assembly</a></li>
-<li class="toctree-l1"><a class="reference internal" href="enclosure/index.html">Enclosure</a></li>
-</ul>
-</div>
+  <section id="bill-of-materials">
+<h1>Bill of Materials<a class="headerlink" href="#bill-of-materials" title="Link to this heading"></a></h1>
+<p>This section lists all components required to assemble the Ma Bell Gateway.
+Values, part numbers, and notes are included for clarity.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 12.0%" />
+<col style="width: 20.0%" />
+<col style="width: 12.0%" />
+<col style="width: 24.0%" />
+<col style="width: 32.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Ref. Des.</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Value / Rating</p></th>
+<th class="head"><p>Manufacturer / Part #</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>U1</p></td>
+<td><p>ESP32-WROVER-IE Module</p></td>
+<td><p>–</p></td>
+<td><p>Espressif ESP32-WROVER-IE</p></td>
+<td><p>Main MCU</p></td>
+</tr>
+<tr class="row-odd"><td><p>U2</p></td>
+<td><p>SLIC, Line Interface IC</p></td>
+<td><p>HC-5504B (DIP-24)</p></td>
+<td><p>Intersil / Renesas HC-5504B-5</p></td>
+<td><p>Subscriber Line Interface Circuit</p></td>
+</tr>
+<tr class="row-even"><td><p>U3</p></td>
+<td><p>Audio Codec (if used)</p></td>
+<td><p>(e.g. ES8311)</p></td>
+<td><p>[Your preferred part]</p></td>
+<td><p>PCM/I2S interface between ESP32 &amp; SLIC</p></td>
+</tr>
+<tr class="row-odd"><td><p>J1</p></td>
+<td><p>RJ11 Jack</p></td>
+<td><p>6P4C or 6P2C</p></td>
+<td><p>Amphenol or equivalent</p></td>
+<td><p>Phone line output</p></td>
+</tr>
+<tr class="row-even"><td><p>J2</p></td>
+<td><p>Power Connector</p></td>
+<td><p>Barrel Jack, 5.5x2.1mm</p></td>
+<td><p>CUI PJ-102A or equivalent</p></td>
+<td><p>For 3.3V/9V/-48V supply input</p></td>
+</tr>
+<tr class="row-odd"><td><p>C1, C2, …</p></td>
+<td><p>Capacitors (see schematic)</p></td>
+<td><p>[values as needed]</p></td>
+<td><p>[Mfr/P/N]</p></td>
+<td><p>Filter, bypass, and timing</p></td>
+</tr>
+<tr class="row-even"><td><p>R1, R2, …</p></td>
+<td><p>Resistors (see schematic)</p></td>
+<td><p>[values as needed]</p></td>
+<td><p>[Mfr/P/N]</p></td>
+<td><p>Feed, balance, pull-up/down, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Q1</p></td>
+<td><p>Relay or MOSFET</p></td>
+<td><p>–</p></td>
+<td><p>[Part #]</p></td>
+<td><p>Ring relay driver or lamp control</p></td>
+</tr>
+<tr class="row-even"><td><p>D1, D2, …</p></td>
+<td><p>Diodes/Bridge Rectifier</p></td>
+<td><p>–</p></td>
+<td><p>[Part #]</p></td>
+<td><p>Protection (bridge for line input, etc.)</p></td>
+</tr>
+<tr class="row-odd"><td><p>T1</p></td>
+<td><p>Transformer (if used for ringing)</p></td>
+<td><p>20Hz, [spec]</p></td>
+<td><p>[Part #]</p></td>
+<td><p>Ring generator</p></td>
+</tr>
+<tr class="row-even"><td><p>Misc.</p></td>
+<td><p>PCB, hardware, headers, jumpers</p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+<td><p>Enclosure, standoffs, screws, etc.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../solution-design/enclosure/index.html" class="btn btn-neutral float-left" title="Enclosure Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="bom.html" class="btn btn-neutral float-right" title="Bill of Materials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="circuit/index.html" class="btn btn-neutral float-right" title="Circuit Implementation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

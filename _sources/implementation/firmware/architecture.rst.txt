@@ -37,7 +37,7 @@ Module Responsibilities
   - Manages all interaction with the physical hardware:  
     - Pin configuration (GPIO, PCM/I2S)
     - Analog phone line interfacing (off-hook/ring detect, pulse dial)
-    - Generation of all telephony tones and lamp/relay control
+    - Generation of all telephony tones
   - Abstracts hardware details from application logic.
 
 **bluetooth/**
