@@ -1,0 +1,96 @@
+Power Supply
+============
+
+The Ma Bell Gateway is powered entirely from a single, regulated 12 V DC supply.  
+All system voltages—including the analog line battery (-48 V), ringing generator (90 V AC), and microcontroller logic (3.3 V)—are derived from this main 12 V rail.  
+This approach simplifies system design, improves safety, and ensures the project is easily reproducible with common, off-the-shelf parts.
+
+Power Input Details
+-------------------
+
+The Ma Bell Gateway receives its sole power input via a standard **2.1 mm barrel jack** located on the back panel of the device, with **center pin positive (hot)**.  
+The **step-down from AC mains to 12 V DC is performed entirely within the external power brick** (wall adapter).  
+No hazardous mains voltage enters the enclosure, improving user safety and simplifying both assembly and compliance.  
+Internally, the 12 V DC from the barrel jack is distributed to all system circuits as described below.
+
+Power Architecture
+------------------
+
+- **12 V DC Wall Adapter:**  
+  A high-quality, center-positive 12 V DC supply (minimum 2 A recommended) is the sole power input for the Ma Bell Gateway.  
+  All other required voltages are generated internally.
+
+- **SLIC VB+:**  
+  The 12 V supply directly powers the SLIC’s positive supply rail (VB+), as well as all mechanical relays and any other 12 V peripherals.
+
+- **SLIC VB- (-48 V Generation):**  
+  A dedicated DC-DC boost/inverting converter module generates a stable -48 V DC rail from the 12 V input.  
+  This rail feeds the SLIC’s VB- pin, providing authentic battery feed to the phone line for classic operation.
+
+- **90 V AC Ringing Generator:**  
+  A custom ringer generator circuit produces 90 V AC at 20 Hz, powered by the 12 V input.  
+  This circuit steps up and converts the 12 V DC to the required AC ringing waveform, which is switched onto the phone line via relay under MCU control.
+
+- **3.3 V Logic Supply:**  
+  A low-noise 3.3 V voltage regulator (LDO or DC-DC switcher) is used to power the ESP32 and all low-voltage digital logic.  
+  The 3.3 V regulator is fed directly from the 12 V input.
+
+.. note::
+   
+   **Dial Lamp (9 V AC):**  
+   The dial lamp is powered externally, using a separate wall transformer that connects directly to the phone set’s yellow/black leads.  
+   No AC voltage for the dial lamp is generated or switched on the Gateway PCB.
+
+Power Distribution Diagram
+--------------------------
+
+#.. figure:: /_images/power-12v-architecture.png
+   :alt: Power distribution block diagram
+
+   Power distribution block diagram for the Ma Bell Gateway (single 12 V DC input).
+
+Grounding & Safety
+------------------
+
+- All circuit grounds—analog, digital, and battery—are joined at a single star ground point on the PCB.
+- The -48 V and ringer generator circuits are isolated from logic-level circuitry except at this ground reference.
+- High-voltage and low-voltage traces are routed separately and clearly marked to prevent accidental contact.
+- Input fuses are installed on the 12 V rail, and all high-voltage outputs include appropriate protection devices (TVS diodes, MOVs) to guard against surges and faults.
+
+Component Selection
+-------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 36 26
+
+   * - Function
+     - Suggested Part / Type
+     - Notes
+   * - 12 V DC Supply
+     - High-quality 12 V/2A adapter (e.g., Mean Well GSM60A12-P1J)
+     - Barrel jack or screw terminal input
+   * - -48 V DC Module
+     - Boost/inverting DC-DC converter (e.g., XL6019-based module)
+     - Output 50–100 mA minimum, adjustable
+   * - 90 V AC Ring Generator
+     - Custom or off-the-shelf ring generator circuit (20 Hz, 90 V AC)
+     - Powered by 12 V rail
+   * - 3.3 V Regulator
+     - MP1584 (switching) or AMS1117-3.3 (LDO)
+     - Min 500 mA output for ESP32 + peripherals
+   * - Input Fuse
+     - 2A fast-blow fuse or PPTC (polyfuse)
+     - Located close to power entry
+
+Design Notes
+------------
+
+- All voltages (except 9 V AC dial lamp) are derived from the 12 V input.
+- The -48 V and ringing generator are modular and easily replaced if needs change.
+- Never exceed 12 V input; all downstream regulators and modules are selected for this voltage.
+- Always check output voltages with a meter before connecting to the SLIC or phone line.
+
+.. note::
+
+   Update the schematic and BOM to reflect your final module selections, protection device ratings, and fuse values.

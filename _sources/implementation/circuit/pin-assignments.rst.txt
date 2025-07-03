@@ -1,8 +1,5 @@
-Pin Assignments
-===============
-
-ESP32-WROVER-IE Pin Configuration
----------------------------------
+ESP32 Pin Assignments
+=====================
 
 The following tables list the GPIO pin assignments for the ESP32-WROVER-IE, grouped by function.
 
