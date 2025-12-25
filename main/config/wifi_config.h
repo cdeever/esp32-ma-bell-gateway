@@ -2,8 +2,8 @@
 #define __WIFI_CONFIG_H__
 
 // Connection parameters
-#define WIFI_CONNECT_TIMEOUT        30    // seconds
-#define WIFI_MAXIMUM_RETRY          5     // Increased for BT/WiFi coexistence
+#define WIFI_CONNECT_TIMEOUT        60    // Increased to allow all retries to complete
+#define WIFI_MAXIMUM_RETRY          5     // All retries should complete within 60s timeout
 
 // WiFi credentials are stored in NVS only
 // Use provisioning tool to set credentials (see WIFI_SETUP.md)

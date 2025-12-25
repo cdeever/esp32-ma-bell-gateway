@@ -54,12 +54,21 @@ void app_main(void)
         ESP_LOGE(TAG, "Device will continue without WiFi. See WIFI_SETUP.md for provisioning.");
     }
 
+    // WiFi init is complete (success or timeout), now safe to start Bluetooth
     ESP_LOGI(TAG, "Initializing Bluetooth...");
-    ESP_ERROR_CHECK(bluetooth_init());  // CRITICAL FIX: bt_app_task_start_up() called here
+    ESP_ERROR_CHECK(bluetooth_init());
+
+    // Signal Bluetooth initialization complete
+    ma_bell_state_update_network_bits(NET_STATE_BT_INIT_COMPLETE, 0);
+    ESP_LOGI(TAG, "Bluetooth initialization complete");
 
     // Initialize application services
     ESP_LOGI(TAG, "Initializing web interface...");
     ESP_ERROR_CHECK(web_interface_init());
+
+    // Signal web server initialization complete
+    ma_bell_state_update_network_bits(NET_STATE_WEB_INIT_COMPLETE, 0);
+    ESP_LOGI(TAG, "Web interface initialization complete");
 
     ESP_LOGI(TAG, "===========================================");
     ESP_LOGI(TAG, "Ma Bell Gateway initialized successfully!");

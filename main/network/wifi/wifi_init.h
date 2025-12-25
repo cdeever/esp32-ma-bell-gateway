@@ -11,6 +11,8 @@
  * - Initializes WiFi driver
  * - Creates event group internally
  * - Connects to WiFi using stored/default credentials
+ * - Waits for connection or timeout (up to WIFI_CONNECT_TIMEOUT seconds)
+ * - All retry attempts happen synchronously before returning
  *
  * @return ESP_OK on success, ESP_FAIL on failure (note: continues without WiFi)
  */
