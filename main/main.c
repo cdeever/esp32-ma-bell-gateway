@@ -46,11 +46,16 @@ void app_main(void)
     ESP_ERROR_CHECK(hardware_init());
 
     // Initialize communication subsystems
+    // Note: WiFi initialized BEFORE Bluetooth to avoid coexistence issues during connection
+    ESP_LOGI(TAG, "Initializing WiFi...");
+    esp_err_t wifi_ret = wifi_init_and_connect();
+    if (wifi_ret != ESP_OK) {
+        ESP_LOGE(TAG, "WiFi initialization failed: %s", esp_err_to_name(wifi_ret));
+        ESP_LOGE(TAG, "Device will continue without WiFi. See WIFI_SETUP.md for provisioning.");
+    }
+
     ESP_LOGI(TAG, "Initializing Bluetooth...");
     ESP_ERROR_CHECK(bluetooth_init());  // CRITICAL FIX: bt_app_task_start_up() called here
-
-    ESP_LOGI(TAG, "Initializing WiFi...");
-    ESP_ERROR_CHECK(wifi_init_and_connect());
 
     // Initialize application services
     ESP_LOGI(TAG, "Initializing web interface...");
@@ -61,8 +66,8 @@ void app_main(void)
     ESP_LOGI(TAG, "===========================================");
     ESP_LOGI(TAG, "");
     ESP_LOGI(TAG, "System Status:");
+    ESP_LOGI(TAG, "  - WiFi: Connected (if credentials were valid)");
     ESP_LOGI(TAG, "  - Bluetooth: Ready for pairing");
-    ESP_LOGI(TAG, "  - WiFi: Attempting connection");
     ESP_LOGI(TAG, "  - Web Interface: Active");
     ESP_LOGI(TAG, "");
     ESP_LOGI(TAG, "Waiting for Bluetooth device...");

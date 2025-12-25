@@ -10,6 +10,7 @@
 static const char *TAG = "wifi";
 
 static int s_retry_num = 0;
+static int s_retry_delay_ms = 1000;  // Initial 1 second delay, exponential backoff
 static EventGroupHandle_t s_wifi_event_group = NULL;
 
 // WiFi credentials and configuration are now defined in config/wifi_config.h
@@ -21,9 +22,18 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         // Publish WiFi disconnected event
         event_publish(WIFI_EVENT_DISCONNECTED_EV, NULL);
         if (s_retry_num < WIFI_MAXIMUM_RETRY) {
+            // Add exponential backoff delay before retry to help with BT/WiFi coexistence
+            ESP_LOGI(TAG, "Waiting %dms before retry %d/%d",
+                     s_retry_delay_ms, s_retry_num + 1, WIFI_MAXIMUM_RETRY);
+            vTaskDelay(pdMS_TO_TICKS(s_retry_delay_ms));
+
             esp_wifi_connect();
             s_retry_num++;
-            ESP_LOGI(TAG, "retry to connect to the AP (attempt %d/%d)", s_retry_num, WIFI_MAXIMUM_RETRY);
+
+            // Exponential backoff: double delay each time, cap at 10 seconds
+            s_retry_delay_ms = (s_retry_delay_ms < 8000) ? s_retry_delay_ms * 2 : 10000;
+
+            ESP_LOGI(TAG, "Retry connect to WiFi (attempt %d/%d)", s_retry_num, WIFI_MAXIMUM_RETRY);
         } else {
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
             ESP_LOGW(TAG, "Failed to connect to AP after %d attempts, continuing without WiFi", WIFI_MAXIMUM_RETRY);
@@ -34,6 +44,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "Got IP:" IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
+        s_retry_delay_ms = 1000;  // Reset backoff delay on successful connection
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
         // Publish WiFi connected event
         event_publish(WIFI_EVENT_CONNECTED_EV, NULL);
@@ -118,25 +129,18 @@ esp_err_t wifi_connect(void)
 {
     char ssid[MAX_SSID_LEN];
     char password[MAX_PASS_LEN];
-    bool use_default = false;
 
+    // Retrieve credentials from NVS - fail if not found
     esp_err_t ret = wifi_get_credentials(ssid, sizeof(ssid), password, sizeof(password));
     if (ret != ESP_OK) {
-        ESP_LOGW(TAG, "No WiFi credentials found in storage, using defaults");
-        strlcpy(ssid, DEFAULT_WIFI_SSID, sizeof(ssid));
-        strlcpy(password, DEFAULT_WIFI_PASS, sizeof(password));
-        use_default = true;
-    } else {
-        ESP_LOGI(TAG, "Found stored credentials for SSID: %s", ssid);
-        // If stored SSID is not our default, use defaults instead
-        if (strcmp(ssid, DEFAULT_WIFI_SSID) != 0) {
-            ESP_LOGW(TAG, "Stored SSID (%s) differs from default (%s), using defaults", ssid, DEFAULT_WIFI_SSID);
-            strlcpy(ssid, DEFAULT_WIFI_SSID, sizeof(ssid));
-            strlcpy(password, DEFAULT_WIFI_PASS, sizeof(password));
-            use_default = true;
-        }
+        ESP_LOGE(TAG, "No WiFi credentials found in NVS storage!");
+        ESP_LOGE(TAG, "Please provision WiFi credentials (see WIFI_SETUP.md)");
+        return ESP_ERR_NVS_NOT_FOUND;
     }
 
+    ESP_LOGI(TAG, "Found WiFi credentials in NVS for SSID: %s", ssid);
+
+    // Configure WiFi with stored credentials
     wifi_config_t wifi_config = {
         .sta = {
             .threshold.authmode = WIFI_AUTH_WPA2_PSK,
@@ -148,24 +152,11 @@ esp_err_t wifi_connect(void)
     strlcpy((char *) wifi_config.sta.password, password, sizeof(wifi_config.sta.password));
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_LOGI(TAG, "Connecting to WiFi network: %s", ssid);
 
-    if (use_default) {
-        ESP_LOGI(TAG, "Connecting to default WiFi network: %s", ssid);
-        // Store the default credentials for future use
-        ret = wifi_set_credentials(ssid, password);
-        if (ret != ESP_OK) {
-            ESP_LOGW(TAG, "Failed to store default credentials: %s", esp_err_to_name(ret));
-        } else {
-            ESP_LOGI(TAG, "Stored default credentials for future use");
-        }
-    } else {
-        ESP_LOGI(TAG, "Connecting to stored WiFi network: %s", ssid);
-    }
-
-    // Explicitly start the connection
+    // Start WiFi connection
     ret = esp_wifi_connect();
     if (ret == ESP_ERR_WIFI_CONN) {
-        // Connection already in progress, this is not an error
         ESP_LOGI(TAG, "WiFi connection already in progress");
         return ESP_OK;
     } else if (ret != ESP_OK) {

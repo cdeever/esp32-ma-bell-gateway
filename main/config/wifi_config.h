@@ -3,11 +3,13 @@
 
 // Connection parameters
 #define WIFI_CONNECT_TIMEOUT        30    // seconds
-#define WIFI_MAXIMUM_RETRY          3
+#define WIFI_MAXIMUM_RETRY          5     // Increased for BT/WiFi coexistence
 
-// WiFi credentials (TODO: move to secure storage in future)
-#define DEFAULT_WIFI_SSID           "YourSSID"
-#define DEFAULT_WIFI_PASS           "YourPassword"
+// WiFi credentials are stored in NVS only
+// Use provisioning tool to set credentials (see WIFI_SETUP.md)
+// No hardcoded defaults - credentials must be provisioned to NVS partition
+// #define DEFAULT_WIFI_SSID           "YourSSID"  // No longer used
+// #define DEFAULT_WIFI_PASS           "YourPassword"  // No longer used
 
 // Buffer sizes
 #define MAX_SSID_LEN                32

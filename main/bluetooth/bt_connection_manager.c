@@ -24,43 +24,52 @@ static bool is_connecting = false;
 // Reconnection task handle
 static TaskHandle_t reconnect_task_handle = NULL;
 
+// Cache for paired device info (avoid repeated NVS queries)
+static struct {
+    bool valid;
+    esp_bd_addr_t addr;
+    char name[32];
+} paired_device_cache = {.valid = false};
+
 // Reconnection task
 static void bt_reconnect_task(void *pvParameters)
 {
     while (1) {
         // Only attempt reconnection if we're not already connected and not currently trying to connect
         if (!ma_bell_state_bluetooth_bits_set(BT_STATE_CONNECTED) && !is_connecting) {
-            esp_bd_addr_t last_paired_addr;
-            char last_paired_name[32];
-            esp_err_t ret = app_hf_get_paired_device(last_paired_addr, last_paired_name, sizeof(last_paired_name));
+            // Only query storage if cache is invalid
+            if (!paired_device_cache.valid) {
+                esp_err_t ret = app_hf_get_paired_device(
+                    paired_device_cache.addr,
+                    paired_device_cache.name,
+                    sizeof(paired_device_cache.name)
+                );
 
-            if (ret == ESP_OK) {
-                // Check if we have a valid stored device (not all zeros)
-                bool has_valid_device = false;
-                for (int i = 0; i < ESP_BD_ADDR_LEN; i++) {
-                    if (last_paired_addr[i] != 0) {
-                        has_valid_device = true;
-                        break;
+                if (ret == ESP_OK) {
+                    // Check if we have a valid stored device (not all zeros)
+                    bool has_valid_device = false;
+                    for (int i = 0; i < ESP_BD_ADDR_LEN; i++) {
+                        if (paired_device_cache.addr[i] != 0) {
+                            has_valid_device = true;
+                            break;
+                        }
                     }
+                    paired_device_cache.valid = has_valid_device;
                 }
+            }
 
-                if (has_valid_device) {
-                    ESP_LOGI(TAG, "Found stored device %s, attempting to reconnect", last_paired_name);
-                    is_connecting = true;
+            if (paired_device_cache.valid) {
+                ESP_LOGI(TAG, "Found stored device %s, attempting to reconnect", paired_device_cache.name);
+                is_connecting = true;
 
-                    // Start inquiry to find the device
-                    esp_bt_inq_mode_t inq_mode = ESP_BT_INQ_MODE_GENERAL_INQUIRY;
-                    uint8_t inq_len = BT_DISCOVERY_DURATION;
-                    uint8_t inq_num_rsps = BT_DISCOVERY_MAX_RESPONSES;
-                    ret = esp_bt_gap_start_discovery(inq_mode, inq_len, inq_num_rsps);
-                    if (ret != ESP_OK) {
-                        ESP_LOGE(TAG, "Failed to start discovery: %s", esp_err_to_name(ret));
-                        is_connecting = false;
-                    }
-                } else {
-                    ESP_LOGI(TAG, "No paired device found, waiting for new connection");
-                    // Set discoverable and connectable mode for new connections
-                    ESP_ERROR_CHECK(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE));
+                // Start inquiry to find the device
+                esp_bt_inq_mode_t inq_mode = ESP_BT_INQ_MODE_GENERAL_INQUIRY;
+                uint8_t inq_len = BT_DISCOVERY_DURATION;
+                uint8_t inq_num_rsps = BT_DISCOVERY_MAX_RESPONSES;
+                esp_err_t ret = esp_bt_gap_start_discovery(inq_mode, inq_len, inq_num_rsps);
+                if (ret != ESP_OK) {
+                    ESP_LOGE(TAG, "Failed to start discovery: %s", esp_err_to_name(ret));
+                    is_connecting = false;
                 }
             } else {
                 ESP_LOGI(TAG, "No paired device found, waiting for new connection");
@@ -86,19 +95,15 @@ void bt_connection_manager_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_par
             break;
 
         case ESP_BT_GAP_DISC_RES_EVT:
-            if (is_connecting) {
-                esp_bd_addr_t last_paired_addr;
-                char last_paired_name[32];
-                esp_err_t ret = app_hf_get_paired_device(last_paired_addr, last_paired_name, sizeof(last_paired_name));
-                if (ret == ESP_OK) {
-                    // Check if this is our paired device
-                    if (memcmp(param->disc_res.bda, last_paired_addr, ESP_BD_ADDR_LEN) == 0) {
-                        ESP_LOGI(TAG, "Found paired device, attempting to connect");
-                        esp_bt_gap_cancel_discovery();
-                        esp_hf_client_connect(param->disc_res.bda);
-                        // Publish connection event (will be confirmed by HFP callback)
-                        event_publish(BT_EVENT_CONNECTED, NULL);
-                    }
+            // Use cached data instead of querying storage again
+            if (is_connecting && paired_device_cache.valid) {
+                // Check if this is our paired device
+                if (memcmp(param->disc_res.bda, paired_device_cache.addr, ESP_BD_ADDR_LEN) == 0) {
+                    ESP_LOGI(TAG, "Matched paired device %s, initiating connection", paired_device_cache.name);
+                    esp_bt_gap_cancel_discovery();
+                    esp_hf_client_connect(param->disc_res.bda);
+                    // Publish connection event (will be confirmed by HFP callback)
+                    event_publish(BT_EVENT_CONNECTED, NULL);
                 }
             }
             break;
@@ -111,6 +116,8 @@ void bt_connection_manager_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_par
                 strncpy(device_name, (const char*)param->auth_cmpl.device_name, sizeof(device_name) - 1);
                 app_hf_store_paired_device(param->auth_cmpl.bda, device_name);
                 ESP_LOGI(TAG, "Stored paired device: %s", device_name);
+                // Invalidate cache to force refresh on next reconnection attempt
+                paired_device_cache.valid = false;
             } else {
                 ESP_LOGE(TAG, "Authentication failed: %d", param->auth_cmpl.stat);
                 is_connecting = false;
