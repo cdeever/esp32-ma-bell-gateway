@@ -13,21 +13,7 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 #include "../storage/storage.h"
-
-// Maximum length for SSID and password
-#define MAX_SSID_LEN 32
-#define MAX_PASS_LEN 64
-
-// WiFi connection timeout in seconds
-#define WIFI_CONNECT_TIMEOUT 30
-
-// WiFi event group bits
-#define WIFI_CONNECTED_BIT BIT0
-#define WIFI_FAIL_BIT      BIT1
-
-// Default WiFi credentials
-#define DEFAULT_WIFI_SSID "YOURSSID"
-#define DEFAULT_WIFI_PASS "passwd"
+#include "config/wifi_config.h"
 
 
 /**

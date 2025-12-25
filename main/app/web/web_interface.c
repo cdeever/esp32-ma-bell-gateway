@@ -1,5 +1,6 @@
 #include "web_interface.h"
 #include "app/state/ma_bell_state.h"
+#include "config/web_config.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <esp_log.h>
@@ -149,7 +150,7 @@ static esp_err_t status_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
-    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
+    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(WEB_MUTEX_TIMEOUT_MS)) != pdTRUE) {
         ESP_LOGE(TAG, "Failed to take mutex for status request");
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server busy");
         return ESP_FAIL;
@@ -225,7 +226,7 @@ static esp_err_t tasks_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
-    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
+    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(WEB_MUTEX_TIMEOUT_MS)) != pdTRUE) {
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server busy");
         return ESP_FAIL;
     }
@@ -280,16 +281,16 @@ esp_err_t web_interface_init(void) {
     }
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 8;      // Increase from default
-    config.stack_size = 8192;         // Increase stack size
-    config.core_id = 0;               // Run on core 0
-    config.server_port = 80;          // Standard HTTP port
-    config.ctrl_port = 32768;         // Control port for server management
-    config.send_wait_timeout = 5;     // 5 second timeout for sending responses
-    config.recv_wait_timeout = 5;     // 5 second timeout for receiving requests
+    config.max_uri_handlers = WEB_SERVER_MAX_URI_HANDLERS;
+    config.stack_size = WEB_SERVER_STACK_SIZE;
+    config.core_id = WEB_SERVER_CORE_ID;
+    config.server_port = WEB_SERVER_PORT;
+    config.ctrl_port = WEB_SERVER_CTRL_PORT;
+    config.send_wait_timeout = WEB_SERVER_SEND_TIMEOUT;
+    config.recv_wait_timeout = WEB_SERVER_RECV_TIMEOUT;
     config.lru_purge_enable = true;   // Enable LRU purge
-    config.max_resp_headers = 8;      // Increase max response headers
-    config.backlog_conn = 5;          // Allow 5 pending connections
+    config.max_resp_headers = WEB_SERVER_MAX_RESP_HEADERS;
+    config.backlog_conn = WEB_SERVER_BACKLOG_CONN;
     
     ESP_LOGI(TAG, "Starting web server on port %d with config:", config.server_port);
     ESP_LOGI(TAG, "- Stack size: %d", config.stack_size);
@@ -362,7 +363,7 @@ esp_err_t web_interface_stop(void) {
         return ESP_OK;
     }
 
-    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
+    if (xSemaphoreTake(server_mutex, pdMS_TO_TICKS(WEB_MUTEX_TIMEOUT_MS)) != pdTRUE) {
         ESP_LOGE(TAG, "Failed to take server mutex during shutdown");
         return ESP_FAIL;
     }

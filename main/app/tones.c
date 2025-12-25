@@ -9,8 +9,6 @@
 #include "esp_log.h"
 #include "driver/gpio.h"
 
-#define PLAY_DURATION 5 // Play each tone for 5 seconds
-
 static const char *TAG = "tones";
 
 // Define the tones
@@ -33,11 +31,11 @@ i2s_chan_handle_t tx_handle;  // Handle for the I2S TX channel
 
 void i2s_init(void) {
     // I2S channel configuration
-    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
-    
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(AUDIO_I2S_PORT, I2S_ROLE_MASTER);
+
     // I2S standard configuration
     i2s_std_config_t std_cfg = {
-        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(8000),
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(AUDIO_SAMPLE_RATE),
         .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO),
         .gpio_cfg = {
             .mclk = GPIO_NUM_0,   // Set MCLK if needed
@@ -70,24 +68,24 @@ void generate_tone_task(void *param) {
         }
 
         tone_t *tone = &tones[current_tone];  // Get the active tone
-    
+
         //PLAY TONE!
-        int16_t buffer[BUFFER_SIZE];
-        int samples_per_cycle1 = SAMPLE_RATE / tone->freq1;
-        int samples_per_cycle2 = tone->freq2 ? SAMPLE_RATE / tone->freq2 : 0;
+        int16_t buffer[AUDIO_BUFFER_SIZE];
+        int samples_per_cycle1 = AUDIO_SAMPLE_RATE / tone->freq1;
+        int samples_per_cycle2 = tone->freq2 ? AUDIO_SAMPLE_RATE / tone->freq2 : 0;
         int sample_index = 0;
         int elapsed_samples = 0;
         float volume_factor = 0.2;
 
-        while (elapsed_samples < PLAY_DURATION * SAMPLE_RATE) {
+        while (elapsed_samples < AUDIO_PLAY_DURATION * AUDIO_SAMPLE_RATE) {
             if (tone->duration_on == -1) { // Continuous tone
-                for (int i = 0; i < BUFFER_SIZE; i++) {
+                for (int i = 0; i < AUDIO_BUFFER_SIZE; i++) {
                     float sample1 = sinf(2.0f * M_PI * (i % samples_per_cycle1) / samples_per_cycle1);
                     float sample2 = tone->freq2 ? sinf(2.0f * M_PI * (i % samples_per_cycle2) / samples_per_cycle2) : 0;
                     buffer[sample_index++] = (int16_t)((32767 * volume_factor) * (sample1 + sample2) / 2);
-                    if (sample_index >= BUFFER_SIZE) {
+                    if (sample_index >= AUDIO_BUFFER_SIZE) {
                         size_t bytes_written;
-                        ESP_ERROR_CHECK(i2s_channel_write(tx_handle, buffer, BUFFER_SIZE * sizeof(int16_t), &bytes_written, portMAX_DELAY));
+                        ESP_ERROR_CHECK(i2s_channel_write(tx_handle, buffer, AUDIO_BUFFER_SIZE * sizeof(int16_t), &bytes_written, portMAX_DELAY));
                         sample_index = 0;
                     }
                     elapsed_samples++;
@@ -97,26 +95,26 @@ void generate_tone_task(void *param) {
                 }
             } else { // Pulsed tone
                // 🔊 Generate "On" Phase
-                int total_samples_on = (int)(tone->duration_on * SAMPLE_RATE);
+                int total_samples_on = (int)(tone->duration_on * AUDIO_SAMPLE_RATE);
                 for (int i = 0; i < total_samples_on; i++) {
                     float sample1 = sinf(2.0f * M_PI * (i % samples_per_cycle1) / samples_per_cycle1);
                     float sample2 = tone->freq2 ? sinf(2.0f * M_PI * (i % samples_per_cycle2) / samples_per_cycle2) : 0;
                     buffer[sample_index++] = (int16_t)((32767 * volume_factor) * (sample1 + sample2) / 2);
 
-                    if (sample_index >= BUFFER_SIZE) {
+                    if (sample_index >= AUDIO_BUFFER_SIZE) {
                         size_t bytes_written;
-                        ESP_ERROR_CHECK(i2s_channel_write(tx_handle, buffer, BUFFER_SIZE * sizeof(int16_t), &bytes_written, portMAX_DELAY));
+                        ESP_ERROR_CHECK(i2s_channel_write(tx_handle, buffer, AUDIO_BUFFER_SIZE * sizeof(int16_t), &bytes_written, portMAX_DELAY));
                         sample_index = 0;
                     }
                 }
 
                 // 🔇 Generate "Off" Phase (Silence)
-                int total_samples_off = (int)(tone->duration_off * SAMPLE_RATE);
-                memset(buffer, 0, BUFFER_SIZE * sizeof(int16_t));  // Fill buffer with silence
+                int total_samples_off = (int)(tone->duration_off * AUDIO_SAMPLE_RATE);
+                memset(buffer, 0, AUDIO_BUFFER_SIZE * sizeof(int16_t));  // Fill buffer with silence
 
-                for (int i = 0; i < total_samples_off; i += BUFFER_SIZE) {
+                for (int i = 0; i < total_samples_off; i += AUDIO_BUFFER_SIZE) {
                     size_t bytes_written;
-                    ESP_ERROR_CHECK(i2s_channel_write(tx_handle, buffer, BUFFER_SIZE * sizeof(int16_t), &bytes_written, portMAX_DELAY));
+                    ESP_ERROR_CHECK(i2s_channel_write(tx_handle, buffer, AUDIO_BUFFER_SIZE * sizeof(int16_t), &bytes_written, portMAX_DELAY));
                 }
 
                 // 💤 Delay for off time (ensuring sync)

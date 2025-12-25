@@ -20,6 +20,7 @@
 #include "bt_app_core.h"
 #include "app_hf_msg_set.h"
 #include "ma_bell_state.h"
+#include "app/events/event_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -240,9 +241,13 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
             if (param->conn_stat.state == ESP_HF_CLIENT_CONNECTION_STATE_CONNECTED) {
                 // Update state
                 ma_bell_state_update_bluetooth_bits(BT_STATE_CONNECTED, 0);
+                // Publish connection event
+                event_publish(BT_EVENT_CONNECTED, NULL);
             } else if (param->conn_stat.state == ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTED) {
                 // Update state
                 ma_bell_state_update_bluetooth_bits(0, BT_STATE_CONNECTED);
+                // Publish disconnection event
+                event_publish(BT_EVENT_DISCONNECTED, NULL);
             }
             break;
 
@@ -251,9 +256,13 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
             if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED) {
                 // Audio connected
                 ma_bell_state_update_bluetooth_bits(BT_STATE_AUDIO_CONNECTED, 0);
+                // Publish audio connected event
+                event_publish(BT_EVENT_AUDIO_CONNECTED, NULL);
             } else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED) {
                 // Audio disconnected (usually happens after hangup)
                 ma_bell_state_update_bluetooth_bits(0, BT_STATE_AUDIO_CONNECTED);
+                // Publish audio disconnected event
+                event_publish(BT_EVENT_AUDIO_DISCONNECTED, NULL);
             }
             break;
 
@@ -274,11 +283,15 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
                 ESP_LOGI(TAG, "Call ended - returning to idle state");
                 ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING | PHONE_STATE_OFF_HOOK);
                 ma_bell_state_update_bluetooth_bits(0, BT_STATE_IN_CALL | BT_STATE_AUDIO_CONNECTED);
+                // Publish call ended event
+                event_publish(BT_EVENT_CALL_ENDED, NULL);
             } else if (param->call.status == 1) {  // Call in progress
                 // Call active
                 ESP_LOGI(TAG, "Call active - updating state");
                 ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
                 ma_bell_state_update_bluetooth_bits(BT_STATE_IN_CALL, 0);
+                // Publish call started event
+                event_publish(BT_EVENT_CALL_STARTED, NULL);
             }
             break;
 

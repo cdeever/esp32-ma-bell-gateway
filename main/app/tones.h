@@ -2,9 +2,7 @@
 #ifndef __TONES_H__
 #define __TONES_H__
 
-#define I2S_PORT I2S_NUM_0
-#define SAMPLE_RATE 8000
-#define BUFFER_SIZE 1024
+#include "config/audio_config.h"
 
 // Define tone constants
 typedef enum {

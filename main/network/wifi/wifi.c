@@ -5,28 +5,28 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "wifi.h"
-
-
-#define ESP_MAXIMUM_RETRY  3
+#include "app/events/event_system.h"
 
 static const char *TAG = "wifi";
 
 static int s_retry_num = 0;
 static EventGroupHandle_t s_wifi_event_group = NULL;
 
-// Default WiFi credentials are now defined in wifi.h
+// WiFi credentials and configuration are now defined in config/wifi_config.h
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                          int32_t event_id, void* event_data)
 {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        if (s_retry_num < ESP_MAXIMUM_RETRY) {
+        // Publish WiFi disconnected event
+        event_publish(WIFI_EVENT_DISCONNECTED_EV, NULL);
+        if (s_retry_num < WIFI_MAXIMUM_RETRY) {
             esp_wifi_connect();
             s_retry_num++;
-            ESP_LOGI(TAG, "retry to connect to the AP (attempt %d/%d)", s_retry_num, ESP_MAXIMUM_RETRY);
+            ESP_LOGI(TAG, "retry to connect to the AP (attempt %d/%d)", s_retry_num, WIFI_MAXIMUM_RETRY);
         } else {
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
-            ESP_LOGW(TAG, "Failed to connect to AP after %d attempts, continuing without WiFi", ESP_MAXIMUM_RETRY);
+            ESP_LOGW(TAG, "Failed to connect to AP after %d attempts, continuing without WiFi", WIFI_MAXIMUM_RETRY);
             // Disable WiFi to save power
             esp_wifi_stop();
         }
@@ -35,6 +35,9 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "Got IP:" IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+        // Publish WiFi connected event
+        event_publish(WIFI_EVENT_CONNECTED_EV, NULL);
+        event_publish(WIFI_EVENT_IP_ACQUIRED_EV, NULL);
     }
 }
 

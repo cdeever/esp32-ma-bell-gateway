@@ -13,6 +13,7 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "bt_app_core.h"
+#include "config/bluetooth_config.h"
 
 static void bt_app_task_handler(void *arg);
 static bool bt_app_send_msg(bt_app_msg_t *msg);
@@ -95,8 +96,8 @@ static void bt_app_task_handler(void *arg)
 
 void bt_app_task_start_up(void)
 {
-    bt_app_task_queue = xQueueCreate(10, sizeof(bt_app_msg_t));
-    xTaskCreate(bt_app_task_handler, "BtAppT", 2048, NULL, configMAX_PRIORITIES - 3, &bt_app_task_handle);
+    bt_app_task_queue = xQueueCreate(BT_APP_TASK_QUEUE_SIZE, sizeof(bt_app_msg_t));
+    xTaskCreate(bt_app_task_handler, BT_APP_TASK_NAME, BT_APP_TASK_STACK_SIZE, NULL, BT_APP_TASK_PRIORITY, &bt_app_task_handle);
     return;
 }
 
