@@ -1,6 +1,7 @@
 #include "web_interface.h"
 #include "app/state/ma_bell_state.h"
 #include "config/web_config.h"
+#include "network/wifi/wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <esp_log.h>
@@ -10,10 +11,16 @@
 
 static const char *TAG = "WEB_IF";
 
+// HTTP error codes
+#define HTTPD_ERR_RESP_SEND 6  // Client closed connection
+
 // Server handle
 static httpd_handle_t server = NULL;
 static bool server_running = false;
 static SemaphoreHandle_t server_mutex = NULL;
+
+// Cache WiFi SSID to avoid NVS contention during status requests
+static char cached_wifi_ssid[33] = "Not configured";
 
 // HTML content for the main page
 static const char *html_content =
@@ -36,34 +43,35 @@ static const char *html_content =
             "function updateStatus() {"
             "  fetch('/status').then(response => response.json()).then(data => {"
             "    // Phone status"
-            "    document.getElementById('hook').innerText = data.phone.hook;"
-            "    document.getElementById('hook').className = data.phone.hook === 'Off-hook' ? 'connected' : 'disconnected';"
-            "    document.getElementById('ringer').innerText = data.phone.ringer;"
-            "    document.getElementById('ringer').className = data.phone.ringer === 'Ringing' ? 'connected' : 'disconnected';"
-            "    document.getElementById('dialing').innerText = data.phone.dialing;"
-            "    document.getElementById('dialing').className = data.phone.dialing === 'Dialing' ? 'connected' : 'disconnected';"
-            "    document.getElementById('last-digit').innerText = data.phone.last_digit;"
+            "    document.getElementById('hook').innerText = data.phone.status.hook;"
+            "    document.getElementById('hook').className = data.phone.status.hook === 'Off-hook' ? 'connected' : 'disconnected';"
+            "    document.getElementById('ringing').innerText = data.phone.status.ringing ? 'Yes' : 'No';"
+            "    document.getElementById('ringing').className = data.phone.status.ringing ? 'connected' : 'disconnected';"
+            "    document.getElementById('dialing').innerText = data.phone.status.dialing ? 'Yes' : 'No';"
+            "    document.getElementById('dialing').className = data.phone.status.dialing ? 'connected' : 'disconnected';"
+            "    document.getElementById('last-digit').innerText = data.phone.status.last_digit;"
             ""
             "    // Bluetooth status"
-            "    document.getElementById('bt-conn').innerText = data.bluetooth.connected;"
-            "    document.getElementById('bt-conn').className = data.bluetooth.connected === 'Connected' ? 'connected' : 'disconnected';"
-            "    document.getElementById('bt-call').innerText = data.bluetooth.in_call;"
-            "    document.getElementById('bt-call').className = data.bluetooth.in_call === 'In Call' ? 'connected' : 'disconnected';"
+            "    document.getElementById('bt-conn').innerText = data.bluetooth.connected ? 'Connected' : 'Disconnected';"
+            "    document.getElementById('bt-conn').className = data.bluetooth.connected ? 'connected' : 'disconnected';"
             "    document.getElementById('bt-device').innerText = data.bluetooth.device || 'None';"
+            "    document.getElementById('bt-call').innerText = data.bluetooth.in_call ? 'Active' : 'Idle';"
+            "    document.getElementById('bt-call').className = data.bluetooth.in_call ? 'connected' : 'disconnected';"
             "    document.getElementById('bt-volume').innerText = data.bluetooth.volume;"
-            "    document.getElementById('bt-battery').innerText = data.bluetooth.battery;"
+            "    document.getElementById('bt-battery').innerText = data.bluetooth.phone_battery + '%';"
+            "    document.getElementById('bt-signal').innerText = data.bluetooth.phone_signal + '/5';"
             ""
-            "    // Network status"
-            "    document.getElementById('wifi').innerText = data.network.wifi;"
-            "    document.getElementById('wifi').className = data.network.wifi === 'Connected' ? 'connected' : 'disconnected';"
-            "    document.getElementById('ip').innerText = data.network.ip || 'None';"
-            "    document.getElementById('rssi').innerText = data.network.rssi + ' dBm';"
+            "    // WiFi status"
+            "    document.getElementById('wifi').innerText = data.wifi.connected ? 'Connected' : 'Disconnected';"
+            "    document.getElementById('wifi').className = data.wifi.connected ? 'connected' : 'disconnected';"
+            "    document.getElementById('ssid').innerText = data.wifi.ssid || 'None';"
+            "    document.getElementById('ip').innerText = data.wifi.ip || 'None';"
+            "    document.getElementById('rssi').innerText = data.wifi.rssi + ' dBm';"
             ""
             "    // System status"
-            "    document.getElementById('sys-battery').innerText = data.system.battery + '%';"
-            "    document.getElementById('sys-battery').className = data.system.battery < 20 ? 'warning' : 'connected';"
-            "    document.getElementById('sys-temp').innerText = data.system.temperature + '°C';"
-            "    document.getElementById('sys-temp').className = data.system.temperature > 80 ? 'warning' : 'connected';"
+            "    document.getElementById('uptime').innerText = data.system.uptime;"
+            "    document.getElementById('error').innerText = data.system.error ? 'Yes (' + data.system.error_code + ')' : 'No';"
+            "    document.getElementById('error').className = data.system.error ? 'warning' : 'connected';"
             "  });"
             "}"
             "setInterval(updateStatus, 2000);"
@@ -76,28 +84,30 @@ static const char *html_content =
             "<div class='status-box'>"
                 "<h2>Phone Status</h2>"
                 "<div class='status-item'>Hook: <strong id='hook'>Loading...</strong></div>"
-                "<div class='status-item'>Ringer: <strong id='ringer'>Loading...</strong></div>"
+                "<div class='status-item'>Ringing: <strong id='ringing'>Loading...</strong></div>"
                 "<div class='status-item'>Dialing: <strong id='dialing'>Loading...</strong></div>"
                 "<div class='status-item'>Last Digit: <strong id='last-digit'>Loading...</strong></div>"
             "</div>"
             "<div class='status-box'>"
                 "<h2>Bluetooth Status</h2>"
                 "<div class='status-item'>Connection: <strong id='bt-conn'>Loading...</strong></div>"
-                "<div class='status-item'>Call Status: <strong id='bt-call'>Loading...</strong></div>"
                 "<div class='status-item'>Device: <strong id='bt-device'>Loading...</strong></div>"
+                "<div class='status-item'>Call: <strong id='bt-call'>Loading...</strong></div>"
                 "<div class='status-item'>Volume: <strong id='bt-volume'>Loading...</strong></div>"
-                "<div class='status-item'>Battery: <strong id='bt-battery'>Loading...</strong></div>"
+                "<div class='status-item'>Phone Battery: <strong id='bt-battery'>Loading...</strong></div>"
+                "<div class='status-item'>Phone Signal: <strong id='bt-signal'>Loading...</strong></div>"
             "</div>"
             "<div class='status-box'>"
-                "<h2>Network Status</h2>"
-                "<div class='status-item'>WiFi: <strong id='wifi'>Loading...</strong></div>"
+                "<h2>WiFi Status</h2>"
+                "<div class='status-item'>Connection: <strong id='wifi'>Loading...</strong></div>"
+                "<div class='status-item'>SSID: <strong id='ssid'>Loading...</strong></div>"
                 "<div class='status-item'>IP: <strong id='ip'>Loading...</strong></div>"
                 "<div class='status-item'>Signal: <strong id='rssi'>Loading...</strong></div>"
             "</div>"
             "<div class='status-box'>"
                 "<h2>System Status</h2>"
-                "<div class='status-item'>Battery: <strong id='sys-battery'>Loading...</strong></div>"
-                "<div class='status-item'>Temperature: <strong id='sys-temp'>Loading...</strong></div>"
+                "<div class='status-item'>Uptime: <strong id='uptime'>Loading...</strong></div>"
+                "<div class='status-item'>Error: <strong id='error'>Loading...</strong></div>"
             "</div>"
         "</div>"
     "</body>"
@@ -105,8 +115,16 @@ static const char *html_content =
 
 // Error handler for the web server
 static esp_err_t http_error_handler(httpd_req_t *req, httpd_err_code_t err) {
+    // Error code 6 (HTTPD_ERR_RESP_SEND) is benign - client closed connection
+    // This happens normally when browser/client finishes receiving response
+    if (err == HTTPD_ERR_RESP_SEND) {
+        ESP_LOGD(TAG, "Client closed connection (expected behavior)");
+        return ESP_OK;
+    }
+
+    // Log actual errors
     ESP_LOGE(TAG, "HTTP error %d occurred", err);
-    
+
     // Send error response
     char error_msg[100];
     snprintf(error_msg, sizeof(error_msg), "{\"error\":\"HTTP error %d\"}", err);
@@ -143,7 +161,7 @@ static esp_err_t html_handler(httpd_req_t *req) {
 // Handler for the status JSON endpoint
 static esp_err_t status_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "Received request for status");
-    
+
     if (!server_running) {
         ESP_LOGE(TAG, "Server not running when status request received");
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server not running");
@@ -157,51 +175,86 @@ static esp_err_t status_handler(httpd_req_t *req) {
     }
 
     const ma_bell_state_t* state = ma_bell_state_get();
-    char response[512];
-    
+
+    // Use cached SSID (read once during init to avoid NVS contention)
+
+    // Calculate uptime
+    uint32_t uptime_sec = esp_log_timestamp() / 1000;
+    uint32_t uptime_hours = uptime_sec / 3600;
+    uint32_t uptime_mins = (uptime_sec % 3600) / 60;
+    uint32_t uptime_secs = uptime_sec % 60;
+
+    // Streamlined buffer for essential status fields
+    char response[800];
+
     snprintf(response, sizeof(response),
              "{"
              "  \"phone\": {"
-             "    \"hook\": \"%s\","
-             "    \"ringer\": \"%s\","
-             "    \"dialing\": \"%s\","
-             "    \"last_digit\": \"%s\""
+             "    \"status\": {"
+             "      \"hook\": \"%s\","
+             "      \"ringing\": %s,"
+             "      \"ring_count\": %d,"
+             "      \"dialing\": %s,"
+             "      \"last_digit\": \"%s\""
+             "    },"
+             "    \"tones\": {"
+             "      \"dial_tone\": %s,"
+             "      \"busy_tone\": %s,"
+             "      \"ringback\": %s,"
+             "      \"reorder\": %s,"
+             "      \"call_waiting\": %s"
+             "    }"
              "  },"
              "  \"bluetooth\": {"
-             "    \"connected\": \"%s\","
-             "    \"in_call\": \"%s\","
+             "    \"connected\": %s,"
              "    \"device\": \"%s\","
-             "    \"volume\": \"%d\","
-             "    \"battery\": \"%d\""
+             "    \"in_call\": %s,"
+             "    \"volume\": %d,"
+             "    \"phone_battery\": %d,"
+             "    \"phone_signal\": %d"
              "  },"
-             "  \"network\": {"
-             "    \"wifi\": \"%s\","
+             "  \"wifi\": {"
+             "    \"connected\": %s,"
+             "    \"ssid\": \"%s\","
              "    \"ip\": \"%s\","
-             "    \"rssi\": %d"
+             "    \"rssi\": %d,"
+             "    \"channel\": %d"
              "  },"
              "  \"system\": {"
-             "    \"battery\": %d,"
-             "    \"temperature\": %d"
+             "    \"uptime\": \"%" PRIu32 "h %" PRIu32 "m %" PRIu32 "s\","
+             "    \"error\": %s,"
+             "    \"error_code\": %d"
              "  }"
              "}",
              // Phone status
              ma_bell_state_phone_bits_set(PHONE_STATE_OFF_HOOK) ? "Off-hook" : "On-hook",
-             ma_bell_state_phone_bits_set(PHONE_STATE_RINGING) ? "Ringing" : "Silent",
-             ma_bell_state_phone_bits_set(PHONE_STATE_DIALING) ? "Dialing" : "Idle",
+             ma_bell_state_phone_bits_set(PHONE_STATE_RINGING) ? "true" : "false",
+             state->phone.ring_count,
+             ma_bell_state_phone_bits_set(PHONE_STATE_DIALING) ? "true" : "false",
              state->phone.last_digit == INVALID_DIGIT ? "None" : (char[]){state->phone.last_digit + '0', '\0'},
-             // Bluetooth status
-             ma_bell_state_bluetooth_bits_set(BT_STATE_CONNECTED) ? "Connected" : "Disconnected",
-             ma_bell_state_bluetooth_bits_set(BT_STATE_IN_CALL) ? "In Call" : "Idle",
-             state->bluetooth.device_name,
+             // Phone tones
+             ma_bell_state_phone_bits_set(PHONE_STATE_DIAL_TONE) ? "true" : "false",
+             ma_bell_state_phone_bits_set(PHONE_STATE_BUSY_TONE) ? "true" : "false",
+             ma_bell_state_phone_bits_set(PHONE_STATE_RINGBACK) ? "true" : "false",
+             ma_bell_state_phone_bits_set(PHONE_STATE_REORDER_TONE) ? "true" : "false",
+             ma_bell_state_phone_bits_set(PHONE_STATE_CALL_WAITING) ? "true" : "false",
+             // Bluetooth
+             ma_bell_state_bluetooth_bits_set(BT_STATE_CONNECTED) ? "true" : "false",
+             state->bluetooth.device_name[0] ? state->bluetooth.device_name : "None",
+             ma_bell_state_bluetooth_bits_set(BT_STATE_IN_CALL) ? "true" : "false",
              state->bluetooth.volume,
-             state->bluetooth.battery_level * 20, // Convert 0-5 to 0-100
-             // Network status
-             ma_bell_state_network_bits_set(NET_STATE_WIFI_CONNECTED) ? "Connected" : "Disconnected",
-             state->network.ip_address,
+             state->bluetooth.battery_level * 20,  // Convert 0-5 to 0-100%
+             state->bluetooth.signal_strength,
+             // WiFi
+             ma_bell_state_network_bits_set(NET_STATE_WIFI_CONNECTED) ? "true" : "false",
+             cached_wifi_ssid,
+             state->network.ip_address[0] ? state->network.ip_address : "0.0.0.0",
              state->network.rssi,
-             // System status
-             state->system.battery_level,
-             state->system.temperature);
+             state->network.channel,
+             // System
+             uptime_hours, uptime_mins, uptime_secs,
+             ma_bell_state_system_bits_set(SYS_STATE_ERROR) ? "true" : "false",
+             state->system.error_code);
 
     xSemaphoreGive(server_mutex);
 
@@ -209,7 +262,7 @@ static esp_err_t status_handler(httpd_req_t *req) {
     httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
     httpd_resp_set_hdr(req, "Pragma", "no-cache");
     httpd_resp_set_hdr(req, "Expires", "0");
-    
+
     esp_err_t ret = httpd_resp_send(req, response, strlen(response));
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send status response");
@@ -355,6 +408,19 @@ esp_err_t web_interface_init(void) {
 
     server_running = true;
     ESP_LOGI(TAG, "Web server started successfully on port %d", config.server_port);
+
+    // Cache WiFi SSID once to avoid NVS contention during status requests
+    // This happens after WiFi is already connected, so safe to read NVS
+    char temp_pass[65];
+    esp_err_t ret = wifi_get_credentials(cached_wifi_ssid, sizeof(cached_wifi_ssid),
+                                          temp_pass, sizeof(temp_pass));
+    if (ret == ESP_OK) {
+        ESP_LOGI(TAG, "Cached WiFi SSID: %s", cached_wifi_ssid);
+    } else {
+        ESP_LOGI(TAG, "No WiFi credentials found in NVS");
+        strncpy(cached_wifi_ssid, "Not configured", sizeof(cached_wifi_ssid));
+    }
+
     return ESP_OK;
 }
 

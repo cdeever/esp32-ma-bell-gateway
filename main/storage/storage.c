@@ -6,11 +6,6 @@
 
 static const char *TAG = "storage";
 
-// NVS handles for different namespaces
-static nvs_handle_t wifi_handle;
-static nvs_handle_t bt_handle;
-static nvs_handle_t sys_handle;
-
 esp_err_t storage_init(void)
 {
     esp_err_t ret = nvs_flash_init();
@@ -21,25 +16,6 @@ esp_err_t storage_init(void)
     }
     ESP_ERROR_CHECK(ret);
     ESP_LOGI(TAG, "NVS initialized successfully");
-
-    // Open handles for each namespace
-    ret = nvs_open(STORAGE_NAMESPACE_WIFI, NVS_READWRITE, &wifi_handle);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error opening NVS handle for WiFi: %s", esp_err_to_name(ret));
-        return ret;
-    }
-
-    ret = nvs_open(STORAGE_NAMESPACE_BT, NVS_READWRITE, &bt_handle);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error opening NVS handle for BT: %s", esp_err_to_name(ret));
-        return ret;
-    }
-
-    ret = nvs_open(STORAGE_NAMESPACE_SYS, NVS_READWRITE, &sys_handle);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error opening NVS handle for SYS: %s", esp_err_to_name(ret));
-        return ret;
-    }
 
     return ESP_OK;
 }

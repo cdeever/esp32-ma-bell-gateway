@@ -39,11 +39,14 @@
 #define BT_STATE_HF_FEATURES     (1 << 7)
 
 // Network state bitmasks
-#define NET_STATE_WIFI_CONNECTED (1 << 0)
-#define NET_STATE_IP_ACQUIRED    (1 << 1)
-#define NET_STATE_DNS_READY      (1 << 2)
-#define NET_STATE_WEBSERVER_UP   (1 << 3)
-#define NET_STATE_MDNS_READY     (1 << 4)
+#define NET_STATE_WIFI_CONNECTED     (1 << 0)
+#define NET_STATE_IP_ACQUIRED        (1 << 1)
+#define NET_STATE_DNS_READY          (1 << 2)
+#define NET_STATE_WEBSERVER_UP       (1 << 3)
+#define NET_STATE_MDNS_READY         (1 << 4)
+#define NET_STATE_WIFI_INIT_COMPLETE (1 << 5)  // WiFi initialization done (success or timeout)
+#define NET_STATE_BT_INIT_COMPLETE   (1 << 6)  // Bluetooth initialization complete
+#define NET_STATE_WEB_INIT_COMPLETE  (1 << 7)  // Web server initialization complete
 
 // System state bitmasks
 #define SYS_STATE_INITIALIZED    (1 << 0)
@@ -185,11 +188,47 @@ esp_err_t ma_bell_state_register_for_notifications(uint32_t notification_bits);
 
 /**
  * @brief Wait for state change notification
- * 
+ *
  * @param notification_bits Bitmask of notifications to wait for
  * @param timeout_ms Timeout in milliseconds (0 for no timeout)
  * @return Bitmask of received notifications, 0 on timeout
  */
 uint32_t ma_bell_state_wait_for_notification(uint32_t notification_bits, uint32_t timeout_ms);
+
+/**
+ * @brief Check if WiFi initialization is complete
+ * @return 1 if WiFi init done (regardless of connection success), 0 otherwise
+ */
+static inline int ma_bell_state_wifi_init_complete(void) {
+    return ma_bell_state_network_bits_set(NET_STATE_WIFI_INIT_COMPLETE);
+}
+
+/**
+ * @brief Check if Bluetooth initialization is complete
+ * @return 1 if Bluetooth init done, 0 otherwise
+ */
+static inline int ma_bell_state_bt_init_complete(void) {
+    return ma_bell_state_network_bits_set(NET_STATE_BT_INIT_COMPLETE);
+}
+
+/**
+ * @brief Check if web server initialization is complete
+ * @return 1 if web server init done, 0 otherwise
+ */
+static inline int ma_bell_state_web_init_complete(void) {
+    return ma_bell_state_network_bits_set(NET_STATE_WEB_INIT_COMPLETE);
+}
+
+/**
+ * @brief Check if all core subsystems are initialized
+ * @return 1 if WiFi, Bluetooth, and web server are all initialized, 0 otherwise
+ */
+static inline int ma_bell_state_core_init_complete(void) {
+    return ma_bell_state_network_bits_set(
+        NET_STATE_WIFI_INIT_COMPLETE |
+        NET_STATE_BT_INIT_COMPLETE |
+        NET_STATE_WEB_INIT_COMPLETE
+    );
+}
 
 #endif /* __MA_BELL_STATE_H__ */ 
