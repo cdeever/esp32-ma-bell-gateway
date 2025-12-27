@@ -27,10 +27,13 @@ Phone Line & Audio Interface
      - I2S/PCM audio input (from audio interface)
    * - 32
      - Off-Hook Detect
-     - Input: Senses phone off-hook state
+     - Input: Senses phone off-hook state (from SLIC SHD pin)
    * - 33
-     - Ring/Line Status Detect
-     - Input: Senses ringing or other line status (configurable)
+     - Ring Status Detect
+     - Input: Monitors ring relay status (from SLIC RD pin)
+   * - 13
+     - Ring Command Output
+     - Output: Controls SLIC ring generation (to SLIC RC pin 16)
    * - 34
      - Pulse Dial Input
      - Input: Detects rotary pulse dial signals (if present)

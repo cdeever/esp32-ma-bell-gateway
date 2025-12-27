@@ -33,12 +33,13 @@ publish: html
 .PHONY: watch
 
 watch:
-	sphinx-autobuild source _build/html
+	@echo "Starting sphinx-autobuild on http://127.0.0.1:8000"
+	@echo "Press Ctrl+C to stop..."
+	sphinx-autobuild source build/html
 
 .PHONY: serve
 
-serve:
-	@$(MAKE) html
+serve: html
 	@echo "Serving documentation at http://localhost:8000"
+	@echo "Press Ctrl+C to stop..."
 	@cd build/html && python3 -m http.server 8000
-	sphinx-autobuild source build/html

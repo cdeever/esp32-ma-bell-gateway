@@ -34,11 +34,13 @@ Module Responsibilities
   - Coordinates between hardware, Bluetooth, network, and user interfaces.
 
 **hardware/**
-  - Manages all interaction with the physical hardware:  
-    - Pin configuration (GPIO, PCM/I2S)
-    - Analog phone line interfacing (off-hook/ring detect, pulse dial)
+  - Manages all interaction with the physical hardware:
+    - Pin configuration (GPIO, PCM/I2S) - ``gpio_pcm_config.c``
+    - Phone hardware monitoring (off-hook/ring detect, pulse dial) - ``phone_hardware.c``
     - Generation of all telephony tones
+    - Overall hardware initialization - ``hardware_init.c``
   - Abstracts hardware details from application logic.
+  - See :doc:`phone-hardware` for details on SLIC interface monitoring.
 
 **bluetooth/**
   - Implements all Bluetooth functionality, including:  

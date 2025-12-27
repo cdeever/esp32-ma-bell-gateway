@@ -1,0 +1,8 @@
+# Sphinx Documentation Dependencies for Ma Bell Gateway
+# Install with: pip install -r docs/requirements.txt
+
+sphinx>=8.0.0
+sphinx-rtd-theme
+sphinx-autobuild
+myst-parser
+sphinx-last-updated-by-git

@@ -27,10 +27,58 @@ Values, part numbers, and notes are included for clarity.
      - Subscriber Line Interface Circuit
 
    * - U3
-     - Audio Codec (if used)
-     - (e.g. ES8311)
-     - [Your preferred part]
-     - PCM/I2S interface between ESP32 & SLIC
+     - DAC (Digital-to-Analog Converter)
+     - PCM5100PWR
+     - Texas Instruments
+     - TSSOP-20, I2S audio output
+
+   * - U4
+     - ADC (Analog-to-Digital Converter)
+     - PCM1808PWR
+     - Texas Instruments
+     - TSSOP-20, I2S audio input
+
+   * - C_AUDIO1, C_AUDIO2
+     - AC Coupling Capacitors (Audio)
+     - 10µF, 16V+
+     - Generic / Film or X7R MLCC
+     - Non-polarized, between codec and SLIC
+
+   * - C_DAC1
+     - Decoupling Capacitor (DAC)
+     - 0.1µF ceramic
+     - Generic / X7R
+     - Near PCM5100 VDD pin
+
+   * - C_DAC2
+     - Bulk Capacitor (DAC)
+     - 10µF tantalum/MLCC
+     - Generic / Low ESR
+     - Near PCM5100 VDD pin
+
+   * - C_ADC1
+     - Decoupling Capacitor (ADC)
+     - 0.1µF ceramic
+     - Generic / X7R
+     - Near PCM1808 VDD pin
+
+   * - C_ADC2
+     - Bulk Capacitor (ADC)
+     - 10µF tantalum/MLCC
+     - Generic / Low ESR
+     - Near PCM1808 VDD pin
+
+   * - R_XSMT
+     - Pull-up Resistor (DAC Mute)
+     - 10kΩ, 1%
+     - Generic / Metal film
+     - PCM5100 XSMT pin to 3.3V
+
+   * - R_BIAS
+     - Input Bias Resistor (ADC)
+     - 10kΩ, 1%
+     - Generic / Metal film
+     - PCM1808 VINL to AGND
 
    * - J1
      - RJ11 Jack
