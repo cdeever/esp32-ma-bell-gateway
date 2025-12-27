@@ -23,95 +23,28 @@ static SemaphoreHandle_t server_mutex = NULL;
 static char cached_wifi_ssid[33] = "Not configured";
 
 // HTML content for the main page
-static const char *html_content =
-    "<!DOCTYPE html>"
-    "<html lang='en'>"
-    "<head>"
-        "<meta charset='UTF-8'>"
-        "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
-        "<title>Ma Bell Status</title>"
-        "<style>"
-            "body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }"
-            ".status-box { border: 1px solid #ccc; padding: 10px; margin: 10px; display: inline-block; }"
-            ".connected { color: green; }"
-            ".disconnected { color: red; }"
-            ".warning { color: orange; }"
-            ".status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }"
-            ".status-item { padding: 5px; border: 1px solid #eee; }"
-        "</style>"
-        "<script>"
-            "function updateStatus() {"
-            "  fetch('/status').then(response => response.json()).then(data => {"
-            "    // Phone status"
-            "    document.getElementById('hook').innerText = data.phone.status.hook;"
-            "    document.getElementById('hook').className = data.phone.status.hook === 'Off-hook' ? 'connected' : 'disconnected';"
-            "    document.getElementById('ringing').innerText = data.phone.status.ringing ? 'Yes' : 'No';"
-            "    document.getElementById('ringing').className = data.phone.status.ringing ? 'connected' : 'disconnected';"
-            "    document.getElementById('dialing').innerText = data.phone.status.dialing ? 'Yes' : 'No';"
-            "    document.getElementById('dialing').className = data.phone.status.dialing ? 'connected' : 'disconnected';"
-            "    document.getElementById('last-digit').innerText = data.phone.status.last_digit;"
-            ""
-            "    // Bluetooth status"
-            "    document.getElementById('bt-conn').innerText = data.bluetooth.connected ? 'Connected' : 'Disconnected';"
-            "    document.getElementById('bt-conn').className = data.bluetooth.connected ? 'connected' : 'disconnected';"
-            "    document.getElementById('bt-device').innerText = data.bluetooth.device || 'None';"
-            "    document.getElementById('bt-call').innerText = data.bluetooth.in_call ? 'Active' : 'Idle';"
-            "    document.getElementById('bt-call').className = data.bluetooth.in_call ? 'connected' : 'disconnected';"
-            "    document.getElementById('bt-volume').innerText = data.bluetooth.volume;"
-            "    document.getElementById('bt-battery').innerText = data.bluetooth.phone_battery + '%';"
-            "    document.getElementById('bt-signal').innerText = data.bluetooth.phone_signal + '/5';"
-            ""
-            "    // WiFi status"
-            "    document.getElementById('wifi').innerText = data.wifi.connected ? 'Connected' : 'Disconnected';"
-            "    document.getElementById('wifi').className = data.wifi.connected ? 'connected' : 'disconnected';"
-            "    document.getElementById('ssid').innerText = data.wifi.ssid || 'None';"
-            "    document.getElementById('ip').innerText = data.wifi.ip || 'None';"
-            "    document.getElementById('rssi').innerText = data.wifi.rssi + ' dBm';"
-            ""
-            "    // System status"
-            "    document.getElementById('uptime').innerText = data.system.uptime;"
-            "    document.getElementById('error').innerText = data.system.error ? 'Yes (' + data.system.error_code + ')' : 'No';"
-            "    document.getElementById('error').className = data.system.error ? 'warning' : 'connected';"
-            "  });"
-            "}"
-            "setInterval(updateStatus, 2000);"
-            "window.onload = updateStatus;"
-        "</script>"
-    "</head>"
-    "<body>"
-        "<h1>Ma Bell Status</h1>"
-        "<div class='status-grid'>"
-            "<div class='status-box'>"
-                "<h2>Phone Status</h2>"
-                "<div class='status-item'>Hook: <strong id='hook'>Loading...</strong></div>"
-                "<div class='status-item'>Ringing: <strong id='ringing'>Loading...</strong></div>"
-                "<div class='status-item'>Dialing: <strong id='dialing'>Loading...</strong></div>"
-                "<div class='status-item'>Last Digit: <strong id='last-digit'>Loading...</strong></div>"
-            "</div>"
-            "<div class='status-box'>"
-                "<h2>Bluetooth Status</h2>"
-                "<div class='status-item'>Connection: <strong id='bt-conn'>Loading...</strong></div>"
-                "<div class='status-item'>Device: <strong id='bt-device'>Loading...</strong></div>"
-                "<div class='status-item'>Call: <strong id='bt-call'>Loading...</strong></div>"
-                "<div class='status-item'>Volume: <strong id='bt-volume'>Loading...</strong></div>"
-                "<div class='status-item'>Phone Battery: <strong id='bt-battery'>Loading...</strong></div>"
-                "<div class='status-item'>Phone Signal: <strong id='bt-signal'>Loading...</strong></div>"
-            "</div>"
-            "<div class='status-box'>"
-                "<h2>WiFi Status</h2>"
-                "<div class='status-item'>Connection: <strong id='wifi'>Loading...</strong></div>"
-                "<div class='status-item'>SSID: <strong id='ssid'>Loading...</strong></div>"
-                "<div class='status-item'>IP: <strong id='ip'>Loading...</strong></div>"
-                "<div class='status-item'>Signal: <strong id='rssi'>Loading...</strong></div>"
-            "</div>"
-            "<div class='status-box'>"
-                "<h2>System Status</h2>"
-                "<div class='status-item'>Uptime: <strong id='uptime'>Loading...</strong></div>"
-                "<div class='status-item'>Error: <strong id='error'>Loading...</strong></div>"
-            "</div>"
-        "</div>"
-    "</body>"
-    "</html>";
+// JSON API documentation (simple endpoint list)
+static const char *api_docs =
+    "{"
+    "  \"api_version\": \"1.0\","
+    "  \"endpoints\": ["
+    "    {"
+    "      \"path\": \"/\","
+    "      \"method\": \"GET\","
+    "      \"description\": \"API endpoint list (this page)\""
+    "    },"
+    "    {"
+    "      \"path\": \"/status\","
+    "      \"method\": \"GET\","
+    "      \"description\": \"System status (phone, bluetooth, wifi, system)\""
+    "    },"
+    "    {"
+    "      \"path\": \"/tasks\","
+    "      \"method\": \"GET\","
+    "      \"description\": \"FreeRTOS task information\""
+    "    }"
+    "  ]"
+    "}";
 
 // Error handler for the web server
 static esp_err_t http_error_handler(httpd_req_t *req, httpd_err_code_t err) {
@@ -134,26 +67,26 @@ static esp_err_t http_error_handler(httpd_req_t *req, httpd_err_code_t err) {
     return ESP_OK;
 }
 
-// Handler for the main HTML page
+// Handler for the API endpoint list
 static esp_err_t html_handler(httpd_req_t *req) {
-    ESP_LOGI(TAG, "Received request for HTML page");
-    
+    ESP_LOGI(TAG, "Received request for API endpoint list");
+
     if (!server_running) {
-        ESP_LOGE(TAG, "Server not running when HTML request received");
+        ESP_LOGE(TAG, "Server not running when request received");
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Server not running");
         return ESP_FAIL;
     }
 
-    httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_type(req, "application/json");
     httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
     httpd_resp_set_hdr(req, "Pragma", "no-cache");
     httpd_resp_set_hdr(req, "Expires", "0");
-    
-    esp_err_t ret = httpd_resp_send(req, html_content, strlen(html_content));
+
+    esp_err_t ret = httpd_resp_send(req, api_docs, strlen(api_docs));
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to send HTML response");
+        ESP_LOGE(TAG, "Failed to send API docs response");
     } else {
-        ESP_LOGI(TAG, "Successfully sent HTML response");
+        ESP_LOGI(TAG, "Successfully sent API docs response");
     }
     return ret;
 }

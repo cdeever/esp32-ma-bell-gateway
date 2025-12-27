@@ -141,6 +141,38 @@ uint32_t ma_bell_state_wait_for_notification(uint32_t notification_bits, uint32_
     if (result != pdTRUE) {
         return 0;  // Timeout
     }
-    
+
     return notification_value & notification_bits;
+}
+
+void ma_bell_state_set_ip_address(const char* ip) {
+    if (ip) {
+        strncpy(g_state.network.ip_address, ip, sizeof(g_state.network.ip_address) - 1);
+        g_state.network.ip_address[sizeof(g_state.network.ip_address) - 1] = '\0';
+        ESP_LOGI(TAG, "IP address set to: %s", g_state.network.ip_address);
+    }
+}
+
+void ma_bell_state_set_wifi_info(int8_t rssi, uint8_t channel) {
+    g_state.network.rssi = (uint8_t)(-rssi);  // Convert negative RSSI to positive for display
+    g_state.network.channel = channel;
+    ESP_LOGI(TAG, "WiFi info: RSSI=%d, Channel=%d", rssi, channel);
+}
+
+void ma_bell_state_set_bt_device_name(const char* name) {
+    if (name) {
+        strncpy(g_state.bluetooth.device_name, name, sizeof(g_state.bluetooth.device_name) - 1);
+        g_state.bluetooth.device_name[sizeof(g_state.bluetooth.device_name) - 1] = '\0';
+        ESP_LOGI(TAG, "BT device name set to: %s", g_state.bluetooth.device_name);
+    }
+}
+
+void ma_bell_state_set_bt_metrics(uint8_t volume, uint8_t signal, uint8_t battery) {
+    if (volume != 0xFF) g_state.bluetooth.volume = volume;
+    if (signal != 0xFF) g_state.bluetooth.signal_strength = signal;
+    if (battery != 0xFF) g_state.bluetooth.battery_level = battery;
+    ESP_LOGI(TAG, "BT metrics: vol=%d, sig=%d, bat=%d",
+             g_state.bluetooth.volume,
+             g_state.bluetooth.signal_strength,
+             g_state.bluetooth.battery_level);
 } 

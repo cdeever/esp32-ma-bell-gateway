@@ -7,8 +7,9 @@
 #define PIN_PCM_CLK_OUT      GPIO_NUM_5   // I2S/PCM bit clock ("BCLK")
 #define PIN_PCM_DOUT         GPIO_NUM_26  // I2S/PCM audio out to phone line interface
 #define PIN_PCM_DIN          GPIO_NUM_35  // I2S/PCM audio in from phone (if bidirectional)
-#define PIN_OFF_HOOK_DETECT  GPIO_NUM_32  // Input from off-hook detection circuit
-#define PIN_RING_DETECT      GPIO_NUM_33  // Input from ring detection circuit
+#define PIN_OFF_HOOK_DETECT  GPIO_NUM_32  // Input from off-hook detection circuit (SLIC SHD)
+#define PIN_RING_DETECT      GPIO_NUM_33  // Input from ring detection circuit (SLIC RD)
+#define PIN_RING_COMMAND     GPIO_NUM_13  // Output to SLIC ring command (RC pin 16)
 #define PIN_DIAL_LAMP_CTRL   GPIO_NUM_27  // Output to dial lamp relay/MOSFET
 #define PIN_PULSE_DIAL_IN    GPIO_NUM_34  // Input from rotary pulse detection
 #define PIN_DTMF_IN          GPIO_NUM_39  // Input from DTMF decoder IC (if used)

@@ -10,6 +10,7 @@
  * - Initializes GPIO pins
  * - Configures PCM interface
  * - Sets up I2S for audio
+ * - Initializes phone hardware monitoring (off-hook detection)
  *
  * @return ESP_OK on success, error code on failure
  */

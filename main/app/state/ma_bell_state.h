@@ -147,8 +147,39 @@ void ma_bell_state_update_network_bits(uint8_t set_bits, uint8_t clear_bits);
 void ma_bell_state_update_system_bits(uint8_t set_bits, uint8_t clear_bits);
 
 /**
+ * @brief Set network IP address
+ *
+ * @param ip IP address string
+ */
+void ma_bell_state_set_ip_address(const char* ip);
+
+/**
+ * @brief Set network RSSI and channel
+ *
+ * @param rssi WiFi signal strength (negative dBm value)
+ * @param channel WiFi channel number
+ */
+void ma_bell_state_set_wifi_info(int8_t rssi, uint8_t channel);
+
+/**
+ * @brief Set Bluetooth device name
+ *
+ * @param name Device name string
+ */
+void ma_bell_state_set_bt_device_name(const char* name);
+
+/**
+ * @brief Set Bluetooth volume, signal, and battery
+ *
+ * @param volume Volume level (0-15, 0xFF to skip)
+ * @param signal Signal strength (0-5, 0xFF to skip)
+ * @param battery Battery level (0-5, 0xFF to skip)
+ */
+void ma_bell_state_set_bt_metrics(uint8_t volume, uint8_t signal, uint8_t battery);
+
+/**
  * @brief Check if specific phone state bits are set
- * 
+ *
  * @param bits Bits to check
  * @return 1 if all specified bits are set, 0 otherwise
  */

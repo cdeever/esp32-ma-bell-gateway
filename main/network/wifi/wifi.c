@@ -6,6 +6,7 @@
 #include "nvs_flash.h"
 #include "wifi.h"
 #include "app/events/event_system.h"
+#include "app/state/ma_bell_state.h"
 
 static const char *TAG = "wifi";
 
@@ -21,14 +22,22 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "WiFi started, initiating connection...");
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        wifi_event_sta_disconnected_t* disconnected = (wifi_event_sta_disconnected_t*) event_data;
+        ESP_LOGW(TAG, "Disconnect from AP, reason: %d", disconnected->reason);
+
+        // Clear WiFi connection state
+        ma_bell_state_update_network_bits(0, NET_STATE_WIFI_CONNECTED);
+        ma_bell_state_set_ip_address("0.0.0.0");
+        ma_bell_state_set_wifi_info(0, 0);
+
         if (s_retry_num < WIFI_MAXIMUM_RETRY) {
             esp_wifi_connect();
             s_retry_num++;
-            ESP_LOGI(TAG, "retry to connect to the AP");
+            ESP_LOGI(TAG, "retry to connect to the AP (attempt %d/%d)", s_retry_num, WIFI_MAXIMUM_RETRY);
         } else {
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
+            ESP_LOGE(TAG, "Failed to connect to AP after %d attempts", WIFI_MAXIMUM_RETRY);
         }
-        ESP_LOGI(TAG, "connect to the AP fail");
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
         ESP_LOGI(TAG, "WiFi connected to AP, waiting for IP address...");
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
@@ -36,6 +45,18 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+
+        // Update state with IP address
+        char ip_str[16];
+        snprintf(ip_str, sizeof(ip_str), IPSTR, IP2STR(&event->ip_info.ip));
+        ma_bell_state_set_ip_address(ip_str);
+        ma_bell_state_update_network_bits(NET_STATE_WIFI_CONNECTED, 0);
+
+        // Get and update WiFi info (RSSI, channel)
+        wifi_ap_record_t ap_info;
+        if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
+            ma_bell_state_set_wifi_info(ap_info.rssi, ap_info.primary);
+        }
     }
 }
 
@@ -85,7 +106,7 @@ esp_err_t wifi_init_sta(EventGroupHandle_t wifi_event_group)
     // Set WiFi config
     wifi_config_t wifi_config = {
         .sta = {
-            .threshold.authmode = WIFI_AUTH_WPA_WPA2_PSK,
+            .threshold.authmode = WIFI_AUTH_OPEN,  // Accept any security protocol (negotiated)
             .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,
         },
     };

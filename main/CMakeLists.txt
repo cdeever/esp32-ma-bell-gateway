@@ -11,6 +11,7 @@ idf_component_register(
             "bluetooth/bt_connection_manager.c"
             "hardware/gpio_pcm_config.c"
             "hardware/hardware_init.c"
+            "hardware/phone_hardware.c"
             "network/wifi/wifi.c"
             "network/wifi/wifi_init.c"
             "network/mqtt/mqtt.c"
