@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-05-31T19:14:09+00:00" />
+    <meta property="article:modified_time" content="2025-12-27T01:34:03+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Guide &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
@@ -53,7 +53,12 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#wiring-connections">Wiring Connections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bluetooth-syncing">Bluetooth Syncing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#setting-up-wifi">Setting Up WiFi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-wifi">Setting Up WiFi</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#provisioning-process">Provisioning Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#verifying-wifi-connection">Verifying WiFi Connection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#status-screen">Status Screen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#url-for-internal-state">URL for Internal State</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#serial-interface">Serial Interface</a></li>
@@ -99,7 +104,79 @@
 </section>
 <section id="setting-up-wifi">
 <h2>Setting Up WiFi<a class="headerlink" href="#setting-up-wifi" title="Link to this heading"></a></h2>
-<p>Steps to connect the Gateway to your home WiFi network, including network selection, entering credentials, and confirming connectivity.</p>
+<p>The Ma Bell Gateway requires WiFi credentials to be <strong>provisioned before deployment</strong>. WiFi settings are configured at build/provisioning time and stored in the device’s non-volatile storage (NVS). There is no runtime user interface or provisioning mechanism for changing WiFi credentials on a running device.</p>
+<section id="provisioning-process">
+<h3>Provisioning Process<a class="headerlink" href="#provisioning-process" title="Link to this heading"></a></h3>
+<p>WiFi credentials must be written to the device’s NVS partition before the firmware is flashed (or after flashing, before first boot).</p>
+<p><strong>Prerequisites:</strong></p>
+<ul class="simple">
+<li><p>Python 3.x installed</p></li>
+<li><p>ESP-IDF environment configured</p></li>
+<li><p>USB connection to ESP32 device</p></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol class="arabic">
+<li><p>Navigate to the project’s tools directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>tools
+</pre></div>
+</div>
+</li>
+<li><p>Run the WiFi provisioning script with your network credentials:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./provision_wifi.py<span class="w"> </span><span class="s2">&quot;YourNetworkSSID&quot;</span><span class="w"> </span><span class="s2">&quot;YourPassword&quot;</span>
+</pre></div>
+</div>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">YourNetworkSSID</span></code> and <code class="docutils literal notranslate"><span class="pre">YourPassword</span></code> with your actual WiFi network name and password.</p>
+</li>
+<li><p>The script will write the credentials to the ESP32’s NVS partition at flash offset 0x9000.</p></li>
+<li><p>Flash the firmware (if not already flashed):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>idf.py<span class="w"> </span>flash
+</pre></div>
+</div>
+</li>
+<li><p>The device will automatically connect to the provisioned WiFi network on boot.</p></li>
+</ol>
+</section>
+<section id="verifying-wifi-connection">
+<h3>Verifying WiFi Connection<a class="headerlink" href="#verifying-wifi-connection" title="Link to this heading"></a></h3>
+<p>After the device boots, you can verify WiFi connectivity by:</p>
+<ol class="arabic">
+<li><p><strong>Serial Monitor</strong>: Check the ESP32’s serial output for WiFi connection status:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>idf.py<span class="w"> </span>monitor
+</pre></div>
+</div>
+<p>Look for log messages indicating successful WiFi connection and IP address assignment.</p>
+</li>
+<li><p><strong>Web Interface</strong>: Once connected, the device’s web interface should be accessible at the assigned IP address (displayed in serial logs).</p></li>
+<li><p><strong>Network Status LED</strong>: The device may provide visual feedback through status LEDs indicating WiFi connection state (if implemented).</p></li>
+</ol>
+</section>
+<section id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h3>
+<p><strong>No WiFi Connection:</strong></p>
+<ul class="simple">
+<li><p>Verify credentials were provisioned correctly (check serial logs for “No WiFi credentials found” error)</p></li>
+<li><p>Ensure SSID and password are correct (case-sensitive)</p></li>
+<li><p>Check that the WiFi network is within range and operational</p></li>
+<li><p>Verify the network uses WPA2 security (WPA3 may not be supported)</p></li>
+</ul>
+<p><strong>Changing WiFi Credentials:</strong></p>
+<p>To update WiFi credentials, re-run the provisioning script with new credentials:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>tools
+./provision_wifi.py<span class="w"> </span><span class="s2">&quot;NewSSID&quot;</span><span class="w"> </span><span class="s2">&quot;NewPassword&quot;</span>
+</pre></div>
+</div>
+<p>The device will use the new credentials on the next boot.</p>
+<p><strong>Erasing Credentials:</strong></p>
+<p>To completely erase NVS (including WiFi credentials):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>idf.py<span class="w"> </span>erase-flash
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Erasing flash will remove ALL stored data, including WiFi credentials, Bluetooth pairings, and any other configuration. You will need to re-provision WiFi credentials and re-pair Bluetooth devices.</p>
+</div>
+<p>For detailed provisioning instructions and troubleshooting, see <code class="docutils literal notranslate"><span class="pre">WIFI_SETUP.md</span></code> in the project root directory.</p>
+</section>
 </section>
 <section id="status-screen">
 <h2>Status Screen<a class="headerlink" href="#status-screen" title="Link to this heading"></a></h2>
@@ -134,7 +211,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on May 31, 2025.
+      <span class="lastupdated">Last updated on Dec 27, 2025.
       </span></p>
   </div>
 

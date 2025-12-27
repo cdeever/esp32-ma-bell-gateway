@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-06-28T21:57:32+00:00" />
+    <meta property="article:modified_time" content="2025-12-27T01:34:03+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Power Supply Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -57,9 +57,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#historical-framing">Historical Framing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#power-domains">Power Domains</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#v-dc-subscriber-loop-voltage">-48V DC – Subscriber Loop Voltage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#v-dc-slic-analog-power-supply">+12V DC – SLIC Analog Power Supply</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ringer-power-90v-ac">Ringer Power (~90V AC)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#v-ac-dial-illumination">9V AC – Dial Illumination</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#v-5v-dc-control-and-audio">3.3V / 5V DC – Control and Audio</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#v-dc-control-and-audio-codecs">3.3V DC – Control and Audio Codecs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#fuse-surge-protection">Fuse &amp; Surge Protection</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#power-routing-and-isolation">Power Routing and Isolation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
@@ -129,12 +130,13 @@
 </section>
 <section id="power-domains">
 <h2>Power Domains<a class="headerlink" href="#power-domains" title="Link to this heading"></a></h2>
-<p>This project replicates the classic telecom supply scheme using three distinct voltage sources:</p>
+<p>This project replicates the classic telecom supply scheme using five distinct voltage sources:</p>
 <ol class="arabic simple">
 <li><p><strong>-48V DC</strong> – Simulated Central Office (CO) Subscriber Loop</p></li>
+<li><p><strong>+12V DC</strong> – SLIC Analog Power Supply</p></li>
 <li><p><strong>90V AC (or pulsed DC)</strong> – Mechanical Ringer Power</p></li>
 <li><p><strong>9V AC</strong> – Rotary Dial Illumination</p></li>
-<li><p><strong>3.3V / 5V DC</strong> – Control Logic and Audio</p></li>
+<li><p><strong>3.3V DC</strong> – Control Logic and Audio Codecs</p></li>
 </ol>
 <p>Each serves a unique function and must be properly isolated.</p>
 </section>
@@ -154,6 +156,24 @@ This helped preserve outdoor connectors and relay contacts across millions of su
 <li><p>A <strong>DC-DC boost converter</strong> may be used to generate -48V from a lower voltage source. This allows compact integration and automation but requires careful filtering and isolation.</p></li>
 <li><p>In some embedded designs, a <strong>SLIC (Subscriber Line Interface Circuit)</strong> can internally generate the loop voltage. These are ideal for VoIP integration but may not source enough current for electromechanical ringers.</p></li>
 </ul>
+</section>
+<section id="v-dc-slic-analog-power-supply">
+<h2>+12V DC – SLIC Analog Power Supply<a class="headerlink" href="#v-dc-slic-analog-power-supply" title="Link to this heading"></a></h2>
+<p>Modern Subscriber Line Interface Circuits (SLICs) require a positive DC voltage to power their internal analog circuitry. This is separate from the -48V loop voltage and the low-voltage digital logic supply.</p>
+<p>For the HC-5504B SLIC used in this design, a <strong>+12V DC</strong> supply powers the analog front-end, including the hybrid transformer, audio path amplifiers, and line feed circuitry. This voltage appears on the VB+ pin of the SLIC and must be stable and well-regulated.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Why 12V for SLIC Power?</strong>
+The 12V supply for the SLIC allows it to handle the voltage swings needed for audio signals and loop current regulation while remaining within safe limits for integrated circuits. This voltage is lower than the -48V loop voltage, but higher than the 3.3V logic supply, providing the necessary headroom for analog signal processing.</p>
+</div>
+<p><strong>Design Options:</strong></p>
+<ul class="simple">
+<li><p>A <strong>regulated 12V power supply</strong> (linear or switching) can directly provide the SLIC with clean, stable power. This is simple and reliable for bench testing.</p></li>
+<li><p>A <strong>DC-DC buck converter</strong> can step down from a higher voltage (e.g., 48V main supply) to provide 12V efficiently. This is ideal for integrated designs where a single main supply feeds all voltage rails.</p></li>
+<li><p>A <strong>linear regulator (LDO)</strong> may be used if stepping down from a moderate voltage (e.g., 24V → 12V), though efficiency will be lower than a switching converter. This can provide very clean power with minimal switching noise.</p></li>
+</ul>
+<p><strong>Current Requirements:</strong></p>
+<p>The SLIC’s 12V supply typically draws 50-150mA depending on operating mode (idle vs. active call). Design for at least 200mA capacity to ensure adequate margin.</p>
 </section>
 <section id="ringer-power-90v-ac">
 <h2>Ringer Power (~90V AC)<a class="headerlink" href="#ringer-power-90v-ac" title="Link to this heading"></a></h2>
@@ -175,14 +195,19 @@ This helped preserve outdoor connectors and relay contacts across millions of su
 <li><p>If dynamic control is needed, an <strong>electrically isolated relay or triac</strong> can be used to switch the AC lamp circuit in sync with off-hook detection.</p></li>
 </ul>
 </section>
-<section id="v-5v-dc-control-and-audio">
-<h2>3.3V / 5V DC – Control and Audio<a class="headerlink" href="#v-5v-dc-control-and-audio" title="Link to this heading"></a></h2>
-<p>Used to power digital controllers, audio DACs, sensors, relays, and other low-voltage peripherals.</p>
+<section id="v-dc-control-and-audio-codecs">
+<h2>3.3V DC – Control and Audio Codecs<a class="headerlink" href="#v-dc-control-and-audio-codecs" title="Link to this heading"></a></h2>
+<p>Used to power digital controllers (ESP32 microcontroller), audio DACs/ADCs (PCM5100, PCM1808), and other low-voltage peripherals.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Audio Codec Power Quality:</strong>
+Audio DACs and ADCs (e.g., PCM5100, PCM1808) are sensitive to power supply noise. Clean, low-noise 3.3V power is critical for high-quality audio reproduction. Ripple and switching noise can degrade signal-to-noise ratio and introduce audible artifacts. Use adequate decoupling (0.1µF ceramic + 10µF bulk capacitors) and consider using low-dropout (LDO) post-regulation if the primary buck converter has significant output ripple.</p>
+</div>
 <p><strong>Design Options:</strong></p>
 <ul class="simple">
 <li><p>A <strong>USB power supply</strong> combined with an LDO regulator is often the simplest way to deliver 3.3V. However, current is limited and this may not be suitable for peripherals with high demand.</p></li>
-<li><p>A <strong>switchmode buck converter</strong> can step down 12V or 24V to 3.3V or 5V with excellent efficiency. This is ideal for larger systems with audio amplifiers, displays, or relays.</p></li>
-<li><p><strong>Pre-built PSU modules</strong> with dedicated outputs (e.g., 3.3V 1A) are compact and offer clean power, but may increase BOM cost.</p></li>
+<li><p>A <strong>switchmode buck converter</strong> can step down 12V or 24V to 3.3V or 5V with excellent efficiency. This is ideal for larger systems with audio amplifiers, displays, or relays. For audio codec power, choose buck converters with low output ripple (&lt;50mV) or add LDO post-regulation.</p></li>
+<li><p><strong>Pre-built PSU modules</strong> with dedicated outputs (e.g., 3.3V 1A) are compact and offer clean power, but may increase BOM cost. Verify ripple specifications if powering audio codecs directly.</p></li>
 </ul>
 </section>
 <section id="fuse-surge-protection">
@@ -220,9 +245,10 @@ This helped preserve outdoor connectors and relay contacts across millions of su
 <p>The use of multiple, purpose-specific power supplies allows the Ma Bell Gateway to faithfully recreate the behavior of traditional phone equipment while protecting modern digital components.</p>
 <ul class="simple">
 <li><p><strong>-48V DC</strong>: Simulates the CO loop voltage and drives current to the phone when off-hook</p></li>
+<li><p><strong>+12V DC</strong>: Powers the SLIC’s analog circuitry for audio processing and line interface functions</p></li>
 <li><p><strong>90V AC (or pulsed DC)</strong>: Activates mechanical ringers in the authentic cadence</p></li>
 <li><p><strong>9V AC</strong>: Powers vintage dial lamps through the outer RJ11 pair</p></li>
-<li><p><strong>3.3V / 5V DC</strong>: Powers modern control logic and audio components</p></li>
+<li><p><strong>3.3V DC</strong>: Powers modern control logic (ESP32) and audio codecs (PCM5100 DAC, PCM1808 ADC)</p></li>
 </ul>
 <p>Proper isolation, protection, and layout are essential for safe and functional operation across these mixed-voltage domains.</p>
 </section>
@@ -240,7 +266,7 @@ This helped preserve outdoor connectors and relay contacts across millions of su
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Jun 28, 2025.
+      <span class="lastupdated">Last updated on Dec 27, 2025.
       </span></p>
   </div>
 

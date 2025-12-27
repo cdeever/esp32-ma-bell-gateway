@@ -54,10 +54,11 @@ Step-by-Step Power Flow
    - A *DC-DC buck converter* steps 48V down to 12V.
    - Powers the VCC/VDD pins on the HC3-5504B-5 for analog functions.
 
-4. **5V or 3.3V for ESP32 & Logic**
+4. **3.3V for ESP32, Audio Codecs & Logic**
 
-   - Another *buck converter* (or LDO after pre-drop) steps down 48V to 5V or 3.3V.
-   - Feeds the ESP32 dev board and any digital logic.
+   - Another *buck converter* steps down 48V to 3.3V regulated output.
+   - Feeds the ESP32 dev board (~500mA), PCM5100 DAC (~10mA), PCM1808 ADC (~15mA), and digital logic.
+   - Minimum current capacity: 600mA (typical load ~525mA + 15% margin).
 
 5. **90V AC, 20Hz for Ringer**
 
@@ -67,19 +68,19 @@ Step-by-Step Power Flow
 Power Rail Table
 ----------------
 
-+-----------------+--------------+-------------------------+-------------------------------+
-| Rail            | Voltage      | Supplies                | How Created                   |
-+=================+==============+=========================+===============================+
-| Vbat            | +48V DC      | All conversions         | Main supply (60W)             |
-+-----------------+--------------+-------------------------+-------------------------------+
-| SLIC Loop       | -48V DC      | SLIC (Tip/Ring)         | Inverting DC-DC from 48V      |
-+-----------------+--------------+-------------------------+-------------------------------+
-| SLIC Power      | +12V DC      | SLIC (VCC)              | Buck converter from 48V       |
-+-----------------+--------------+-------------------------+-------------------------------+
-| Logic           | +5V / 3.3V   | ESP32, logic            | Buck from 48V                 |
-+-----------------+--------------+-------------------------+-------------------------------+
-| Ring AC         | 90V AC, 20Hz | Ringer circuit          | Ring gen. from 48V            |
-+-----------------+--------------+-------------------------+-------------------------------+
++-----------------+--------------+------------------+-----------+-------------------------+-------------------------------+
+| Rail            | Voltage      | Typical Current  | Power     | Supplies                | How Created                   |
++=================+==============+==================+===========+=========================+===============================+
+| Vbat            | +48V DC      | 250-350mA        | 12-17W    | All conversions         | Main supply (60W)             |
++-----------------+--------------+------------------+-----------+-------------------------+-------------------------------+
+| SLIC Loop       | -48V DC      | 50-100mA         | 2.4-4.8W  | SLIC (Tip/Ring)         | Inverting DC-DC from 48V      |
++-----------------+--------------+------------------+-----------+-------------------------+-------------------------------+
+| SLIC Power      | +12V DC      | 100mA            | 1.2W      | SLIC (VCC)              | Buck converter from 48V       |
++-----------------+--------------+------------------+-----------+-------------------------+-------------------------------+
+| Logic & Codecs  | +3.3V DC     | 525mA (600mA min)| 1.7W      | ESP32, PCM5100, PCM1808 | Buck from 48V                 |
++-----------------+--------------+------------------+-----------+-------------------------+-------------------------------+
+| Ring AC         | 90V AC, 20Hz | 20-40mA RMS      | 2-4W      | Ringer circuit          | Ring gen. from 48V            |
++-----------------+--------------+------------------+-----------+-------------------------+-------------------------------+
 
 .. note::
 
@@ -87,17 +88,80 @@ Power Rail Table
 
    The 9V AC required for the phone's illuminated dial is not derived from the main power system. Instead, a separate 9V AC wall transformer is used, with its output fed directly to the black and yellow wires of the phone. This mirrors the original Bell System approach, where illumination was powered independently from the telephone line circuitry.
 
+Power Budget Analysis
+---------------------
+
+The total system power requirement can be calculated from the individual rail loads shown in the Power Rail Table above.
+
+Continuous Load (Idle State)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When the phone is on-hook and no ringing is occurring:
+
+- **3.3V rail (ESP32 + codecs):** 1.7W
+- **12V rail (SLIC VCC):** 1.2W
+- **-48V rail (SLIC loop, idle):** 2.4W
+- **Ring generator:** 0W (inactive)
+
+**Total idle power:** ~5.3W from 48V supply = **110mA @ 48V**
+
+Peak Load (Active Call + Ringing)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When the phone is off-hook (active call) and ring generator is simultaneously active (worst case):
+
+- **3.3V rail (ESP32 + codecs):** 1.7W
+- **12V rail (SLIC VCC):** 1.2W
+- **-48V rail (SLIC loop, off-hook):** 4.8W
+- **Ring generator (90V AC @ 20Hz):** 4.0W (peak)
+
+**Total peak power:** ~11.7W from 48V supply = **244mA @ 48V**
+
+Including Converter Efficiency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Buck and inverting DC-DC converters are not 100% efficient. Typical efficiency: 80-90%.
+
+Assuming 85% average efficiency:
+
+- **Idle:** 5.3W / 0.85 = **6.2W from 48V supply**
+- **Peak:** 11.7W / 0.85 = **13.8W from 48V supply**
+
+Why 60W Rating?
+^^^^^^^^^^^^^^^
+
+The 48V/60W supply provides a **4.3x safety margin** over the calculated 13.8W peak load. This generous headroom offers several benefits:
+
+1. **Future Expansion:** Supports additional features (multiple lines, amplified ringers, status displays)
+2. **Thermal Management:** Operating at 23% of rated capacity keeps the supply cool and extends lifetime
+3. **Inrush Current:** Handles startup transients when all converters initialize simultaneously
+4. **Component Selection:** 60W supplies are readily available and cost-effective
+5. **Reliability:** Operating well below rated capacity improves long-term reliability
+
+**Alternative:** A 48V/25W supply (providing 1.8x margin) would be adequate for single-line operation if cost or size is critical.
 
 Component Notes
 ---------------
 
-- **Buck converters:** Compact DC-DC modules (e.g., LM2596, MP1584) are recommended. Available as ready-to-use boards.
-- **Inverting DC-DC:** Use telecom-grade inverting modules or custom flyback circuits to generate -48V from +48V.
-- **Ring generator:** Options include:
-  
-  - Off-the-shelf telecom ring generator modules
-  - Microcontroller-controlled boost + H-bridge (sine wave oscillator)
-  - Classic 555 timer + transformer circuit for 90V AC
+- **Buck converters (3.3V & 12V):** Compact DC-DC modules are recommended:
+
+  - **For 3.3V rail:** LM2596-based module or equivalent, configured for 3.3V output, minimum 1A current rating
+  - **For 12V rail:** LM2596, MP1584, or similar, configured for 12V output, minimum 200mA current rating
+  - Available as ready-to-use boards from common suppliers
+
+- **Inverting DC-DC (-48V):** Use telecom-grade inverting modules or custom flyback circuits to generate -48V from +48V:
+
+  - Input: 48V DC
+  - Output: -48V DC regulated, minimum 150mA current rating
+  - Example modules: Mean Well IRM-02-48S, custom flyback converter
+
+- **Ring generator (90V AC @ 20Hz):** Produces the ringing voltage for electromechanical telephone bells. Options include:
+
+  - **Commercial telecom ring generator modules:** Input 48V DC, output 90V AC @ 20Hz, 50-100mA output current
+  - **DIY boost converter + H-bridge:** Microcontroller-controlled (ESP32 GPIO) to generate 20Hz sine/square wave, boosted to 90V via transformer
+  - **Classic 555 timer + transformer:** 555 configured as 20Hz oscillator driving push-pull transistor stage with step-up transformer
+  - **Power requirement:** 48V input @ 100-150mA peak (4-7W) when ringing is active
+  - **Control:** Typically activated by relay (Q1 in BOM) or MOSFET driven by ESP32 GPIO
 
 
 Design Considerations

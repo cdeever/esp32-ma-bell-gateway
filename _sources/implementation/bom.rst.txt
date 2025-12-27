@@ -90,7 +90,7 @@ Values, part numbers, and notes are included for clarity.
      - Power Connector
      - Barrel Jack, 5.5x2.1mm
      - CUI PJ-102A or equivalent
-     - For 3.3V/9V/-48V supply input
+     - For 48V DC supply input (60W recommended)
 
    * - C1, C2, ...
      - Capacitors (see schematic)
