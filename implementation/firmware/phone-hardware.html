@@ -1,0 +1,439 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta property="article:modified_time" content="2025-12-27T01:04:28+00:00" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phone Hardware Monitoring &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="PCB Design &amp; Assembly" href="../pcb/index.html" />
+    <link rel="prev" title="State Management" href="state-management.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../historical-perspective.html">The Bell System Blueprint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Implementation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../bom.html">Bill of Materials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../circuit/index.html">Circuit Implementation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Firmware</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="architecture.html">Firmware Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state-management.html">State Management</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Phone Hardware Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#off-hook-detection">Off-Hook Detection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#initialization">Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diagnostic-output">Diagnostic Output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#web-api-integration">Web API Integration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#future-enhancements">Future Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-files">Module Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../pcb/index.html">PCB Design &amp; Assembly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Implementation</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Firmware</a></li>
+      <li class="breadcrumb-item active">Phone Hardware Monitoring</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/implementation/firmware/phone-hardware.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="phone-hardware-monitoring">
+<h1>Phone Hardware Monitoring<a class="headerlink" href="#phone-hardware-monitoring" title="Link to this heading"></a></h1>
+<p>The phone hardware monitoring module (<cite>main/hardware/phone_hardware.c</cite>) provides real-time detection of telephone line events from the HC-5504B SLIC, including off-hook detection, ring status, and (future) dial pulse detection.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The module interfaces with the SLIC’s status output pins to monitor the physical telephone state and update the system state accordingly. This enables the ESP32 to respond to user actions on the telephone handset.</p>
+<p><strong>Monitored Signals:</strong></p>
+<ul class="simple">
+<li><p><strong>Off-Hook Detection</strong> (GPIO 32) - Detects when the telephone handset is lifted</p></li>
+<li><p><strong>Ring Status</strong> (GPIO 33) - Monitors ring relay activation (future)</p></li>
+<li><p><strong>Dial Pulses</strong> (GPIO 34) - Detects rotary dial pulses (future)</p></li>
+</ul>
+</section>
+<section id="off-hook-detection">
+<h2>Off-Hook Detection<a class="headerlink" href="#off-hook-detection" title="Link to this heading"></a></h2>
+<p>The primary function of the phone hardware module is detecting when the telephone handset is lifted (off-hook) or replaced (on-hook).</p>
+<section id="hardware-connection">
+<h3>Hardware Connection<a class="headerlink" href="#hardware-connection" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>HC-5504B SLIC                    ESP32-WROVER
+┌────────────┐                  ┌─────────────┐
+│            │                  │             │
+│  Pin 13    ├──────────────────┤ GPIO 32     │
+│  (SHD)     │   Active LOW     │ (Input)     │
+│            │                  │             │
+└────────────┘                  └─────────────┘
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>SLIC Pin 13 (SHD):</strong> Switch Hook Detect output</p></li>
+<li><p><strong>Signal Logic:</strong> Active LOW (0V = off-hook, 3.3V = on-hook)</p></li>
+<li><p><strong>ESP32 GPIO 32:</strong> Configured as input with internal pull-up resistor</p></li>
+</ul>
+</section>
+<section id="gpio-configuration">
+<h3>GPIO Configuration<a class="headerlink" href="#gpio-configuration" title="Link to this heading"></a></h3>
+<p>The off-hook detect pin is configured during <cite>phone_hardware_init()</cite>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">gpio_config_t</span><span class="w"> </span><span class="n">io_conf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">.</span><span class="n">pin_bit_mask</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">1ULL</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">PIN_OFF_HOOK_DETECT</span><span class="p">),</span><span class="w">  </span><span class="c1">// GPIO 32</span>
+<span class="w">    </span><span class="p">.</span><span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_MODE_INPUT</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">pull_up_en</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_PULLUP_ENABLE</span><span class="p">,</span><span class="w">   </span><span class="c1">// Pull-up for safe default</span>
+<span class="w">    </span><span class="p">.</span><span class="n">pull_down_en</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_PULLDOWN_DISABLE</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">intr_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_INTR_DISABLE</span><span class="w">      </span><span class="c1">// Polling-based detection</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p><strong>Why pull-up resistor?</strong>
+The internal pull-up ensures the pin reads HIGH (on-hook) when the SLIC is not connected, preventing false off-hook detection during development or when the SLIC circuit is unpowered.</p>
+</section>
+<section id="polling-implementation">
+<h3>Polling Implementation<a class="headerlink" href="#polling-implementation" title="Link to this heading"></a></h3>
+<p>The module uses a FreeRTOS task to poll the GPIO at regular intervals:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">phone_monitor_task</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Read GPIO level</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">gpio_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gpio_get_level</span><span class="p">(</span><span class="n">PIN_OFF_HOOK_DETECT</span><span class="p">);</span>
+<span class="w">        </span><span class="kt">bool</span><span class="w"> </span><span class="n">current_hook_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">gpio_level</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// true = on-hook</span>
+
+<span class="w">        </span><span class="c1">// Debounce and detect state changes</span>
+<span class="w">        </span><span class="c1">// ... (see debouncing section)</span>
+
+<span class="w">        </span><span class="n">vTaskDelay</span><span class="p">(</span><span class="n">pdMS_TO_TICKS</span><span class="p">(</span><span class="n">POLL_INTERVAL_MS</span><span class="p">));</span><span class="w">  </span><span class="c1">// 20ms</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Polling Parameters:</strong></p>
+<ul class="simple">
+<li><p><strong>Poll Interval:</strong> 20ms (50 Hz update rate)</p></li>
+<li><p><strong>Task Priority:</strong> 5 (moderate priority)</p></li>
+<li><p><strong>Stack Size:</strong> 2048 bytes</p></li>
+</ul>
+<p><strong>Alternative: Interrupt-Based Detection</strong></p>
+<p>The current implementation uses polling for simplicity. For more efficient CPU usage, the module could be enhanced to use GPIO interrupts (<code class="docutils literal notranslate"><span class="pre">GPIO_INTR_ANYEDGE</span></code>) to detect state changes only when they occur.</p>
+</section>
+<section id="debouncing">
+<h3>Debouncing<a class="headerlink" href="#debouncing" title="Link to this heading"></a></h3>
+<p>Mechanical telephone switches produce contact bounce, causing brief voltage fluctuations during state transitions. The module implements software debouncing to filter these transients:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define HOOK_DEBOUNCE_MS 50</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">current_hook_state</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">last_hook_state</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">TickType_t</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xTaskGetTickCount</span><span class="p">();</span>
+<span class="w">    </span><span class="n">TickType_t</span><span class="w"> </span><span class="n">elapsed_ms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pdTICKS_TO_MS</span><span class="p">(</span><span class="n">now</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">last_hook_change_time</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">elapsed_ms</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">HOOK_DEBOUNCE_MS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// State change confirmed - update last_hook_state</span>
+<span class="w">        </span><span class="n">last_hook_change_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">now</span><span class="p">;</span>
+<span class="w">        </span><span class="c1">// ... update system state</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Debounce Logic:</strong></p>
+<ol class="arabic simple">
+<li><p>Detect pin state change</p></li>
+<li><p>Start debounce timer</p></li>
+<li><p>Only accept change if pin remains stable for &gt;50ms</p></li>
+<li><p>Update state and log transition</p></li>
+</ol>
+<p>This prevents spurious state changes from mechanical bounce or electrical noise.</p>
+</section>
+<section id="state-updates">
+<h3>State Updates<a class="headerlink" href="#state-updates" title="Link to this heading"></a></h3>
+<p>When a valid state change is detected, the module updates the global phone state:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">current_hook_state</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// On-hook (handset replaced)</span>
+<span class="w">    </span><span class="n">ESP_LOGI</span><span class="p">(</span><span class="n">TAG</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Phone on-hook detected&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ma_bell_state_update_phone_bits</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">PHONE_STATE_OFF_HOOK</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Off-hook (handset lifted)</span>
+<span class="w">    </span><span class="n">ESP_LOGI</span><span class="p">(</span><span class="n">TAG</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Phone off-hook detected&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ma_bell_state_update_phone_bits</span><span class="p">(</span><span class="n">PHONE_STATE_OFF_HOOK</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">ma_bell_state_update_phone_bits()</span></code> function:</p>
+<ul class="simple">
+<li><p>Sets or clears the <code class="docutils literal notranslate"><span class="pre">PHONE_STATE_OFF_HOOK</span></code> bit in the phone state bitmask</p></li>
+<li><p>Logs the state change</p></li>
+<li><p>Sends notifications to registered tasks (via FreeRTOS task notifications)</p></li>
+</ul>
+<p>For details on the state management system, see <a class="reference internal" href="state-management.html"><span class="doc">State Management</span></a>.</p>
+</section>
+</section>
+<section id="initialization">
+<h2>Initialization<a class="headerlink" href="#initialization" title="Link to this heading"></a></h2>
+<p>The phone hardware module is initialized during the hardware subsystem startup:</p>
+<p><strong>Call Hierarchy:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>main()
+  └─ hardware_init()          (main/hardware/hardware_init.c)
+       └─ phone_hardware_init()  (main/hardware/phone_hardware.c)
+</pre></div>
+</div>
+<p><strong>Initialization Steps:</strong></p>
+<ol class="arabic simple">
+<li><p>Configure GPIO 32 as input with pull-up</p></li>
+<li><p>Read initial hook state</p></li>
+<li><p>Initialize debounce state variables</p></li>
+<li><p>Create monitoring FreeRTOS task</p></li>
+<li><p>Log initialization status</p></li>
+</ol>
+<p><strong>Error Handling:</strong></p>
+<p>If GPIO configuration or task creation fails, <code class="docutils literal notranslate"><span class="pre">phone_hardware_init()</span></code> returns an error code and logs the failure. The main initialization routine handles this with <code class="docutils literal notranslate"><span class="pre">ESP_ERROR_CHECK()</span></code>, which will halt the system if phone hardware initialization fails.</p>
+</section>
+<section id="diagnostic-output">
+<h2>Diagnostic Output<a class="headerlink" href="#diagnostic-output" title="Link to this heading"></a></h2>
+<p>The module provides detailed logging for troubleshooting:</p>
+<p><strong>Initialization Logs:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I (1234) phone_hw: Initializing phone hardware monitoring
+I (1235) phone_hw: GPIO 32 configured for off-hook detection
+I (1236) phone_hw: Initial hook state: on-hook
+I (1237) phone_hw: Phone monitor task started
+I (1238) phone_hw: Phone hardware monitoring started successfully
+</pre></div>
+</div>
+<p><strong>Runtime Logs:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I (5432) phone_hw: Phone off-hook detected
+I (5434) ma_bell_state: Phone state changed: 0x00 -&gt; 0x01
+
+I (12345) phone_hw: Phone on-hook detected
+I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
+</pre></div>
+</div>
+</section>
+<section id="web-api-integration">
+<h2>Web API Integration<a class="headerlink" href="#web-api-integration" title="Link to this heading"></a></h2>
+<p>The off-hook state is exposed through the web interface at <code class="docutils literal notranslate"><span class="pre">/status</span></code>:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;phone&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;hook&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Off-hook&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// or &quot;On-hook&quot;</span>
+<span class="w">      </span><span class="nt">&quot;ringing&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;ring_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;dialing&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;last_digit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;None&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">hook</span></code> field updates in real-time based on the monitored GPIO state.</p>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
+<section id="hardware-testing">
+<h3>Hardware Testing<a class="headerlink" href="#hardware-testing" title="Link to this heading"></a></h3>
+<p><strong>Without SLIC (Development):</strong></p>
+<ol class="arabic simple">
+<li><p>Build and flash firmware</p></li>
+<li><p>Monitor serial output</p></li>
+<li><p>Short GPIO 32 to GND → Should log “Phone off-hook detected”</p></li>
+<li><p>Release GPIO 32 → Should log “Phone on-hook detected”</p></li>
+<li><p>Check <code class="docutils literal notranslate"><span class="pre">/status</span></code> endpoint → <code class="docutils literal notranslate"><span class="pre">hook</span></code> field should reflect current state</p></li>
+</ol>
+<p><strong>With SLIC Connected:</strong></p>
+<ol class="arabic simple">
+<li><p>Connect telephone handset to SLIC</p></li>
+<li><p>Lift handset → Should log “Phone off-hook detected”</p></li>
+<li><p>Replace handset → Should log “Phone on-hook detected”</p></li>
+<li><p>Verify no false triggers from line noise or ringing voltage</p></li>
+</ol>
+</section>
+<section id="software-testing">
+<h3>Software Testing<a class="headerlink" href="#software-testing" title="Link to this heading"></a></h3>
+<p><strong>State Verification:</strong></p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">ma_bell_state_t</span><span class="o">*</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ma_bell_state_get</span><span class="p">();</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ma_bell_state_phone_bits_set</span><span class="p">(</span><span class="n">PHONE_STATE_OFF_HOOK</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Phone is currently off-hook</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>State Change Notifications:</strong></p>
+<p>Tasks can register to receive notifications when phone state changes:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Register for phone state notifications</span>
+<span class="n">ma_bell_state_register_for_notifications</span><span class="p">(</span><span class="n">NOTIFY_PHONE_STATE_CHANGED</span><span class="p">);</span>
+
+<span class="c1">// Wait for notification</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="n">bits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ma_bell_state_wait_for_notification</span><span class="p">(</span>
+<span class="w">    </span><span class="n">NOTIFY_PHONE_STATE_CHANGED</span><span class="p">,</span>
+<span class="w">    </span><span class="mi">5000</span><span class="w">  </span><span class="c1">// 5 second timeout</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="future-enhancements">
+<h2>Future Enhancements<a class="headerlink" href="#future-enhancements" title="Link to this heading"></a></h2>
+<p>The current implementation provides a foundation for expanded phone hardware monitoring:</p>
+<p><strong>Planned Additions:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Ring Detection (GPIO 33):</strong></p>
+<ul class="simple">
+<li><p>Monitor SLIC RD pin for ring relay activation</p></li>
+<li><p>Count ring cycles</p></li>
+<li><p>Detect ring cadence patterns</p></li>
+</ul>
+</li>
+<li><p><strong>Ring Control (GPIO 13):</strong></p>
+<ul class="simple">
+<li><p>Output to SLIC RC pin to trigger ringing</p></li>
+<li><p>Implement ring cadence generation</p></li>
+<li><p>Control ring voltage relay</p></li>
+</ul>
+</li>
+<li><p><strong>Pulse Dial Detection (GPIO 34):</strong></p>
+<ul class="simple">
+<li><p>Decode rotary dial pulses (10 PPS typical)</p></li>
+<li><p>Accumulate digit values (1-9 pulses = 1-9, 10 pulses = 0)</p></li>
+<li><p>Implement inter-digit timeout detection</p></li>
+</ul>
+</li>
+<li><p><strong>Interrupt-Based Detection:</strong></p>
+<ul class="simple">
+<li><p>Replace polling with GPIO edge interrupts</p></li>
+<li><p>Reduce CPU overhead</p></li>
+<li><p>Improve response time</p></li>
+</ul>
+</li>
+<li><p><strong>Event Publishing:</strong></p>
+<ul class="simple">
+<li><p>Publish hook state changes to event system</p></li>
+<li><p>Enable decoupled event handling</p></li>
+<li><p>Support multiple event subscribers</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="module-files">
+<h2>Module Files<a class="headerlink" href="#module-files" title="Link to this heading"></a></h2>
+<p><strong>Source Files:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">main/hardware/phone_hardware.c</span></code> - Implementation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main/hardware/phone_hardware.h</span></code> - Public API</p></li>
+</ul>
+<p><strong>Dependencies:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">main/app/pin_assignments.h</span></code> - GPIO pin definitions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main/app/state/ma_bell_state.h</span></code> - State management API</p></li>
+<li><p>FreeRTOS - Task management and delays</p></li>
+<li><p>ESP-IDF GPIO driver</p></li>
+</ul>
+<p><strong>Build Integration:</strong></p>
+<p>The module is included in the main component’s CMakeLists.txt:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="err">SRCS</span><span class="w"> </span><span class="err">&quot;hardware/phone_hardware.c&quot;</span>
+<span class="w">     </span><span class="err">...</span>
+</pre></div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="state-management.html"><span class="doc">State Management</span></a> - State management system documentation</p></li>
+<li><p><a class="reference internal" href="architecture.html"><span class="doc">Firmware Architecture</span></a> - Overall firmware architecture</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/source/implementation/circuit/line-interface-hc5504b.rst</span></code> - SLIC hardware documentation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/source/implementation/circuit/pin-assignments.rst</span></code> - GPIO pin assignments</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="state-management.html" class="btn btn-neutral float-left" title="State Management" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../pcb/index.html" class="btn btn-neutral float-right" title="PCB Design &amp; Assembly" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Dec 27, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

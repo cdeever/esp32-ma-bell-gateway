@@ -21,4 +21,5 @@ This section describes the firmware, control logic, and (optionally) the build e
 
    architecture
    state-management
+   phone-hardware
  

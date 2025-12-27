@@ -5,6 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <meta property="article:modified_time" content="2025-12-27T01:04:28+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Line Interface: HC-5504B SLIC &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -55,14 +56,19 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Line Interface: HC-5504B SLIC</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pinout-summary-dip-24">Pinout Summary (DIP-24)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#typical-application-circuit">Typical Application Circuit</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#interfacing-with-esp32">Interfacing with ESP32</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#application-circuit">Application Circuit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#esp32-gpio-interface">ESP32 GPIO Interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#audio-signal-path">Audio Signal Path</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#power-supply-integration">Power Supply Integration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#line-protection">Line Protection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#component-selection-bill-of-materials">Component Selection &amp; Bill of Materials</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pcb-design-guidelines">PCB Design Guidelines</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#design-notes">Design Notes</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="pin-assignments.html">ESP32 Pin Assignments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="power-supply.html">Power Supply</a></li>
+<li class="toctree-l3"><a class="reference internal" href="power-supply.html">Power Implementation (48V Central Supply)</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../firmware/index.html">Firmware</a></li>
@@ -227,45 +233,1292 @@ It implements nearly all essential BORSCHT functions (Battery feed, Overvoltage 
 </tbody>
 </table>
 </section>
-<section id="typical-application-circuit">
-<h2>Typical Application Circuit<a class="headerlink" href="#typical-application-circuit" title="Link to this heading"></a></h2>
-<p>#.. figure:: /images/hc5504b-app-circuit.png
-#   :alt: Typical application circuit for HC-5504B SLIC</p>
-<blockquote>
-<div><p>Typical application circuit for the HC-5504B SLIC (see datasheet for details).</p>
-</div></blockquote>
-<p><strong>Note:</strong>
-- Requires external protection (bridge rectifier, MOV, fuses) for robust field operation.
-- Uses precision resistors (typically 150Ω) and filter capacitors as per the datasheet.
-- Relay or MOSFET driver may be needed for high-voltage ringing.</p>
+<section id="application-circuit">
+<h2>Application Circuit<a class="headerlink" href="#application-circuit" title="Link to this heading"></a></h2>
+<p>The following shows the complete application circuit for the HC-5504B SLIC, including all external components, power connections, and interface to the ESP32.</p>
+<section id="basic-slic-connections">
+<h3>Basic SLIC Connections<a class="headerlink" href="#basic-slic-connections" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Telephone Line (TIP/RING)
+        |
+        v
+┌───[ Protection Circuit ]───┐
+│   (See Protection section) │
+└──────────┬─────────────────┘
+           │
+           ├── TIP ──────────────────────┐
+           │                              │
+           └── RING ────────────────────┐ │
+                                        │ │
+                  ┌─────────────────────┼─┼───────────┐
+                  │   HC-5504B SLIC     │ │           │
+                  │                     │ │           │
+Power Supplies:   │  Pin 1: TIP ────────┘ │           │
+                  │  Pin 2: RING ──────────┘           │
++12V ─────────┬───┤  Pin 4: VB+ (+12V)                 │
+              │   │  Pin 11: VB- (-48V) ───────── -48V │
+Decoupling:   │   │  Pin 12: BG (Battery GND)          │
+100nF + 10µF  │   │  Pin 6: DG (Digital GND)           │
+              │   │  Pin 23: AG (Analog GND) ──┬───────┤
+              │   │                             │       │
+External      │   │  Pin 9: TF ──┬── 150Ω ─────┤       │
+Components:   │   │  Pin 10: RF ─┴── 150Ω ─────┤       │
+              │   │  Pin 5: C3 ──── 4.7µF ─────┤       │
+              │   │  Pin 17: C2 ─── 2.2µF ─────┤       │
+              │   │  Pin 22: C4 ─── 0.1µF ─────┤       │
+              │   │                             │       │
+Signals:      │   │  Pin 13: SHD ───────────── ESP32   │
+              │   │  Pin 8: RD ────────────── GPIO 32  │
+              │   │  Pin 16: RC ───────────── GPIO 33  │
+              │   │                         GPIO 13    │
+Audio:        │   │  Pin 24: TX ───────┐               │
+              │   │  Pin 21: RX ───────┤── Codec       │
+              │   │                     │   I2S         │
+              │   └─────────────────────┴───────────────┘
+              │
+              └─ Star Ground Point (AG=DG=BG)
+</pre></div>
+</div>
 </section>
-<section id="interfacing-with-esp32">
-<h2>Interfacing with ESP32<a class="headerlink" href="#interfacing-with-esp32" title="Link to this heading"></a></h2>
+<section id="external-component-values">
+<h3>External Component Values<a class="headerlink" href="#external-component-values" title="Link to this heading"></a></h3>
+<p>Based on HC-5504B datasheet recommendations:</p>
 <ul class="simple">
-<li><p><strong>SHD (Switch Hook Detect, Pin 13):</strong> Connects to ESP32 input GPIO for off-hook status.</p></li>
-<li><p><strong>GKD (Ground Key Detect, Pin 14):</strong> Optional; connects to ESP32 input if ground key features are needed.</p></li>
-<li><p><strong>RD (Ring Relay Driver, Pin 8):</strong> Can be monitored by ESP32 for relay status or used to trigger ringing logic.</p></li>
-<li><p><strong>RC (Ring Command, Pin 16):</strong> Controlled by ESP32 output to trigger ringing sequence.</p></li>
-<li><p><strong>PD (Power Denial, Pin 15):</strong> Controlled by ESP32 output if selective power shutdown is desired.</p></li>
-<li><p><strong>TX (Pin 24), RX (Pin 21):</strong> Connect to audio codec, then to ESP32 I2S interface for digital audio in/out.</p></li>
+<li><p><strong>R_TIP, R_RING</strong> (Pins 9, 10): 150Ω, 1% tolerance, 1/4W</p>
+<ul>
+<li><p>Feed resistors for tip and ring</p></li>
+<li><p>Critical for proper loop current limiting</p></li>
 </ul>
+</li>
+<li><p><strong>C3</strong> (Pin 5): 4.7µF electrolytic or ceramic</p>
+<ul>
+<li><p>Loop current timing capacitor</p></li>
+<li><p>Voltage rating: min 16V</p></li>
+</ul>
+</li>
+<li><p><strong>C2</strong> (Pin 17): 2.2µF</p>
+<ul>
+<li><p>Ring trip and ground key filter</p></li>
+<li><p>Voltage rating: min 16V</p></li>
+</ul>
+</li>
+<li><p><strong>C4</strong> (Pin 22): 0.1µF ceramic</p>
+<ul>
+<li><p>Longitudinal balance capacitor</p></li>
+<li><p>Improves common-mode noise rejection</p></li>
+</ul>
+</li>
+<li><p><strong>Decoupling on VB+</strong>: 100nF ceramic (close to IC) + 10µF electrolytic</p>
+<ul>
+<li><p>Place ceramic capacitor within 0.5” of pin 4</p></li>
+<li><p>Electrolytic for bulk supply stabilization</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Note:</strong>
+The SLIC requires external protection (bridge rectifier, MOV, fuses) for robust field operation. See the “Line Protection” section for complete protection circuit design.</p>
+</section>
+</section>
+<section id="esp32-gpio-interface">
+<h2>ESP32 GPIO Interface<a class="headerlink" href="#esp32-gpio-interface" title="Link to this heading"></a></h2>
+<p>The HC-5504B SLIC interfaces with the ESP32 microcontroller through several GPIO pins for control and status monitoring. Audio signals flow through an external codec connected via I2S.</p>
+<section id="gpio-pin-mapping">
+<h3>GPIO Pin Mapping<a class="headerlink" href="#gpio-pin-mapping" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.9%" />
+<col style="width: 22.2%" />
+<col style="width: 13.3%" />
+<col style="width: 13.3%" />
+<col style="width: 42.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SLIC Pin</p></th>
+<th class="head"><p>SLIC Function</p></th>
+<th class="head"><p>ESP32 GPIO</p></th>
+<th class="head"><p>Direction</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>13</p></td>
+<td><p>SHD (Switch Hook Detect)</p></td>
+<td><p>GPIO 32</p></td>
+<td><p>Input</p></td>
+<td><p>Off-hook detection - Goes LOW when phone is off-hook</p></td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><p>RD (Ring Relay Driver)</p></td>
+<td><p>GPIO 33</p></td>
+<td><p>Input</p></td>
+<td><p>Ring relay status monitoring - Active LOW when relay engaged</p></td>
+</tr>
+<tr class="row-even"><td><p>16</p></td>
+<td><p>RC (Ring Command)</p></td>
+<td><p><strong>GPIO 13</strong></p></td>
+<td><p><strong>Output</strong></p></td>
+<td><p><strong>Trigger ring sequence - Drive LOW to activate ringing</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>15</p></td>
+<td><p>PD (Power Denial)</p></td>
+<td><p>Not Connected</p></td>
+<td><p>(Output)</p></td>
+<td><p>Optional power control - Not used in this design</p></td>
+</tr>
+<tr class="row-even"><td><p>14</p></td>
+<td><p>GKD (Ground Key Detect)</p></td>
+<td><p>Not Connected</p></td>
+<td><p>(Input)</p></td>
+<td><p>Optional ground key detection - Not used in this design</p></td>
+</tr>
+<tr class="row-odd"><td><p>24</p></td>
+<td><p>TX (Transmit Audio)</p></td>
+<td><p>Via Audio Codec</p></td>
+<td><p>Input to SLIC</p></td>
+<td><p>Audio from ESP32 → Codec → SLIC → Phone</p></td>
+</tr>
+<tr class="row-even"><td><p>21</p></td>
+<td><p>RX (Receive Audio)</p></td>
+<td><p>Via Audio Codec</p></td>
+<td><p>Output from SLIC</p></td>
+<td><p>Audio from Phone → SLIC → Codec → ESP32</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="signal-level-notes">
+<h3>Signal Level Notes<a class="headerlink" href="#signal-level-notes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Logic Levels:</strong> All SLIC digital outputs (SHD, RD, GKD) operate at 3.3V logic levels, directly compatible with ESP32 GPIOs</p></li>
+<li><p><strong>Input Protection:</strong> No level shifting required - SLIC pins 13, 14, 8 can directly drive ESP32 inputs</p></li>
+<li><p><strong>Output Drive:</strong> ESP32 GPIO 13 can directly drive SLIC pin 16 (RC) for ring control</p></li>
+<li><p><strong>Pull-ups:</strong> Internal ESP32 pull-ups may be enabled on input pins (SHD, RD) for noise immunity</p></li>
+</ul>
+</section>
+<section id="key-interface-functions">
+<h3>Key Interface Functions<a class="headerlink" href="#key-interface-functions" title="Link to this heading"></a></h3>
+<p><strong>Off-Hook Detection (SHD → GPIO 32):</strong>
+The SHD pin goes LOW when the telephone handset is lifted (off-hook condition). The ESP32 monitors this pin to detect when a call is initiated or answered.</p>
+<p><strong>Ring Control (GPIO 13 → RC):</strong>
+To ring the telephone, the ESP32 drives GPIO 13 LOW. This signals the SLIC to engage the ring relay and apply ringing voltage to the line. A typical ring pattern is 2 seconds ON, 4 seconds OFF.</p>
+<p><strong>Ring Status Monitor (RD → GPIO 33):</strong>
+The RD pin reflects the state of the internal ring relay driver. When active (LOW), the ring relay is engaged. This allows the ESP32 to confirm ringing is occurring.</p>
+<p><strong>Audio Path:</strong>
+Audio does not connect directly to ESP32. Instead, the SLIC’s TX and RX pins connect to an external audio codec, which performs analog-to-digital and digital-to-analog conversion. The codec then interfaces with ESP32 via I2S (see Audio Signal Path section).</p>
+</section>
+</section>
+<section id="audio-signal-path">
+<h2>Audio Signal Path<a class="headerlink" href="#audio-signal-path" title="Link to this heading"></a></h2>
+<p>The SLIC’s analog audio outputs (TX and RX pins) require an external audio codec to interface with the ESP32’s digital I2S bus. The codec performs ADC (analog-to-digital) and DAC (digital-to-analog) conversion.</p>
+<section id="signal-flow-diagram">
+<h3>Signal Flow Diagram<a class="headerlink" href="#signal-flow-diagram" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌──────────┐        ┌───────────┐       ┌─────────────┐       ┌───────────┐
+│          │ Analog │           │ I2S   │             │  BT   │           │
+│  Phone   ├────────┤   Audio   ├───────┤    ESP32    ├───────┤ Bluetooth │
+│  (SLIC)  │        │   Codec   │       │             │       │  Device   │
+│          ├────────┤           │       │             │       │           │
+└──────────┘        └───────────┘       └─────────────┘       └───────────┘
+ TX    RX            DAC   ADC          I2S Pins:
+ Pin24 Pin21                            - GPIO 25 (LRCLK/WS)
+                                        - GPIO 5  (BCLK)
+                                        - GPIO 26 (DOUT to codec)
+                                        - GPIO 35 (DIN from codec)
+</pre></div>
+</div>
+<p><strong>Transmit Path (ESP32 → Phone):</strong>
+ESP32 → I2S → Codec DAC → SLIC RX (Pin 21) → Telephone handset speaker</p>
+<p><strong>Receive Path (Phone → ESP32):</strong>
+Telephone handset microphone → SLIC TX (Pin 24) → Codec ADC → I2S → ESP32</p>
+</section>
+<section id="selected-audio-codec-configuration">
+<h3>Selected Audio Codec Configuration<a class="headerlink" href="#selected-audio-codec-configuration" title="Link to this heading"></a></h3>
+<p>The Ma Bell Gateway uses the <strong>PCM5100 (DAC) + PCM1808 (ADC)</strong> from Texas Instruments for production-quality audio in Bluetooth telephony applications.</p>
+<section id="why-this-configuration">
+<h4>Why This Configuration<a class="headerlink" href="#why-this-configuration" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p><strong>Excellent Audio Quality:</strong> 16-bit+ audio with high SNR (106 dB DAC, 98 dB ADC)</p></li>
+<li><p><strong>No I2C Configuration:</strong> Hardware-configured via pin strapping (simpler firmware)</p></li>
+<li><p><strong>Flexible Development:</strong> Can implement DAC first (playback), then add ADC (recording)</p></li>
+<li><p><strong>Reliable:</strong> Hardware configuration eliminates software bugs related to codec initialization</p></li>
+<li><p><strong>Production-Ready:</strong> Professional telephony audio quality</p></li>
+</ul>
+</section>
+<section id="pcm5100-dac-digital-to-analog-converter">
+<h4>PCM5100 (DAC) - Digital to Analog Converter<a class="headerlink" href="#pcm5100-dac-digital-to-analog-converter" title="Link to this heading"></a></h4>
+<p><strong>Key Specifications:</strong></p>
+<ul class="simple">
+<li><p>32-bit, 384 kHz stereo audio DAC</p></li>
+<li><p>SNR: 106 dB (A-weighted)</p></li>
+<li><p>THD+N: -93 dB</p></li>
+<li><p>Hardware-configured (no I2C/SPI needed)</p></li>
+<li><p>Integrated PLL for clock flexibility</p></li>
+<li><p>2.5V - 3.6V supply voltage</p></li>
+</ul>
+<p><strong>Pin Connections:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 22.2%" />
+<col style="width: 55.6%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>PCM5100 Pin</p></th>
+<th class="head"><p>ESP32 Connection</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LRCK (WS)</p></td>
+<td><p>GPIO 25</p></td>
+<td><p>I2S word select / frame sync</p></td>
+</tr>
+<tr class="row-odd"><td><p>BCK (SCK)</p></td>
+<td><p>GPIO 5</p></td>
+<td><p>I2S bit clock</p></td>
+</tr>
+<tr class="row-even"><td><p>DIN</p></td>
+<td><p>GPIO 26</p></td>
+<td><p>I2S data from ESP32</p></td>
+</tr>
+<tr class="row-odd"><td><p>XSMT</p></td>
+<td><p>3.3V (via 10kΩ)</p></td>
+<td><p>System mute (HIGH = unmuted)</p></td>
+</tr>
+<tr class="row-even"><td><p>FMT</p></td>
+<td><p>GND</p></td>
+<td><p>I2S format selection (see datasheet)</p></td>
+</tr>
+<tr class="row-odd"><td><p>VDD</p></td>
+<td><p>3.3V</p></td>
+<td><p>Power supply (+decoupling)</p></td>
+</tr>
+<tr class="row-even"><td><p>GND</p></td>
+<td><p>GND</p></td>
+<td><p>Ground</p></td>
+</tr>
+<tr class="row-odd"><td><p>OUTL/OUTR</p></td>
+<td><p>AC coupling to SLIC RX</p></td>
+<td><p>Analog output (use OUTL for mono)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="pcm1808-adc-analog-to-digital-converter">
+<h4>PCM1808 (ADC) - Analog to Digital Converter<a class="headerlink" href="#pcm1808-adc-analog-to-digital-converter" title="Link to this heading"></a></h4>
+<p><strong>Key Specifications:</strong></p>
+<ul class="simple">
+<li><p>24-bit, 96 kHz stereo audio ADC</p></li>
+<li><p>SNR: 98 dB (A-weighted)</p></li>
+<li><p>THD+N: -85 dB</p></li>
+<li><p>Hardware-configured via pin strapping</p></li>
+<li><p>Single-ended or differential input</p></li>
+<li><p>2.7V - 5.5V supply voltage</p></li>
+</ul>
+<p><strong>Pin Connections:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 22.2%" />
+<col style="width: 55.6%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>PCM1808 Pin</p></th>
+<th class="head"><p>ESP32 Connection</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LRCK</p></td>
+<td><p>GPIO 25</p></td>
+<td><p>I2S word select / frame sync (shared with DAC)</p></td>
+</tr>
+<tr class="row-odd"><td><p>BCK</p></td>
+<td><p>GPIO 5</p></td>
+<td><p>I2S bit clock (shared with DAC)</p></td>
+</tr>
+<tr class="row-even"><td><p>DOUT</p></td>
+<td><p>GPIO 35</p></td>
+<td><p>I2S data to ESP32</p></td>
+</tr>
+<tr class="row-odd"><td><p>FMT0</p></td>
+<td><p>GND</p></td>
+<td><p>I2S format selection (00 = I2S, 24-bit)</p></td>
+</tr>
+<tr class="row-even"><td><p>FMT1</p></td>
+<td><p>GND</p></td>
+<td><p>I2S format selection</p></td>
+</tr>
+<tr class="row-odd"><td><p>MD0</p></td>
+<td><p>3.3V</p></td>
+<td><p>Mode selection: slave mode</p></td>
+</tr>
+<tr class="row-even"><td><p>MD1</p></td>
+<td><p>GND</p></td>
+<td><p>Mode selection</p></td>
+</tr>
+<tr class="row-odd"><td><p>VDD</p></td>
+<td><p>3.3V</p></td>
+<td><p>Power supply (+decoupling)</p></td>
+</tr>
+<tr class="row-even"><td><p>GND</p></td>
+<td><p>GND</p></td>
+<td><p>Ground</p></td>
+</tr>
+<tr class="row-odd"><td><p>VINL</p></td>
+<td><p>AC coupling from SLIC TX</p></td>
+<td><p>Analog input (use VINL for mono)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="signal-path-diagram">
+<h4>Signal Path Diagram<a class="headerlink" href="#signal-path-diagram" title="Link to this heading"></a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Transmit Path (Phone → ESP32 → Bluetooth):
+┌───────────┐                           ┌────────────┐              ┌────────────┐
+│  Handset  │     TX Pin 24             │  PCM1808   │     I2S      │   ESP32    │
+│  (Mic)    ├───────────────┬─[10µF]───┤ VINL  DOUT ├──────────────┤ GPIO 35    │
+└───────────┘               │           └────────────┘              └────────────┘
+                SLIC        └─[10kΩ]─┬─GND
+                                      └─AGND (Pin 23)
+
+Receive Path (Bluetooth → ESP32 → Phone):
+┌───────────┐              ┌────────────┐                           ┌────────────┐
+│   ESP32   │     I2S      │  PCM5100   │     RX Pin 21             │  Handset   │
+│ GPIO 26   ├──────────────┤ DIN  OUTL  ├───[10µF]──────────────────┤ (Speaker)  │
+└───────────┘              └────────────┘                           └────────────┘
+                                                     SLIC
+
+Common I2S Clock Signals (Shared):
+ESP32 GPIO 25 ────┬───► PCM5100 LRCK
+                  └───► PCM1808 LRCK
+
+ESP32 GPIO 5  ────┬───► PCM5100 BCK
+                  └───► PCM1808 BCK
+</pre></div>
+</div>
+</section>
+<section id="bill-of-materials">
+<h4>Bill of Materials<a class="headerlink" href="#bill-of-materials" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Part Number</p></th>
+<th class="head"><p>Qty</p></th>
+<th class="head"><p>Notes / Supplier</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DAC</p></td>
+<td><p>PCM5100PWR</p></td>
+<td><p>1</p></td>
+<td><p>Texas Instruments, TSSOP-20</p></td>
+</tr>
+<tr class="row-odd"><td><p>ADC</p></td>
+<td><p>PCM1808PWR</p></td>
+<td><p>1</p></td>
+<td><p>Texas Instruments, TSSOP-20</p></td>
+</tr>
+<tr class="row-even"><td><p>AC Coupling Caps</p></td>
+<td><p>10µF film/MLCC</p></td>
+<td><p>2</p></td>
+<td><p>Non-polarized, 16V+, X7R/C0G</p></td>
+</tr>
+<tr class="row-odd"><td><p>Decoupling Caps (DAC)</p></td>
+<td><p>0.1µF + 10µF</p></td>
+<td><p>2</p></td>
+<td><p>Ceramic + tantalum/MLCC</p></td>
+</tr>
+<tr class="row-even"><td><p>Decoupling Caps (ADC)</p></td>
+<td><p>0.1µF + 10µF</p></td>
+<td><p>2</p></td>
+<td><p>Ceramic + tantalum/MLCC</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pull-up Resistor (XSMT)</p></td>
+<td><p>10kΩ</p></td>
+<td><p>1</p></td>
+<td><p>1% metal film</p></td>
+</tr>
+<tr class="row-even"><td><p>Input Bias Resistor</p></td>
+<td><p>10kΩ</p></td>
+<td><p>1</p></td>
+<td><p>For PCM1808 VINL to AGND</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="pcb-layout-recommendations">
+<h4>PCB Layout Recommendations<a class="headerlink" href="#pcb-layout-recommendations" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p><strong>Placement:</strong> Keep codec ICs within 3-4 inches of ESP32 for clean I2S signals</p></li>
+<li><p><strong>Signal Integrity:</strong></p>
+<ul>
+<li><p>Route I2S clock signals (LRCK, BCK) as matched-length pairs</p></li>
+<li><p>Keep I2S data lines (DIN, DOUT) short and direct</p></li>
+<li><p>Avoid routing I2S signals near high-frequency switching (e.g., power converters)</p></li>
+</ul>
+</li>
+<li><p><strong>Power:</strong></p>
+<ul>
+<li><p>Place 0.1µF decoupling caps within 5mm of each IC’s VDD pin</p></li>
+<li><p>Add 10µF bulk caps near codec power pins</p></li>
+<li><p>Use low-ESR ceramic capacitors (X7R or better)</p></li>
+</ul>
+</li>
+<li><p><strong>Ground:</strong></p>
+<ul>
+<li><p>Connect codec grounds to AGND plane (SLIC Pin 23)</p></li>
+<li><p>Avoid ground loops - use star grounding topology</p></li>
+<li><p>Separate analog and digital ground planes if possible</p></li>
+</ul>
+</li>
+<li><p><strong>Audio Coupling:</strong></p>
+<ul>
+<li><p>Place AC coupling capacitors close to SLIC pins</p></li>
+<li><p>Use film or high-quality MLCC capacitors for audio paths</p></li>
+<li><p>Keep analog traces short to minimize noise pickup</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="prototyping-option-esp32-internal-dac">
+<h3>Prototyping Option: ESP32 Internal DAC<a class="headerlink" href="#prototyping-option-esp32-internal-dac" title="Link to this heading"></a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>For Prototyping/Testing Only</strong></p>
+<p>The ESP32 has two 8-bit internal DACs (GPIO25, GPIO26) that can be used for transmit-only testing during early development:</p>
+<ul class="simple">
+<li><p><strong>Use Case:</strong> Quick audio output testing without external hardware</p></li>
+<li><p><strong>Limitations:</strong></p>
+<ul>
+<li><p>8-bit resolution (vs. 16-bit+ for external codecs) = significantly lower quality</p></li>
+<li><p>Transmit-only - no ADC capability for receiving audio from phone</p></li>
+<li><p>Cannot support full-duplex Bluetooth HFP calls</p></li>
+<li><p>Higher noise floor and distortion</p></li>
+</ul>
+</li>
+<li><p><strong>Connection:</strong> ESP32 DAC pin → 10µF AC coupling capacitor → SLIC RX (Pin 21)</p></li>
+<li><p><strong>Not suitable for production</strong> - Use PCM5100 + PCM1808 for production telephony applications</p></li>
+</ul>
+</div>
+</section>
+<section id="alternative-codec-options-reference">
+<h3>Alternative Codec Options (Reference)<a class="headerlink" href="#alternative-codec-options-reference" title="Link to this heading"></a></h3>
+<p>For reference, alternative codec configurations are possible but not recommended for the Ma Bell Gateway:</p>
+<p><strong>WM8731 (Wolfson/Cirrus Logic) - Integrated Codec</strong></p>
+<ul class="simple">
+<li><p>Single-chip ADC+DAC solution, well-documented</p></li>
+<li><p>Requires I2C configuration (additional firmware complexity)</p></li>
+<li><p>Cost: ~$3-5</p></li>
+<li><p><em>When to use:</em> If PCB space is extremely limited and single-chip solution is required</p></li>
+</ul>
+<p><strong>UDA1334A (NXP) - DAC Only</strong></p>
+<ul class="simple">
+<li><p>Transmit-only (no ADC)</p></li>
+<li><p>Cost: ~$2</p></li>
+<li><p><em>When to use:</em> If only ESP32→Phone audio is needed (no bidirectional calls)</p></li>
+</ul>
+</section>
+<section id="audio-coupling">
+<h3>Audio Coupling<a class="headerlink" href="#audio-coupling" title="Link to this heading"></a></h3>
+<p>Between the codec outputs and SLIC RX/TX pins, AC coupling capacitors are recommended:</p>
+<ul class="simple">
+<li><p><strong>Value:</strong> 10µF non-polarized (or 10µF electrolytic in series pair for bipolar)</p></li>
+<li><p><strong>Purpose:</strong> Block any DC offset from codec outputs</p></li>
+<li><p><strong>Placement:</strong> As close to SLIC pins as possible</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Codec Output ──┤├── 10µF ──┤├── 10µF ─── SLIC RX/TX Pin
+                (AC coupling, bipolar configuration)
+</pre></div>
+</div>
+<p>Or use non-polarized film capacitors if available.</p>
+</section>
+<section id="i2s-pin-connections-pcm5100-pcm1808">
+<h3>I2S Pin Connections (PCM5100 + PCM1808)<a class="headerlink" href="#i2s-pin-connections-pcm5100-pcm1808" title="Link to this heading"></a></h3>
+<p>ESP32 I2S interface connections to PCM5100 (DAC) and PCM1808 (ADC), as defined in pin_assignments.h:</p>
+<p><strong>Shared Clock Signals:</strong></p>
+<ul class="simple">
+<li><p><strong>GPIO 25</strong> - PCM_FSYNC (I2S Word Select / LRCLK / Frame Sync)</p>
+<ul>
+<li><p>Connected to: PCM5100 LRCK + PCM1808 LRCK</p></li>
+<li><p>Common frame sync for both DAC and ADC</p></li>
+</ul>
+</li>
+<li><p><strong>GPIO 5</strong> - PCM_CLK_OUT (I2S Bit Clock / BCLK)</p>
+<ul>
+<li><p>Connected to: PCM5100 BCK + PCM1808 BCK</p></li>
+<li><p>Common bit clock for both DAC and ADC</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Data Signals:</strong></p>
+<ul class="simple">
+<li><p><strong>GPIO 26</strong> - PCM_DOUT (I2S Data Out from ESP32)</p>
+<ul>
+<li><p>Connected to: PCM5100 DIN</p></li>
+<li><p>Audio data to DAC (for playback/receive path)</p></li>
+</ul>
+</li>
+<li><p><strong>GPIO 35</strong> - PCM_DIN (I2S Data In to ESP32)</p>
+<ul>
+<li><p>Connected to: PCM1808 DOUT</p></li>
+<li><p>Audio data from ADC (for recording/transmit path)</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Connection Summary:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>ESP32                       PCM5100 (DAC)         PCM1808 (ADC)
+──────                      ─────────────         ─────────────
+GPIO 25 (LRCLK)  ──────┬──► LRCK          ┌────► LRCK
+GPIO 5  (BCLK)   ──────┼──► BCK           ├────► BCK
+GPIO 26 (DOUT)   ───────┘─► DIN           │
+GPIO 35 (DIN)    ◄─────────────────────────────── DOUT
+</pre></div>
+</div>
+<p>All I2S signals should be routed as short, direct traces with matched lengths where practical.</p>
+</section>
+<section id="sample-rate-and-format">
+<h3>Sample Rate and Format<a class="headerlink" href="#sample-rate-and-format" title="Link to this heading"></a></h3>
+<p>Typical audio configuration for telephone-quality audio:</p>
+<ul class="simple">
+<li><p><strong>Sample Rate:</strong> 8 kHz or 16 kHz (8 kHz is standard for telephony)</p></li>
+<li><p><strong>Bit Depth:</strong> 16-bit</p></li>
+<li><p><strong>Format:</strong> I2S standard format</p></li>
+<li><p><strong>Channels:</strong> Mono (though I2S is stereo-capable, phone audio is mono)</p></li>
+</ul>
+</section>
+</section>
+<section id="power-supply-integration">
+<h2>Power Supply Integration<a class="headerlink" href="#power-supply-integration" title="Link to this heading"></a></h2>
+<p>The HC-5504B SLIC requires multiple voltage rails and careful grounding to function properly. All power rails are derived from the main 48V supply as documented in the Power Supply Architecture (see power-supply.rst).</p>
+<section id="voltage-rail-requirements">
+<h3>Voltage Rail Requirements<a class="headerlink" href="#voltage-rail-requirements" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 22.2%" />
+<col style="width: 44.4%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>SLIC Pin</p></th>
+<th class="head"><p>Rail</p></th>
+<th class="head"><p>Voltage</p></th>
+<th class="head"><p>Source/Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pin 4 (VB+)</p></td>
+<td><p>Positive Supply</p></td>
+<td><p>+12V DC</p></td>
+<td><p>From 48V→12V buck converter. Powers SLIC analog circuits</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pin 11 (VB-)</p></td>
+<td><p>Negative Battery</p></td>
+<td><p>-48V DC</p></td>
+<td><p>From inverting DC-DC converter. Loop feed voltage for telephone line</p></td>
+</tr>
+<tr class="row-even"><td><p>Pin 12 (BG)</p></td>
+<td><p>Battery Ground</p></td>
+<td><p>0V (GND)</p></td>
+<td><p>Battery/power supply ground reference</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pin 6 (DG)</p></td>
+<td><p>Digital Ground</p></td>
+<td><p>0V (GND)</p></td>
+<td><p>Digital logic ground</p></td>
+</tr>
+<tr class="row-even"><td><p>Pin 23 (AG)</p></td>
+<td><p>Analog Ground</p></td>
+<td><p>0V (GND)</p></td>
+<td><p>Analog/audio ground</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="power-rail-connections">
+<h3>Power Rail Connections<a class="headerlink" href="#power-rail-connections" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>From Power Supply System:
+
+48V Main Supply
+     │
+     ├─► Buck Converter ──► +12V ──┬──► VB+ (Pin 4)
+     │                              │
+     │                     Decoupling: 100nF + 10µF
+     │                              │
+     └─► Inverting DC-DC ─► -48V ──┴──► VB- (Pin 11)
+
+
+                              Star Ground Point ◄─┬─ AG (Pin 23)
+                                   (GND)          ├─ DG (Pin 6)
+                                                  └─ BG (Pin 12)
+</pre></div>
+</div>
+</section>
+<section id="grounding-strategy">
+<h3>Grounding Strategy<a class="headerlink" href="#grounding-strategy" title="Link to this heading"></a></h3>
+<p>The SLIC has three separate ground pins that must be connected using a <strong>star grounding</strong> topology:</p>
+<ol class="arabic simple">
+<li><p><strong>AG (Analog Ground, Pin 23)</strong> - For audio and analog signals</p></li>
+<li><p><strong>DG (Digital Ground, Pin 6)</strong> - For digital logic signals</p></li>
+<li><p><strong>BG (Battery Ground, Pin 12)</strong> - For power supply return</p></li>
+</ol>
+<p><strong>Star Ground Implementation:</strong></p>
+<p>All three ground pins should connect to a single point as close to the SLIC as possible. This minimizes ground loops and prevents noise coupling between analog, digital, and power domains.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SLIC Pins:                           Common Star
+                                     Ground Point
+     AG (23) ─────────────────────────┐
+                                      ├───► System GND
+     DG (6)  ─────────────────────────┤
+                                      │
+     BG (12) ─────────────────────────┘
+</pre></div>
+</div>
+<p>On PCB: Use a copper pour or wide trace for the star ground point, with short, direct connections from each SLIC ground pin.</p>
+</section>
+<section id="power-supply-decoupling">
+<h3>Power Supply Decoupling<a class="headerlink" href="#power-supply-decoupling" title="Link to this heading"></a></h3>
+<p>Critical for stable SLIC operation:</p>
+<p><strong>On VB+ (+12V, Pin 4):</strong></p>
+<ul class="simple">
+<li><p><strong>100nF ceramic capacitor</strong> - Place within 0.5 inches (12mm) of pin 4</p></li>
+<li><p><strong>10µF electrolytic or ceramic</strong> - Place within 1 inch (25mm) of pin 4</p></li>
+<li><p>Purpose: Filter switching noise from buck converter, stabilize analog circuits</p></li>
+</ul>
+<p><strong>On VB- (-48V, Pin 11):</strong></p>
+<ul class="simple">
+<li><p><strong>10µF electrolytic, 63V rated</strong> - Place near pin 11</p></li>
+<li><p>Purpose: Stabilize negative supply, handle transients during ringing</p></li>
+</ul>
+</section>
+<section id="example-pcb-layout">
+<h3>Example PCB Layout<a class="headerlink" href="#example-pcb-layout" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌──────────────────────────────────────┐
+│         HC-5504B SLIC Package        │
+│                                      │
+│   Pin 4 (VB+) ─┬─ 100nF (ceramic)   │
+│     +12V       └─ 10µF (electro/cer) │
+│                                      │
+│   Pin 11 (VB-) ─── 10µF, 63V (electro)
+│      -48V                            │
+│                                      │
+│   Pin 23 (AG) ──┐                   │
+│   Pin 6  (DG) ──┤                   │
+│   Pin 12 (BG) ──┴─► ★ Star GND      │
+│                                      │
+└──────────────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<section id="cross-reference">
+<h3>Cross-Reference<a class="headerlink" href="#cross-reference" title="Link to this heading"></a></h3>
+<p>For complete power supply system design including:</p>
+<ul class="simple">
+<li><p>48V main supply specifications</p></li>
+<li><p>Buck converter selection (+12V rail)</p></li>
+<li><p>Inverting DC-DC design (-48V rail)</p></li>
+<li><p>Ring generator (90V AC, 20Hz)</p></li>
+</ul>
+<p>See: <strong>docs/source/implementation/circuit/power-supply.rst</strong></p>
+</section>
+</section>
+<section id="line-protection">
+<h2>Line Protection<a class="headerlink" href="#line-protection" title="Link to this heading"></a></h2>
+<p>The telephone line interface must include protection circuitry to safeguard the SLIC and connected electronics from overvoltage, reverse polarity, and fault conditions. The HC-5504B provides some internal protection, but external components are essential for robust field operation.</p>
+<section id="protection-circuit-overview">
+<h3>Protection Circuit Overview<a class="headerlink" href="#protection-circuit-overview" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Telephone                                          To SLIC
+Line Jack                                       TIP/RING Pins
+     │                                                │
+     ├─ TIP ──┬─[ Fuse 0.5A ]──┬─[ Bridge Rect ]──┬──► TIP (Pin 1)
+     │        │                 │    DB107 or      │
+     │        │                 │    equiv.        │
+     └─ RING ─┴─[ Fuse 0.5A ]──┴──────┬───────────┴──► RING (Pin 2)
+              │                        │
+              │                      [ MOV ]
+              │                    V150LA10A
+              │                    (150V rating)
+              │                        │
+              └────────────────────────┴──► GND
+
+
+Protection Elements:
+1. Fuses - Overcurrent protection (0.5A slow-blow)
+2. Bridge Rectifier - Reverse polarity protection
+3. MOV - Overvoltage/surge protection
+</pre></div>
+</div>
+</section>
+<section id="protection-components">
+<h3>Protection Components<a class="headerlink" href="#protection-components" title="Link to this heading"></a></h3>
+<p><strong>1. Overcurrent Protection - Fuses</strong></p>
+<ul class="simple">
+<li><p><strong>Type:</strong> 0.5A slow-blow (time-delay) fuse</p></li>
+<li><p><strong>Purpose:</strong> Protect against sustained overcurrent or short circuit</p></li>
+<li><p><strong>Placement:</strong> One fuse in series with TIP, one with RING</p></li>
+<li><p><strong>Rating:</strong> 250V AC minimum</p></li>
+<li><p><strong>Part Example:</strong> Littelfuse 0217.500 or equivalent</p></li>
+</ul>
+<p><strong>Why slow-blow?</strong> Telephone lines experience brief current surges during ringing. A fast-blow fuse would trip unnecessarily. Slow-blow fuses tolerate brief surges while still protecting against sustained faults.</p>
+<p><strong>2. Reverse Polarity Protection - Bridge Rectifier</strong></p>
+<ul class="simple">
+<li><p><strong>Type:</strong> Full-wave bridge rectifier</p></li>
+<li><p><strong>Purpose:</strong> Protect SLIC from reversed TIP/RING connections</p></li>
+<li><p><strong>Rating:</strong> 1A, 200V minimum</p></li>
+<li><p><strong>Part Example:</strong> DB107 (1A, 1000V) or Vishay DF10S (1A, 1000V)</p></li>
+</ul>
+<p>The bridge rectifier ensures the SLIC always sees correct polarity regardless of how the telephone line is connected. This is critical because telephone line polarity can vary in field installations.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Bridge Rectifier Operation:
+
+TIP/RING ──┬─►|├──┬──► To SLIC TIP (always positive)
+           │  BR  │
+           └─►|├──┴──► To SLIC RING (always negative)
+</pre></div>
+</div>
+<p><strong>3. Overvoltage Protection - Metal Oxide Varistor (MOV)</strong></p>
+<ul class="simple">
+<li><p><strong>Type:</strong> MOV (Metal Oxide Varistor)</p></li>
+<li><p><strong>Purpose:</strong> Clamp transient overvoltages (lightning, power line cross, inductive kicks)</p></li>
+<li><p><strong>Rating:</strong> 150V RMS / 200V DC</p></li>
+<li><p><strong>Part Example:</strong> Littelfuse V150LA10A or Bourns MOV-14D151K</p></li>
+<li><p><strong>Placement:</strong> Across TIP and RING, after fuses</p></li>
+</ul>
+<p>The MOV acts as a voltage-dependent resistor. Under normal voltage (&lt;150V), it has very high resistance. During a surge (&gt;150V), it clamps to ground, shunting excess energy away from the SLIC.</p>
+<p><strong>Optional: Gas Discharge Tube (GDT)</strong></p>
+<p>For enhanced lightning protection in areas with high lightning activity:</p>
+<ul class="simple">
+<li><p><strong>Type:</strong> Gas discharge tube (GDT)</p></li>
+<li><p><strong>Rating:</strong> 90V - 230V breakdown</p></li>
+<li><p><strong>Placement:</strong> Parallel to MOV, or as first stage before MOV</p></li>
+<li><p><strong>Purpose:</strong> Handle very high energy transients (direct lightning strikes)</p></li>
+</ul>
+<p>GDTs can handle much higher energy than MOVs but have slower response time. Using both (GDT as first stage, MOV as second stage) provides optimal protection.</p>
+</section>
+<section id="complete-protection-schematic">
+<h3>Complete Protection Schematic<a class="headerlink" href="#complete-protection-schematic" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Phone Line Jack
+     │
+TIP ─┼─[ F1: 0.5A ]──┬────────┬───────┐
+     │               │        │       │
+     │             [ BR1 ]  [ MOV ] [GDT]   ← Protection
+     │               │      150V   90-230V    Components
+     │               │        │       │
+RING─┴─[ F2: 0.5A ]──┴────────┴───────┘
+                              │
+                             GND
+                              │
+                 ┌────────────┴────────────┐
+                 │                         │
+          Rectified &amp; Protected     To HC-5504B
+          TIP/RING Output           Pins 1 &amp; 2
+                 │                         │
+                 └─────────────────────────┘
+</pre></div>
+</div>
+</section>
+<section id="placement-and-routing">
+<h3>Placement and Routing<a class="headerlink" href="#placement-and-routing" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Fuses:</strong> Place immediately after phone line connector</p></li>
+<li><p><strong>Bridge Rectifier:</strong> Place after fuses, before SLIC</p></li>
+<li><p><strong>MOV:</strong> Place between TIP/RING and ground, as close to fuses as practical</p></li>
+<li><p><strong>GDT (if used):</strong> Place in parallel with MOV, or as first protection stage</p></li>
+</ul>
+<p><strong>PCB Considerations:</strong></p>
+<ul class="simple">
+<li><p>Use wide traces (&gt;20 mil) for TIP/RING to handle surge currents</p></li>
+<li><p>Keep protection components physically close to phone jack</p></li>
+<li><p>Route protected signals to SLIC with minimal trace length</p></li>
+<li><p>Maintain adequate creepage/clearance for high voltage (&gt;2mm for 150V)</p></li>
+</ul>
+</section>
+<section id="component-selection-notes">
+<h3>Component Selection Notes<a class="headerlink" href="#component-selection-notes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Fuse holders:</strong> Use panel-mount or PCB-mount holders for easy replacement</p></li>
+<li><p><strong>Bridge:</strong> Higher voltage rating (e.g., 1000V) provides extra margin</p></li>
+<li><p><strong>MOV clamping voltage:</strong> Choose 130-150V range for -48V telephone lines</p></li>
+<li><p><strong>All components:</strong> Ensure automotive/telecom grade for reliability</p></li>
+</ul>
+</section>
+<section id="safety-notes">
+<h3>Safety Notes<a class="headerlink" href="#safety-notes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>This protection is for normal telephone line faults and surges</p></li>
+<li><p>For direct lightning strikes, additional building-level protection (whole-house surge suppressors) is recommended</p></li>
+<li><p>Always test protection circuits with controlled overvoltage sources before field deployment</p></li>
+<li><p>Replace MOVs after major surge events (they degrade with use)</p></li>
+</ul>
+</section>
+</section>
+<section id="component-selection-bill-of-materials">
+<h2>Component Selection &amp; Bill of Materials<a class="headerlink" href="#component-selection-bill-of-materials" title="Link to this heading"></a></h2>
+<p>This section provides a complete BOM for the SLIC circuit, including all passive components, protection devices, and recommended part numbers.</p>
+<section id="slic-external-components">
+<h3>SLIC External Components<a class="headerlink" href="#slic-external-components" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 16.7%" />
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Value/Type</p></th>
+<th class="head"><p>Part Number/Example</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>R_TIP (Pin 9 feed)</p></td>
+<td><p>150Ω, 1%, 1/4W</p></td>
+<td><p>Generic metal film</p></td>
+<td><p>Tip feed resistor, precision critical</p></td>
+</tr>
+<tr class="row-odd"><td><p>R_RING (Pin 10 feed)</p></td>
+<td><p>150Ω, 1%, 1/4W</p></td>
+<td><p>Generic metal film</p></td>
+<td><p>Ring feed resistor, precision critical</p></td>
+</tr>
+<tr class="row-even"><td><p>C3 (Pin 5)</p></td>
+<td><p>4.7µF, 16V+</p></td>
+<td><p>Generic electrolytic/ceramic</p></td>
+<td><p>Loop current timing capacitor</p></td>
+</tr>
+<tr class="row-odd"><td><p>C2 (Pin 17)</p></td>
+<td><p>2.2µF, 16V+</p></td>
+<td><p>Generic electrolytic/ceramic</p></td>
+<td><p>Ring trip/ground key filter</p></td>
+</tr>
+<tr class="row-even"><td><p>C4 (Pin 22)</p></td>
+<td><p>0.1µF (100nF)</p></td>
+<td><p>Generic ceramic</p></td>
+<td><p>Longitudinal balance</p></td>
+</tr>
+<tr class="row-odd"><td><p>C_VB+ (Pin 4 decoupling)</p></td>
+<td><p>100nF ceramic</p></td>
+<td><p>Generic X7R/X5R</p></td>
+<td><p>Place &lt;0.5” from pin 4</p></td>
+</tr>
+<tr class="row-even"><td><p>C_VB+ (Pin 4 bulk)</p></td>
+<td><p>10µF, 16V+</p></td>
+<td><p>Generic electrolytic/ceramic</p></td>
+<td><p>Place &lt;1” from pin 4</p></td>
+</tr>
+<tr class="row-odd"><td><p>C_VB- (Pin 11)</p></td>
+<td><p>10µF, 63V</p></td>
+<td><p>Generic electrolytic</p></td>
+<td><p>-48V supply decoupling</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="protection-circuit-components">
+<h3>Protection Circuit Components<a class="headerlink" href="#protection-circuit-components" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 16.7%" />
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Value/Type</p></th>
+<th class="head"><p>Part Number/Example</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>F1, F2 (Fuses)</p></td>
+<td><p>0.5A slow-blow, 250V</p></td>
+<td><p>Littelfuse 0217.500</p></td>
+<td><p>Overcurrent protection on TIP/RING</p></td>
+</tr>
+<tr class="row-odd"><td><p>BR1 (Bridge)</p></td>
+<td><p>1A, 200V+ bridge</p></td>
+<td><p>DB107 (1A, 1000V)</p></td>
+<td><p>Reverse polarity protection</p></td>
+</tr>
+<tr class="row-even"><td><p>MOV1</p></td>
+<td><p>150V RMS MOV</p></td>
+<td><p>Littelfuse V150LA10A</p></td>
+<td><p>Overvoltage/surge protection</p></td>
+</tr>
+<tr class="row-odd"><td><p>GDT1 (Optional)</p></td>
+<td><p>90-230V GDT</p></td>
+<td><p>Bourns 2036-15-SM</p></td>
+<td><p>Enhanced lightning protection</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="audio-coupling-components">
+<h3>Audio Coupling Components<a class="headerlink" href="#audio-coupling-components" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 16.7%" />
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Value/Type</p></th>
+<th class="head"><p>Part Number/Example</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>C_TX, C_RX</p></td>
+<td><p>10µF non-polar or film</p></td>
+<td><p>Generic film or dual electrolytic</p></td>
+<td><p>AC couple codec to SLIC TX/RX</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="ring-relay-if-external-ringing-used">
+<h3>Ring Relay (if external ringing used)<a class="headerlink" href="#ring-relay-if-external-ringing-used" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 16.7%" />
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Value/Type</p></th>
+<th class="head"><p>Part Number/Example</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>RLY1</p></td>
+<td><p>DPDT, 12V coil</p></td>
+<td><p>Omron G5V-2 or equiv</p></td>
+<td><p>Switches 90V AC ring voltage</p></td>
+</tr>
+<tr class="row-odd"><td><p>D1 (Flyback diode)</p></td>
+<td><p>1N4148 or 1N4001</p></td>
+<td><p>Generic signal/power diode</p></td>
+<td><p>Protect relay driver from inductive kick</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="main-ic">
+<h3>Main IC<a class="headerlink" href="#main-ic" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 16.7%" />
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Value/Type</p></th>
+<th class="head"><p>Part Number/Example</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>U1 (SLIC)</p></td>
+<td><p>HC-5504B-5 DIP-24</p></td>
+<td><p>HC-5504B-5 (Renesas/Intersil)</p></td>
+<td><p>Main SLIC IC</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="audio-codec-choose-one-option">
+<h3>Audio Codec (Choose One Option)<a class="headerlink" href="#audio-codec-choose-one-option" title="Link to this heading"></a></h3>
+<p><strong>Option 1: Integrated Codec</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+<col style="width: 38.9%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>WM8731 Codec</p></td>
+<td><p>Wolfson/Cirrus WM8731SEDS/V</p></td>
+<td><p>Stereo codec, I2S + I2C interface</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Option 2: Separate DAC/ADC</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+<col style="width: 38.9%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>PCM5100 DAC</p></td>
+<td><p>Texas Instruments PCM5100PW</p></td>
+<td><p>DAC for ESP32 → Phone path</p></td>
+</tr>
+<tr class="row-even"><td><p>PCM1808 ADC</p></td>
+<td><p>Texas Instruments PCM1808PWR</p></td>
+<td><p>ADC for Phone → ESP32 path</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Option 3: Simple DAC (TX only)</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+<col style="width: 38.9%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>UDA1334A DAC</p></td>
+<td><p>NXP UDA1334ATS</p></td>
+<td><p>Simple I2S DAC, TX path only</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="connector-miscellaneous">
+<h3>Connector &amp; Miscellaneous<a class="headerlink" href="#connector-miscellaneous" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 38.9%" />
+<col style="width: 38.9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>J1</p></td>
+<td><p>RJ11/RJ45 phone jack</p></td>
+<td><p>Standard 6P4C or 8P8C modular jack for telephone line</p></td>
+</tr>
+<tr class="row-odd"><td><p>Fuse holders</p></td>
+<td><p>Panel/PCB mount holders</p></td>
+<td><p>For F1, F2 (facilitates replacement)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sourcing-notes">
+<h3>Sourcing Notes<a class="headerlink" href="#sourcing-notes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Most passive components (resistors, capacitors) are generic and available from Digi-Key, Mouser, LCSC, or similar</p></li>
+<li><p>SLIC IC (HC-5504B-5) may have limited availability; check Renesas, Digi-Key, or surplus distributors</p></li>
+<li><p>Audio codecs (WM8731, PCM5100, PCM1808) are widely available</p></li>
+<li><p>Use automotive/industrial-grade components where possible for reliability</p></li>
+</ul>
+</section>
+<section id="total-estimated-cost">
+<h3>Total Estimated Cost<a class="headerlink" href="#total-estimated-cost" title="Link to this heading"></a></h3>
+<p>Approximate component costs (USD, quantity 1, retail pricing):</p>
+<ul class="simple">
+<li><p>SLIC IC (HC-5504B-5): $8-15 (if available)</p></li>
+<li><p>Passives (resistors, caps): $2-5</p></li>
+<li><p>Protection (fuses, bridge, MOV): $3-5</p></li>
+<li><p>Audio codec: $3-6</p></li>
+<li><p>Ring relay (if used): $3-5</p></li>
+<li><p>Misc (connectors, PCB): $5-10</p></li>
+</ul>
+<p><strong>Total:</strong> ~$25-45 USD for SLIC circuit components (excluding ESP32 and power supply)</p>
+</section>
+</section>
+<section id="pcb-design-guidelines">
+<h2>PCB Design Guidelines<a class="headerlink" href="#pcb-design-guidelines" title="Link to this heading"></a></h2>
+<p>Proper PCB layout is critical for the SLIC circuit to function reliably and meet noise/EMI requirements. Follow these guidelines during board design.</p>
+<section id="general-layout-strategy">
+<h3>General Layout Strategy<a class="headerlink" href="#general-layout-strategy" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p><strong>Functional Zones:</strong></p>
+<ul class="simple">
+<li><p>Protection zone (fuses, bridge, MOV) near phone jack</p></li>
+<li><p>SLIC zone (IC and immediate passives) in center</p></li>
+<li><p>Audio zone (codec and coupling) near SLIC</p></li>
+<li><p>Power supply zone (buck converters, decoupling) separate from audio</p></li>
+</ul>
+</li>
+<li><p><strong>Signal Flow:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Phone Jack ──► Protection ──► SLIC ──► Audio Codec ──► ESP32
+                               │
+                            Power Supply
+</pre></div>
+</div>
+<p>Arrange components to follow this left-to-right signal flow on PCB.</p>
+</li>
+</ol>
+</section>
+<section id="grounding">
+<h3>Grounding<a class="headerlink" href="#grounding" title="Link to this heading"></a></h3>
+<p><strong>Star Ground Topology:</strong></p>
+<p>The three SLIC ground pins (AG, DG, BG) must connect at a single star ground point as close to the SLIC as possible.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────┐
+│        SLIC IC (Top View)        │
+│                                  │
+│   Pin 23 (AG) ──┐               │
+│   Pin 6  (DG) ──┼───► ★ Star    │
+│   Pin 12 (BG) ──┘      GND Pad  │
+│                        (Copper)  │
+└─────────────────────────────────┘
+         │
+         └──► System Ground Plane
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Use wide traces (&gt;50 mil) or copper pour for star ground connection</p></li>
+<li><p>Avoid running return currents from other circuits through SLIC ground</p></li>
+<li><p>Connect star ground to main PCB ground plane at single point</p></li>
+</ul>
+</section>
+<section id="id1">
+<h3>Power Supply Decoupling<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Ceramic capacitors (100nF):</strong> Place within 0.5” (12mm) of VB+ pin</p></li>
+<li><p><strong>Bulk capacitors (10µF):</strong> Place within 1” (25mm) of VB+ and VB- pins</p></li>
+<li><p><strong>Via placement:</strong> Use multiple vias (2-4) for power/ground connections to reduce inductance</p></li>
+</ul>
+</section>
+<section id="high-voltage-clearances">
+<h3>High Voltage Clearances<a class="headerlink" href="#high-voltage-clearances" title="Link to this heading"></a></h3>
+<p>For traces carrying -48V, +12V, or ring voltage (90V AC):</p>
+<ul class="simple">
+<li><p><strong>Trace spacing:</strong> Minimum 2mm (80 mil) between high voltage and low voltage traces</p></li>
+<li><p><strong>Creepage:</strong> Maintain 2.5mm creepage distance for 150V rating</p></li>
+<li><p><strong>Clearance:</strong> Air gap ≥2mm for 150V</p></li>
+<li><p><strong>Solder mask:</strong> Use solder mask as additional barrier but don’t rely on it alone for isolation</p></li>
+</ul>
+</section>
+<section id="audio-path-layout">
+<h3>Audio Path Layout<a class="headerlink" href="#audio-path-layout" title="Link to this heading"></a></h3>
+<p>Audio traces (SLIC TX/RX to codec) should be:</p>
+<ul class="simple">
+<li><p><strong>Short and direct:</strong> Minimize trace length (&lt;3 inches ideal)</p></li>
+<li><p><strong>Differential routing:</strong> Route TX+ and TX- as differential pair (if applicable)</p></li>
+<li><p><strong>Guard traces:</strong> Surround audio traces with ground guard traces</p></li>
+<li><p><strong>Ground plane:</strong> Provide solid ground plane under audio signals</p></li>
+<li><p><strong>Separation:</strong> Keep audio traces away from digital signals (I2S clock, data) and switching power supplies</p></li>
+</ul>
+</section>
+<section id="digital-signal-integrity">
+<h3>Digital Signal Integrity<a class="headerlink" href="#digital-signal-integrity" title="Link to this heading"></a></h3>
+<p>For ESP32 GPIO and I2S signals:</p>
+<ul class="simple">
+<li><p><strong>Trace impedance:</strong> Target 50Ω for high-speed signals (I2S BCLK, LRCLK)</p></li>
+<li><p><strong>Length matching:</strong> Match I2S data and clock trace lengths within 0.5”</p></li>
+<li><p><strong>Termination:</strong> Series 22-33Ω resistors on I2S signals near ESP32 if trace length &gt;3”</p></li>
+<li><p><strong>Crosstalk:</strong> Separate parallel traces by 3x trace width minimum</p></li>
+</ul>
+</section>
+<section id="protection-circuit-placement">
+<h3>Protection Circuit Placement<a class="headerlink" href="#protection-circuit-placement" title="Link to this heading"></a></h3>
+<p>Place protection components (fuses, bridge, MOV) as close to the phone jack as possible:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Phone Jack ──[ &lt;0.5&quot; ]──► Fuses ──[ &lt;1&quot; ]──► Bridge/MOV ──► SLIC
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Minimizes unprotected trace length</p></li>
+<li><p>Reduces chances of surge coupling to other circuits</p></li>
+<li><p>Use wide traces (&gt;20 mil / 0.5mm) for TIP/RING to handle fault currents</p></li>
+</ul>
+</section>
+<section id="layer-stackup-for-multi-layer-boards">
+<h3>Layer Stackup (for multi-layer boards)<a class="headerlink" href="#layer-stackup-for-multi-layer-boards" title="Link to this heading"></a></h3>
+<p>Recommended 4-layer stackup:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Layer</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Signal</span> <span class="o">+</span> <span class="n">Components</span> <span class="p">(</span><span class="n">top</span><span class="p">)</span>
+<span class="n">Layer</span> <span class="mi">2</span><span class="p">:</span> <span class="n">Ground</span> <span class="n">Plane</span>
+<span class="n">Layer</span> <span class="mi">3</span><span class="p">:</span> <span class="n">Power</span> <span class="n">Plane</span> <span class="p">(</span><span class="o">+</span><span class="mi">12</span><span class="n">V</span><span class="p">,</span> <span class="o">+</span><span class="mf">3.3</span><span class="n">V</span><span class="p">,</span> <span class="o">-</span><span class="mi">48</span><span class="n">V</span> <span class="n">zones</span><span class="p">)</span>
+<span class="n">Layer</span> <span class="mi">4</span><span class="p">:</span> <span class="n">Signal</span> <span class="o">+</span> <span class="n">Components</span> <span class="p">(</span><span class="n">bottom</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For 2-layer boards:</p>
+<ul class="simple">
+<li><p>Top: Signals and components</p></li>
+<li><p>Bottom: Ground pour with power routing</p></li>
+</ul>
+</section>
+<section id="thermal-considerations">
+<h3>Thermal Considerations<a class="headerlink" href="#thermal-considerations" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>SLIC IC can dissipate 1-2W during ringing</p></li>
+<li><p>Provide thermal relief with copper pour connected to ground pins</p></li>
+<li><p>If using DIP package, consider adding heat sink or thermal pad</p></li>
+</ul>
+</section>
+<section id="component-placement-summary">
+<h3>Component Placement Summary<a class="headerlink" href="#component-placement-summary" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌──────────────────────────────────────────────────┐
+│  Phone Jack (J1)                                  │
+│       │                                           │
+│   [Protection Zone]                               │
+│    F1, F2, BR1, MOV                               │
+│       │                                           │
+│    ┌──────────────────┐                          │
+│    │   SLIC IC (U1)   │   [Audio Zone]          │
+│    │   HC-5504B-5     │    Codec, coupling       │
+│    │                  ├──────────┐               │
+│    │  Passives around │          │               │
+│    │  (C2, C3, C4,    │      Codec IC            │
+│    │   R_TIP, R_RING) │          │               │
+│    └──────────────────┘          │               │
+│       │                           │               │
+│    [Power Zone]              I2S signals          │
+│    Buck converters           to ESP32 ───────────►│
+│    Decoupling caps                                │
+│                                                   │
+└───────────────────────────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<section id="testing-validation">
+<h3>Testing &amp; Validation<a class="headerlink" href="#testing-validation" title="Link to this heading"></a></h3>
+<p>After PCB assembly:</p>
+<ol class="arabic simple">
+<li><p>Visual inspection for solder bridges, polarity</p></li>
+<li><p>Continuity check: Star ground, power rails</p></li>
+<li><p>Power-on test: Measure +12V, -48V at SLIC pins</p></li>
+<li><p>Off-hook test: Connect phone, lift handset, verify SHD signal</p></li>
+<li><p>Audio loopback: Test TX/RX paths with signal generator/scope</p></li>
+<li><p>Protection test: Apply controlled overvoltage to verify MOV clamping</p></li>
+</ol>
+</section>
 </section>
 <section id="design-notes">
 <h2>Design Notes<a class="headerlink" href="#design-notes" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Carefully manage ground domains: AG, DG, and BG should be star-connected as per best practices.</p></li>
-<li><p>VB- (-48V) and VB+ (+5V/+12V) supplies must be isolated and protected.</p></li>
+<li><p>VB- (-48V) and VB+ (+12V) supplies must be isolated and protected.</p></li>
 <li><p>See datasheet for specific application examples and protection recommendations.</p></li>
 </ul>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<p><strong>Hardware Documentation:</strong></p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://www.renesas.com/us/en/document/dst/hc-5504b-datasheet">HC-5504B Datasheet (Intersil/Renesas)</a></p></li>
+<li><p>Application notes and reference designs from datasheet</p></li>
+</ul>
+<p><strong>Firmware Integration:</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../firmware/phone-hardware.html"><span class="doc">Phone Hardware Monitoring</span></a> - Off-hook detection and phone hardware monitoring implementation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main/hardware/phone_hardware.c</span></code> - Source code for SLIC interface monitoring</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main/app/pin_assignments.h</span></code> - GPIO pin definitions</p></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Update this page with your final schematic snippet, board pin numbers, and any specific integration notes as you build and test.</p>
+<p>This documentation describes the complete SLIC circuit design. For firmware implementation details on how the ESP32 interfaces with the SLIC hardware (off-hook detection, ring control), see the firmware documentation linked above.</p>
 </div>
 </section>
 </section>
@@ -281,7 +1534,9 @@ It implements nearly all essential BORSCHT functions (Battery feed, Overvoltage 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Chris Deever.</p>
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Dec 27, 2025.
+      </span></p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

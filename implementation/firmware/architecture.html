@@ -5,6 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <meta property="article:modified_time" content="2025-12-27T01:04:28+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Firmware Architecture &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -61,6 +62,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="state-management.html">State Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="phone-hardware.html">Phone Hardware Monitoring</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pcb/index.html">PCB Design &amp; Assembly</a></li>
@@ -132,10 +134,12 @@
 </dd>
 <dt><strong>hardware/</strong></dt><dd><ul class="simple">
 <li><p>Manages all interaction with the physical hardware:
-- Pin configuration (GPIO, PCM/I2S)
-- Analog phone line interfacing (off-hook/ring detect, pulse dial)
-- Generation of all telephony tones</p></li>
+- Pin configuration (GPIO, PCM/I2S) - <code class="docutils literal notranslate"><span class="pre">gpio_pcm_config.c</span></code>
+- Phone hardware monitoring (off-hook/ring detect, pulse dial) - <code class="docutils literal notranslate"><span class="pre">phone_hardware.c</span></code>
+- Generation of all telephony tones
+- Overall hardware initialization - <code class="docutils literal notranslate"><span class="pre">hardware_init.c</span></code></p></li>
 <li><p>Abstracts hardware details from application logic.</p></li>
+<li><p>See <a class="reference internal" href="phone-hardware.html"><span class="doc">Phone Hardware Monitoring</span></a> for details on SLIC interface monitoring.</p></li>
 </ul>
 </dd>
 <dt><strong>bluetooth/</strong></dt><dd><ul class="simple">
@@ -194,7 +198,9 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Chris Deever.</p>
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Dec 27, 2025.
+      </span></p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

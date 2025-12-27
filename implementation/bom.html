@@ -5,6 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <meta property="article:modified_time" content="2025-12-27T01:04:28+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bill of Materials &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
@@ -119,10 +120,58 @@ Values, part numbers, and notes are included for clarity.</p>
 <td><p>Subscriber Line Interface Circuit</p></td>
 </tr>
 <tr class="row-even"><td><p>U3</p></td>
-<td><p>Audio Codec (if used)</p></td>
-<td><p>(e.g. ES8311)</p></td>
-<td><p>[Your preferred part]</p></td>
-<td><p>PCM/I2S interface between ESP32 &amp; SLIC</p></td>
+<td><p>DAC (Digital-to-Analog Converter)</p></td>
+<td><p>PCM5100PWR</p></td>
+<td><p>Texas Instruments</p></td>
+<td><p>TSSOP-20, I2S audio output</p></td>
+</tr>
+<tr class="row-odd"><td><p>U4</p></td>
+<td><p>ADC (Analog-to-Digital Converter)</p></td>
+<td><p>PCM1808PWR</p></td>
+<td><p>Texas Instruments</p></td>
+<td><p>TSSOP-20, I2S audio input</p></td>
+</tr>
+<tr class="row-even"><td><p>C_AUDIO1, C_AUDIO2</p></td>
+<td><p>AC Coupling Capacitors (Audio)</p></td>
+<td><p>10µF, 16V+</p></td>
+<td><p>Generic / Film or X7R MLCC</p></td>
+<td><p>Non-polarized, between codec and SLIC</p></td>
+</tr>
+<tr class="row-odd"><td><p>C_DAC1</p></td>
+<td><p>Decoupling Capacitor (DAC)</p></td>
+<td><p>0.1µF ceramic</p></td>
+<td><p>Generic / X7R</p></td>
+<td><p>Near PCM5100 VDD pin</p></td>
+</tr>
+<tr class="row-even"><td><p>C_DAC2</p></td>
+<td><p>Bulk Capacitor (DAC)</p></td>
+<td><p>10µF tantalum/MLCC</p></td>
+<td><p>Generic / Low ESR</p></td>
+<td><p>Near PCM5100 VDD pin</p></td>
+</tr>
+<tr class="row-odd"><td><p>C_ADC1</p></td>
+<td><p>Decoupling Capacitor (ADC)</p></td>
+<td><p>0.1µF ceramic</p></td>
+<td><p>Generic / X7R</p></td>
+<td><p>Near PCM1808 VDD pin</p></td>
+</tr>
+<tr class="row-even"><td><p>C_ADC2</p></td>
+<td><p>Bulk Capacitor (ADC)</p></td>
+<td><p>10µF tantalum/MLCC</p></td>
+<td><p>Generic / Low ESR</p></td>
+<td><p>Near PCM1808 VDD pin</p></td>
+</tr>
+<tr class="row-odd"><td><p>R_XSMT</p></td>
+<td><p>Pull-up Resistor (DAC Mute)</p></td>
+<td><p>10kΩ, 1%</p></td>
+<td><p>Generic / Metal film</p></td>
+<td><p>PCM5100 XSMT pin to 3.3V</p></td>
+</tr>
+<tr class="row-even"><td><p>R_BIAS</p></td>
+<td><p>Input Bias Resistor (ADC)</p></td>
+<td><p>10kΩ, 1%</p></td>
+<td><p>Generic / Metal film</p></td>
+<td><p>PCM1808 VINL to AGND</p></td>
 </tr>
 <tr class="row-odd"><td><p>J1</p></td>
 <td><p>RJ11 Jack</p></td>
@@ -187,7 +236,9 @@ Values, part numbers, and notes are included for clarity.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Chris Deever.</p>
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Dec 27, 2025.
+      </span></p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
