@@ -14,6 +14,8 @@
 #include "storage/storage.h"
 #include "app/state/ma_bell_state.h"
 #include "hardware/hardware_init.h"
+#include "audio/audio_output.h"
+#include "audio/audio_bridge.h"
 #include "bluetooth/bt_init.h"
 #include "network/wifi/wifi_init.h"
 #include "app/web/web_interface.h"
@@ -44,6 +46,14 @@ void app_main(void)
     // Initialize hardware peripherals
     ESP_LOGI(TAG, "Initializing hardware...");
     ESP_ERROR_CHECK(hardware_init());
+
+    // Initialize audio output (I2S TX + tone generation)
+    ESP_LOGI(TAG, "Initializing audio output...");
+    ESP_ERROR_CHECK(audio_output_init());
+
+    // Initialize audio bridge (I2S RX for phone mic)
+    ESP_LOGI(TAG, "Initializing audio bridge...");
+    ESP_ERROR_CHECK(audio_bridge_init());
 
     // Initialize communication subsystems
     // Note: WiFi initialized BEFORE Bluetooth to avoid coexistence issues during connection

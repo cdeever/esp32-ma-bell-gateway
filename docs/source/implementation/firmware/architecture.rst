@@ -17,37 +17,76 @@ The Ma Bell Gateway firmware is organized into logical modules and directories:
 .. code-block:: none
 
    main/
-     app/          # Application logic, state machine, and event coordination
-     hardware/     # Phone line, GPIO, tones, analog/digital hardware interface
-     bluetooth/    # Bluetooth stack, Hands-Free Profile (HFP), and related protocols
-     network/      # Wi-Fi management and web interface (REST API, device status)
-     storage/      # Persistent storage of configuration and device settings
-     platform/     # ESP32/RTOS-specific glue code and project entry point
-     include/      # Public headers (optional, if using)
+     app/              # Application logic and event coordination
+       state/          # Centralized state management (ma_bell_state.c)
+       bluetooth/      # HFP message handling (app_hf_msg_set.c)
+       web/            # HTTP web interface (web_interface.c)
+       events/         # Event publish/subscribe system (event_system.c)
+     audio/            # Audio subsystem
+       audio_output.c  # I2S TX/RX, tone generation, audio write API
+       audio_bridge.c  # BT↔Phone ring buffers and bridging tasks
+       tones.c         # Telephone tone definitions
+     bluetooth/        # Bluetooth stack integration
+       bt_init.c       # BT subsystem initialization
+       bt_app_core.c   # Work dispatcher and task management
+       bt_app_hf.c     # HFP client event handling, audio callbacks
+       bt_connection_manager.c  # GAP, pairing, reconnection
+     config/           # Centralized configuration
+       audio_config.h  # I2S and audio parameters
+       bluetooth_config.h  # BT device name, PIN, timeouts
+       pin_assignments.h   # GPIO pin definitions
+       wifi_config.h   # WiFi credentials
+     hardware/         # Hardware abstraction
+       hardware_init.c     # Hardware initialization wrapper
+       gpio_pcm_config.c   # PCM/I2S GPIO configuration
+       slic_interface.c    # SLIC monitoring (off-hook, etc.)
+     network/          # Network connectivity
+       wifi/           # WiFi subsystem
+       mqtt/           # MQTT client (optional)
+     storage/          # NVS abstraction
+     main.c            # Application entry point
      CMakeLists.txt
 
 Module Responsibilities
 -----------------------
 
 **app/**
-  - Contains the application's core logic, including the state machine, event system, and all “business logic.”  
+  - Contains the application's core logic, including the state machine, event system, and all "business logic."
+  - ``state/`` - Centralized state management with bitmask-based state tracking
+  - ``events/`` - Lightweight publish/subscribe event system
+  - ``web/`` - HTTP web interface for status monitoring
   - Coordinates between hardware, Bluetooth, network, and user interfaces.
 
-**hardware/**
-  - Manages all interaction with the physical hardware:
-    - Pin configuration (GPIO, PCM/I2S) - ``gpio_pcm_config.c``
-    - Phone hardware monitoring (off-hook/ring detect, pulse dial) - ``phone_hardware.c``
-    - Generation of all telephony tones
-    - Overall hardware initialization - ``hardware_init.c``
-  - Abstracts hardware details from application logic.
-  - See :doc:`phone-hardware` for details on SLIC interface monitoring.
+**audio/**
+  - Manages bidirectional audio between phone handset and Bluetooth:
+    - ``audio_output.c`` - I2S TX/RX initialization, tone generation task, audio write API
+    - ``audio_bridge.c`` - Ring buffer management, BT↔Phone bridging tasks
+    - ``tones.c`` - Telephone tone definitions (frequencies, cadences)
+  - Uses HCI audio path for software control over Bluetooth audio
+  - See :doc:`audio-subsystem` for detailed documentation.
 
 **bluetooth/**
-  - Implements all Bluetooth functionality, including:  
-    - Stack integration
-    - Hands-Free Profile (HFP) protocol handling
-    - Audio routing and call event management
+  - Implements all Bluetooth functionality:
+    - ``bt_init.c`` - Complete BT subsystem initialization
+    - ``bt_app_hf.c`` - HFP client event handling and audio data callbacks
+    - ``bt_connection_manager.c`` - GAP events, pairing, auto-reconnection
+    - ``bt_app_core.c`` - Work dispatcher pattern for async event handling
   - Provides a clear API for application modules to initiate or respond to Bluetooth events.
+
+**config/**
+  - Centralized configuration headers:
+    - ``audio_config.h`` - I2S port, sample rate, buffer sizes
+    - ``bluetooth_config.h`` - Device name, PIN, task configs
+    - ``pin_assignments.h`` - All GPIO pin definitions
+    - ``wifi_config.h`` - WiFi credentials and timeouts
+
+**hardware/**
+  - Manages interaction with the physical hardware:
+    - ``hardware_init.c`` - Hardware subsystem initialization wrapper
+    - ``gpio_pcm_config.c`` - PCM/I2S GPIO matrix configuration
+    - ``slic_interface.c`` - SLIC monitoring (off-hook detection)
+  - Abstracts hardware details from application logic.
+  - See :doc:`phone-hardware` for details on SLIC interface monitoring.
 
 **network/**
   - Responsible for network connectivity and device management:

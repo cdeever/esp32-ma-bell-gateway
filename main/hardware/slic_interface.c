@@ -1,33 +1,34 @@
-#include "phone_hardware.h"
-#include "app/pin_assignments.h"
+#include "slic_interface.h"
+#include "config/pin_assignments.h"
 #include "app/state/ma_bell_state.h"
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
 
-static const char *TAG = "phone_hw";
+static const char *TAG = "slic_if";
 
 // Debounce timing
 #define HOOK_DEBOUNCE_MS 50
 #define POLL_INTERVAL_MS 20
 
 // Task handle
-static TaskHandle_t phone_monitor_task_handle = NULL;
+static TaskHandle_t slic_monitor_task_handle = NULL;
 
 // Debounce state
 static bool last_hook_state = true;  // true = on-hook (default)
 static TickType_t last_hook_change_time = 0;
 
 /**
- * @brief Task to monitor phone hook state
+ * @brief Task to monitor SLIC interface status
  *
- * Polls GPIO 32 (SLIC SHD pin) to detect off-hook condition.
+ * Polls SLIC input pins for status changes:
+ * - GPIO 32 (SHD pin): Off-hook detection
  * The SLIC SHD pin goes LOW when the phone is off-hook.
  */
-static void phone_monitor_task(void *arg)
+static void slic_monitor_task(void *arg)
 {
-    ESP_LOGI(TAG, "Phone monitor task started");
+    ESP_LOGI(TAG, "SLIC monitor task started");
 
     while (1) {
         // Read hook state - SHD pin is active LOW (0 = off-hook, 1 = on-hook)
@@ -60,9 +61,9 @@ static void phone_monitor_task(void *arg)
     }
 }
 
-esp_err_t phone_hardware_init(void)
+esp_err_t slic_interface_init(void)
 {
-    ESP_LOGI(TAG, "Initializing phone hardware monitoring");
+    ESP_LOGI(TAG, "Initializing SLIC interface monitoring");
 
     // Configure off-hook detect pin (GPIO 32) as input with pull-up
     // Pull-up ensures pin reads high (on-hook) when SLIC not connected
@@ -91,19 +92,19 @@ esp_err_t phone_hardware_init(void)
 
     // Create monitoring task
     BaseType_t task_ret = xTaskCreate(
-        phone_monitor_task,
-        "phone_monitor",
+        slic_monitor_task,
+        "slic_monitor",
         2048,           // Stack size
         NULL,           // Parameters
         5,              // Priority
-        &phone_monitor_task_handle
+        &slic_monitor_task_handle
     );
 
     if (task_ret != pdPASS) {
-        ESP_LOGE(TAG, "Failed to create phone monitor task");
+        ESP_LOGE(TAG, "Failed to create SLIC monitor task");
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "Phone hardware monitoring started successfully");
+    ESP_LOGI(TAG, "SLIC interface monitoring started successfully");
     return ESP_OK;
 }

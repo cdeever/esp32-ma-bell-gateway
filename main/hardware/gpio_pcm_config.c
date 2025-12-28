@@ -9,7 +9,7 @@
 #include "soc/gpio_sig_map.h"
 #include "gpio_pcm_config.h"
 #include "esp_rom_gpio.h"
-#include "pin_assignments.h"
+#include "config/pin_assignments.h"
 
 // Use our centralized pin assignments
 #define GPIO_OUTPUT_PCM_FSYNC      PIN_PCM_FSYNC

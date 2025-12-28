@@ -18,5 +18,12 @@
  */
 void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t *param);
 
+/**
+ * @brief     Register HFP audio data callbacks (for HCI audio path)
+ *
+ * Registers the incoming and outgoing audio data callbacks with the HFP stack.
+ * Must be called after esp_hf_client_init() and before audio connections.
+ */
+void bt_app_hf_register_data_callbacks(void);
 
 #endif /* __BT_APP_HF_H__*/

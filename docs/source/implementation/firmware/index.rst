@@ -20,6 +20,7 @@ This section describes the firmware, control logic, and (optionally) the build e
    :caption: Contents:
 
    architecture
+   audio-subsystem
    state-management
    phone-hardware
  

@@ -21,6 +21,7 @@
 #include "app_hf_msg_set.h"
 #include "ma_bell_state.h"
 #include "app/events/event_system.h"
+#include "audio/audio_bridge.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -178,37 +179,27 @@ extern esp_bd_addr_t peer_addr;
 
 #if CONFIG_BT_HFP_AUDIO_DATA_PATH_HCI
 
-#define ESP_HFP_RINGBUF_SIZE 3600
-static RingbufHandle_t m_rb = NULL;
-
-static void bt_app_hf_client_audio_open(void)
-{
-    m_rb = xRingbufferCreate(ESP_HFP_RINGBUF_SIZE, RINGBUF_TYPE_BYTEBUF);
-}
-
-static void bt_app_hf_client_audio_close(void)
-{
-    if (!m_rb) {
-        return ;
-    }
-
-    vRingbufferDelete(m_rb);
-}
+// Note: Ring buffers are managed by audio_bridge module
+// Audio bridge start/stop is called from AUDIO_STATE_EVT handler
+// bt_rx_ringbuf: Bluetooth → Phone (incoming audio)
+// bt_tx_ringbuf: Phone → Bluetooth (outgoing audio)
 
 static uint32_t bt_app_hf_client_outgoing_cb(uint8_t *p_buf, uint32_t sz)
 {
-    if (!m_rb) {
+    // Get ring buffer from audio bridge (Phone → Bluetooth)
+    RingbufHandle_t bt_tx_ringbuf = audio_bridge_get_bt_tx_ringbuf();
+    if (!bt_tx_ringbuf) {
         return 0;
     }
 
     size_t item_size = 0;
-    uint8_t *data = xRingbufferReceiveUpTo(m_rb, &item_size, 0, sz);
+    uint8_t *data = xRingbufferReceiveUpTo(bt_tx_ringbuf, &item_size, 0, sz);
     if (item_size == sz) {
         memcpy(p_buf, data, item_size);
-        vRingbufferReturnItem(m_rb, data);
+        vRingbufferReturnItem(bt_tx_ringbuf, data);
         return sz;
     } else if (0 < item_size) {
-        vRingbufferReturnItem(m_rb, data);
+        vRingbufferReturnItem(bt_tx_ringbuf, data);
         return 0;
     } else {
         // data not enough, do not read
@@ -218,16 +209,34 @@ static uint32_t bt_app_hf_client_outgoing_cb(uint8_t *p_buf, uint32_t sz)
 
 static void bt_app_hf_client_incoming_cb(const uint8_t *buf, uint32_t sz)
 {
-    if (! m_rb) {
+    // Get ring buffer from audio bridge (Bluetooth → Phone)
+    RingbufHandle_t bt_rx_ringbuf = audio_bridge_get_bt_rx_ringbuf();
+    if (!bt_rx_ringbuf) {
         return;
     }
-    BaseType_t done = xRingbufferSend(m_rb, (uint8_t *)buf, sz, 0);
-    if (! done) {
-        ESP_LOGE(BT_HF_TAG, "rb send fail");
-    }
 
-    esp_hf_client_outgoing_data_ready();
+    BaseType_t done = xRingbufferSend(bt_rx_ringbuf, (uint8_t *)buf, sz, 0);
+    if (!done) {
+        ESP_LOGE(BT_HF_TAG, "BT RX ring buffer send fail");
+    }
+    // Note: We don't call esp_hf_client_outgoing_data_ready() here anymore
+    // because outgoing data comes from the phone microphone (I2S RX),
+    // not from loopback of incoming Bluetooth audio
 }
+void bt_app_hf_register_data_callbacks(void)
+{
+    ESP_LOGI(BT_HF_TAG, "Registering HFP audio data callbacks (HCI path)");
+    esp_hf_client_register_data_callback(bt_app_hf_client_incoming_cb,
+                                          bt_app_hf_client_outgoing_cb);
+}
+
+#else /* PCM path - no software audio handling */
+
+void bt_app_hf_register_data_callbacks(void)
+{
+    ESP_LOGI(BT_HF_TAG, "PCM audio path - no data callbacks needed");
+}
+
 #endif /* #if CONFIG_BT_HFP_AUDIO_DATA_PATH_HCI */
 
 static const char *TAG = "bt_app_hf";
@@ -254,14 +263,18 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
         case ESP_HF_CLIENT_AUDIO_STATE_EVT:
             ESP_LOGI(TAG, "Audio state: %s", c_audio_state_str[param->audio_stat.state]);
             if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED) {
-                // Audio connected
+                // Audio connected - start audio bridge tasks
                 ma_bell_state_update_bluetooth_bits(BT_STATE_AUDIO_CONNECTED, 0);
-                // Publish audio connected event
+#if CONFIG_BT_HFP_AUDIO_DATA_PATH_HCI
+                audio_bridge_start();
+#endif
                 event_publish(BT_EVENT_AUDIO_CONNECTED, NULL);
             } else if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_DISCONNECTED) {
-                // Audio disconnected (usually happens after hangup)
+                // Audio disconnected - stop audio bridge tasks
+#if CONFIG_BT_HFP_AUDIO_DATA_PATH_HCI
+                audio_bridge_stop();
+#endif
                 ma_bell_state_update_bluetooth_bits(0, BT_STATE_AUDIO_CONNECTED);
-                // Publish audio disconnected event
                 event_publish(BT_EVENT_AUDIO_DISCONNECTED, NULL);
             }
             break;

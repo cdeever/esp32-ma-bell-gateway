@@ -106,7 +106,10 @@ esp_err_t bluetooth_init(void)
         return ret;
     }
 
-    // Step 13: Initialize connection manager (starts reconnection task)
+    // Step 13: Register HFP audio data callbacks (for HCI audio path)
+    bt_app_hf_register_data_callbacks();
+
+    // Step 14: Initialize connection manager (starts reconnection task)
     ret = bt_connection_manager_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize connection manager: %s", esp_err_to_name(ret));
