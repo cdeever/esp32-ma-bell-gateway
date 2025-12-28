@@ -1,0 +1,549 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta property="article:modified_time" content="2025-12-28T22:37:12+00:00" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio Subsystem &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="State Management" href="state-management.html" />
+    <link rel="prev" title="Firmware Architecture" href="architecture.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../historical-perspective.html">The Bell System Blueprint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Implementation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../bom.html">Bill of Materials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../circuit/index.html">Circuit Implementation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Firmware</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="architecture.html">Firmware Architecture</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Audio Subsystem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#architecture-overview">Architecture Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#audio-data-flow">Audio Data Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#i2s-configuration">I2S Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bluetooth-hfp-audio-path">Bluetooth HFP Audio Path</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tone-generation">Tone Generation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ring-buffers">Ring Buffers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#initialization-sequence">Initialization Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-files">Module Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diagnostic-output">Diagnostic Output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="state-management.html">State Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="phone-hardware.html">SLIC Interface Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../pcb/index.html">PCB Design &amp; Assembly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Implementation</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Firmware</a></li>
+      <li class="breadcrumb-item active">Audio Subsystem</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/implementation/firmware/audio-subsystem.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="audio-subsystem">
+<h1>Audio Subsystem<a class="headerlink" href="#audio-subsystem" title="Link to this heading"></a></h1>
+<p>The audio subsystem provides bidirectional audio transport between the vintage telephone handset and a Bluetooth-connected mobile phone. It also generates telephone signaling tones (dial tone, busy signal, etc.).</p>
+<section id="architecture-overview">
+<h2>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Link to this heading"></a></h2>
+<p>The audio subsystem consists of three main modules:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────────────────────────────────────────┐
+│                        Audio Subsystem                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │
+│  │   audio_output   │  │   audio_bridge   │  │      tones       │  │
+│  │                  │  │                  │  │                  │  │
+│  │ - I2S TX/RX init │  │ - Ring buffers   │  │ - Tone defs      │  │
+│  │ - Tone generator │  │ - BT↔Phone tasks │  │ - Frequencies    │  │
+│  │ - Audio write    │  │ - HFP callbacks  │  │ - Cadences       │  │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+</pre></div>
+</div>
+<p><strong>Module Responsibilities:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_output</span></code> - I2S hardware management, tone generation, audio output API</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_bridge</span></code> - Bluetooth ↔ Phone audio routing via ring buffers</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tones</span></code> - Telephone tone definitions (frequencies, cadences)</p></li>
+</ul>
+</section>
+<section id="audio-data-flow">
+<h2>Audio Data Flow<a class="headerlink" href="#audio-data-flow" title="Link to this heading"></a></h2>
+<p>Bidirectional audio flows between the phone handset and Bluetooth:</p>
+<p><strong>Phone → Bluetooth (Transmit Path):</strong></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Phone Microphone
+      │
+      ▼
+┌─────────────┐
+│  PCM1808    │  External ADC
+│    ADC      │  (Analog → Digital)
+└─────────────┘
+      │ I2S RX (GPIO 35)
+      ▼
+┌─────────────┐
+│ audio_rx_   │  Reads I2S frames
+│   task      │  every 20ms
+└─────────────┘
+      │
+      ▼
+┌─────────────┐
+│ bt_tx_      │  Ring buffer
+│ ringbuf     │  (3600 bytes)
+└─────────────┘
+      │
+      ▼
+┌─────────────┐
+│ HFP outgoing│  Bluetooth callback
+│  callback   │  reads from buffer
+└─────────────┘
+      │
+      ▼
+Mobile Phone (via Bluetooth)
+</pre></div>
+</div>
+<p><strong>Bluetooth → Phone (Receive Path):</strong></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Mobile Phone (via Bluetooth)
+      │
+      ▼
+┌─────────────┐
+│ HFP incoming│  Bluetooth callback
+│  callback   │  writes to buffer
+└─────────────┘
+      │
+      ▼
+┌─────────────┐
+│ bt_rx_      │  Ring buffer
+│ ringbuf     │  (3600 bytes)
+└─────────────┘
+      │
+      ▼
+┌─────────────┐
+│ audio_tx_   │  Reads from buffer,
+│   task      │  writes via audio_output
+└─────────────┘
+      │ (blocked if tone playing)
+      ▼
+┌─────────────┐
+│  PCM5100    │  External DAC
+│    DAC      │  (Digital → Analog)
+└─────────────┘
+      │ I2S TX (GPIO 26)
+      ▼
+Phone Earpiece/Speaker
+</pre></div>
+</div>
+</section>
+<section id="i2s-configuration">
+<h2>I2S Configuration<a class="headerlink" href="#i2s-configuration" title="Link to this heading"></a></h2>
+<p>Both TX and RX channels share a single I2S port with unified configuration:</p>
+<p><strong>I2S Parameters:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>I2S Port</p></td>
+<td><p>I2S_NUM_0</p></td>
+<td><p>Single port for both TX/RX</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sample Rate</p></td>
+<td><p>8000 Hz</p></td>
+<td><p>Standard telephony rate</p></td>
+</tr>
+<tr class="row-even"><td><p>Bit Depth</p></td>
+<td><p>16-bit</p></td>
+<td><p>Signed PCM samples</p></td>
+</tr>
+<tr class="row-odd"><td><p>Slot Mode</p></td>
+<td><p>MONO</p></td>
+<td><p>Single channel for voice</p></td>
+</tr>
+<tr class="row-even"><td><p>Format</p></td>
+<td><p>I2S Standard (Philips)</p></td>
+<td><p>Standard I2S framing</p></td>
+</tr>
+<tr class="row-odd"><td><p>MCLK</p></td>
+<td><p>Disabled</p></td>
+<td><p>Not required for external codec</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>GPIO Pin Assignments:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 20.0%" />
+<col style="width: 65.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>GPIO</p></th>
+<th class="head"><p>Signal</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>25</p></td>
+<td><p>PCM_FSYNC</p></td>
+<td><p>Word select / frame sync (LRCLK)</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>PCM_CLK_OUT</p></td>
+<td><p>Bit clock (BCLK)</p></td>
+</tr>
+<tr class="row-even"><td><p>26</p></td>
+<td><p>PCM_DOUT</p></td>
+<td><p>Audio output to DAC (TX)</p></td>
+</tr>
+<tr class="row-odd"><td><p>35</p></td>
+<td><p>PCM_DIN</p></td>
+<td><p>Audio input from ADC (RX, input-only pin)</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Unified Channel Creation:</strong></p>
+<p>ESP-IDF requires both TX and RX channels on the same I2S port to be created in a single call:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Create both channels together (required by ESP-IDF)</span>
+<span class="n">i2s_new_channel</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chan_cfg</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">tx_handle</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">rx_handle</span><span class="p">);</span>
+
+<span class="c1">// Initialize each with matching configuration</span>
+<span class="n">i2s_channel_init_std_mode</span><span class="p">(</span><span class="n">tx_handle</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">tx_std_cfg</span><span class="p">);</span>
+<span class="n">i2s_channel_init_std_mode</span><span class="p">(</span><span class="n">rx_handle</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">rx_std_cfg</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="bluetooth-hfp-audio-path">
+<h2>Bluetooth HFP Audio Path<a class="headerlink" href="#bluetooth-hfp-audio-path" title="Link to this heading"></a></h2>
+<p>The system uses the <strong>HCI audio path</strong> for Bluetooth HFP audio, enabling software control over audio routing.</p>
+<p><strong>Why HCI Path (not PCM)?</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 42.0%" />
+<col style="width: 43.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Path</p></th>
+<th class="head"><p>How It Works</p></th>
+<th class="head"><p>Trade-offs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>HCI</strong></p></td>
+<td><p>Audio flows through HCI callbacks. Software handles audio frames via ring buffers.</p></td>
+<td><p>Enables tone mixing, volume control, audio processing. Small CPU overhead.</p></td>
+</tr>
+<tr class="row-odd"><td><p>PCM</p></td>
+<td><p>Bluetooth controller routes audio directly via I2S DMA. CPU never sees audio.</p></td>
+<td><p>Zero CPU overhead but no software control. Tones can’t interrupt calls.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The HCI path is configured in <code class="docutils literal notranslate"><span class="pre">sdkconfig.defaults</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>CONFIG_BT_HFP_AUDIO_DATA_PATH_HCI=y
+</pre></div>
+</div>
+<p><strong>HFP Data Callbacks:</strong></p>
+<p>Two callbacks handle Bluetooth audio:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Called when Bluetooth needs audio to send (Phone → BT)</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">bt_app_hf_client_outgoing_cb</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="n">p_buf</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">sz</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Read from bt_tx_ringbuf (filled by audio_rx_task)</span>
+<span class="w">    </span><span class="c1">// Return number of bytes provided</span>
+<span class="p">}</span>
+
+<span class="c1">// Called when Bluetooth has audio to deliver (BT → Phone)</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">bt_app_hf_client_incoming_cb</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">sz</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Write to bt_rx_ringbuf (read by audio_tx_task)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="tone-generation">
+<h2>Tone Generation<a class="headerlink" href="#tone-generation" title="Link to this heading"></a></h2>
+<p>The audio subsystem generates authentic North American telephone tones.</p>
+<p><strong>Supported Tones:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tone</p></th>
+<th class="head"><p>Frequencies</p></th>
+<th class="head"><p>Cadence</p></th>
+<th class="head"><p>Usage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Dial Tone</p></td>
+<td><p>350 + 440 Hz</p></td>
+<td><p>Continuous</p></td>
+<td><p>Phone off-hook, ready to dial</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ringback</p></td>
+<td><p>440 + 480 Hz</p></td>
+<td><p>2s on, 4s off</p></td>
+<td><p>Outgoing call ringing</p></td>
+</tr>
+<tr class="row-even"><td><p>Busy Signal</p></td>
+<td><p>480 + 620 Hz</p></td>
+<td><p>0.5s on/off</p></td>
+<td><p>Called party busy</p></td>
+</tr>
+<tr class="row-odd"><td><p>Reorder (Fast Busy)</p></td>
+<td><p>480 + 620 Hz</p></td>
+<td><p>0.25s on/off</p></td>
+<td><p>Call cannot be completed</p></td>
+</tr>
+<tr class="row-even"><td><p>Off-Hook Warning</p></td>
+<td><p>1400+2060+2450+2600 Hz</p></td>
+<td><p>0.1s on/off</p></td>
+<td><p>Phone left off-hook</p></td>
+</tr>
+<tr class="row-odd"><td><p>Call Waiting</p></td>
+<td><p>440 Hz</p></td>
+<td><p>0.3s beep</p></td>
+<td><p>Incoming call during active call</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tone Priority:</strong></p>
+<p>Tones have priority over Bluetooth audio. When a tone is playing:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_output_tone_active()</span></code> returns true</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_output_write()</span></code> silently drops Bluetooth audio</p></li>
+<li><p>Tone continues until explicitly stopped</p></li>
+</ol>
+<p><strong>Tone API:</strong></p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Start playing a tone (thread-safe)</span>
+<span class="n">esp_err_t</span><span class="w"> </span><span class="nf">audio_output_play_tone</span><span class="p">(</span><span class="n">tone_type_t</span><span class="w"> </span><span class="n">tone</span><span class="p">);</span>
+
+<span class="c1">// Stop the current tone</span>
+<span class="n">esp_err_t</span><span class="w"> </span><span class="nf">audio_output_stop_tone</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+
+<span class="c1">// Check if tone is active</span>
+<span class="kt">bool</span><span class="w"> </span><span class="nf">audio_output_tone_active</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>Tone Generation Task:</strong></p>
+<p>A dedicated FreeRTOS task generates tone samples using sine wave synthesis:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// Dual-frequency tone generation</span>
+<span class="kt">float</span><span class="w"> </span><span class="n">sample1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sinf</span><span class="p">(</span><span class="n">phase1</span><span class="p">);</span><span class="w">  </span><span class="c1">// First frequency</span>
+<span class="kt">float</span><span class="w"> </span><span class="n">sample2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sinf</span><span class="p">(</span><span class="n">phase2</span><span class="p">);</span><span class="w">  </span><span class="c1">// Second frequency</span>
+<span class="kt">float</span><span class="w"> </span><span class="n">mixed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">sample1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sample2</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">;</span>
+<span class="n">buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int16_t</span><span class="p">)(</span><span class="mf">32767.0f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">TONE_VOLUME</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">mixed</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="ring-buffers">
+<h2>Ring Buffers<a class="headerlink" href="#ring-buffers" title="Link to this heading"></a></h2>
+<p>Two ring buffers decouple audio tasks from Bluetooth callbacks:</p>
+<p><strong>Buffer Configuration:</strong></p>
+<ul class="simple">
+<li><p>Size: 3600 bytes each (<code class="docutils literal notranslate"><span class="pre">AUDIO_HFP_RINGBUF_SIZE</span></code>)</p></li>
+<li><p>Type: Byte buffer (<code class="docutils literal notranslate"><span class="pre">RINGBUF_TYPE_BYTEBUF</span></code>)</p></li>
+<li><p>Capacity: ~11 audio frames (~220ms of audio)</p></li>
+</ul>
+<p><strong>Buffer Roles:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 35.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Buffer</p></th>
+<th class="head"><p>Direction</p></th>
+<th class="head"><p>Producer → Consumer</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bt_rx_ringbuf</span></code></p></td>
+<td><p>Bluetooth → Phone</p></td>
+<td><p>HFP incoming callback → audio_tx_task</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bt_tx_ringbuf</span></code></p></td>
+<td><p>Phone → Bluetooth</p></td>
+<td><p>audio_rx_task → HFP outgoing callback</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="initialization-sequence">
+<h2>Initialization Sequence<a class="headerlink" href="#initialization-sequence" title="Link to this heading"></a></h2>
+<p>Audio modules are initialized in specific order:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>main()
+  └─ audio_output_init()     # Creates I2S TX+RX, starts tone task
+       └─ audio_bridge_init() # Creates ring buffers, verifies RX handle
+            └─ bluetooth_init()
+                 └─ bt_app_hf_register_data_callbacks()  # Registers HFP callbacks
+</pre></div>
+</div>
+<p><strong>Critical Dependencies:</strong></p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_output_init()</span></code> must complete before <code class="docutils literal notranslate"><span class="pre">audio_bridge_init()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_bridge_init()</span></code> must complete before Bluetooth audio connects</p></li>
+<li><p>HFP data callbacks must be registered after HFP client initialization</p></li>
+</ol>
+</section>
+<section id="module-files">
+<h2>Module Files<a class="headerlink" href="#module-files" title="Link to this heading"></a></h2>
+<p><strong>audio_output</strong> (<code class="docutils literal notranslate"><span class="pre">main/audio/audio_output.c</span></code>, <code class="docutils literal notranslate"><span class="pre">audio_output.h</span></code>):</p>
+<ul class="simple">
+<li><p>Owns I2S TX and RX channel handles</p></li>
+<li><p>Provides <code class="docutils literal notranslate"><span class="pre">audio_output_write()</span></code> for BT audio passthrough</p></li>
+<li><p>Provides <code class="docutils literal notranslate"><span class="pre">audio_output_get_rx_handle()</span></code> for audio_bridge</p></li>
+<li><p>Runs tone generation task</p></li>
+</ul>
+<p><strong>audio_bridge</strong> (<code class="docutils literal notranslate"><span class="pre">main/audio/audio_bridge.c</span></code>, <code class="docutils literal notranslate"><span class="pre">audio_bridge.h</span></code>):</p>
+<ul class="simple">
+<li><p>Creates and manages ring buffers</p></li>
+<li><p>Runs <code class="docutils literal notranslate"><span class="pre">audio_rx_task</span></code> (Phone → BT) and <code class="docutils literal notranslate"><span class="pre">audio_tx_task</span></code> (BT → Phone)</p></li>
+<li><p>Provides ring buffer accessors for HFP callbacks</p></li>
+</ul>
+<p><strong>tones</strong> (<code class="docutils literal notranslate"><span class="pre">main/audio/tones.c</span></code>, <code class="docutils literal notranslate"><span class="pre">tones.h</span></code>):</p>
+<ul class="simple">
+<li><p>Defines <code class="docutils literal notranslate"><span class="pre">tone_type_t</span></code> enum</p></li>
+<li><p>Stores tone frequency/cadence parameters</p></li>
+<li><p>Provides <code class="docutils literal notranslate"><span class="pre">tone_get_definition()</span></code> accessor</p></li>
+</ul>
+</section>
+<section id="diagnostic-output">
+<h2>Diagnostic Output<a class="headerlink" href="#diagnostic-output" title="Link to this heading"></a></h2>
+<p><strong>Initialization Logs:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I (1234) audio_output: Initializing audio output subsystem
+I (1240) audio_output: Audio I/O initialized (TX: GPIO26, RX: GPIO35)
+I (1245) audio_bridge: Initializing audio bridge
+I (1250) audio_bridge: Audio bridge initialized (ring buffers ready)
+</pre></div>
+</div>
+<p><strong>Runtime Logs:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I (5000) audio_output: Playing tone: 0  (DIAL_TONE)
+I (8000) audio_output: Playing tone: 10 (TONE_NONE - stopping)
+I (9000) audio_bridge: Audio RX task started (Phone → Bluetooth)
+I (9001) audio_bridge: Audio TX task started (Bluetooth → Phone)
+</pre></div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="architecture.html"><span class="doc">Firmware Architecture</span></a> - Overall firmware architecture</p></li>
+<li><p><a class="reference internal" href="state-management.html"><span class="doc">State Management</span></a> - State management system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/source/solution-design/circuit/audio.rst</span></code> - Audio circuit design</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/source/implementation/circuit/pin-assignments.rst</span></code> - GPIO assignments</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="architecture.html" class="btn btn-neutral float-left" title="Firmware Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="state-management.html" class="btn btn-neutral float-right" title="State Management" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Dec 28, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

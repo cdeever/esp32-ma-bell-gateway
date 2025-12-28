@@ -5,9 +5,9 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-27T01:04:28+00:00" />
+    <meta property="article:modified_time" content="2025-12-28T22:37:12+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phone Hardware Monitoring &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+  <title>SLIC Interface Monitoring &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
@@ -55,8 +55,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../circuit/index.html">Circuit Implementation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Firmware</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="architecture.html">Firmware Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="audio-subsystem.html">Audio Subsystem</a></li>
 <li class="toctree-l3"><a class="reference internal" href="state-management.html">State Management</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Phone Hardware Monitoring</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">SLIC Interface Monitoring</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#off-hook-detection">Off-Hook Detection</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#initialization">Initialization</a></li>
@@ -93,7 +94,7 @@
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">Implementation</a></li>
           <li class="breadcrumb-item"><a href="index.html">Firmware</a></li>
-      <li class="breadcrumb-item active">Phone Hardware Monitoring</li>
+      <li class="breadcrumb-item active">SLIC Interface Monitoring</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/implementation/firmware/phone-hardware.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -103,9 +104,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="phone-hardware-monitoring">
-<h1>Phone Hardware Monitoring<a class="headerlink" href="#phone-hardware-monitoring" title="Link to this heading"></a></h1>
-<p>The phone hardware monitoring module (<cite>main/hardware/phone_hardware.c</cite>) provides real-time detection of telephone line events from the HC-5504B SLIC, including off-hook detection, ring status, and (future) dial pulse detection.</p>
+  <section id="slic-interface-monitoring">
+<h1>SLIC Interface Monitoring<a class="headerlink" href="#slic-interface-monitoring" title="Link to this heading"></a></h1>
+<p>The SLIC interface module (<code class="docutils literal notranslate"><span class="pre">main/hardware/slic_interface.c</span></code>) provides real-time detection of telephone line events from the HC-5504B SLIC, including off-hook detection, ring status, and (future) dial pulse detection.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>The module interfaces with the SLIC’s status output pins to monitor the physical telephone state and update the system state accordingly. This enables the ESP32 to respond to user actions on the telephone handset.</p>
@@ -138,7 +139,7 @@
 </section>
 <section id="gpio-configuration">
 <h3>GPIO Configuration<a class="headerlink" href="#gpio-configuration" title="Link to this heading"></a></h3>
-<p>The off-hook detect pin is configured during <cite>phone_hardware_init()</cite>:</p>
+<p>The off-hook detect pin is configured during <code class="docutils literal notranslate"><span class="pre">slic_interface_init()</span></code>:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">gpio_config_t</span><span class="w"> </span><span class="n">io_conf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="p">.</span><span class="n">pin_bit_mask</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">1ULL</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">PIN_OFF_HOOK_DETECT</span><span class="p">),</span><span class="w">  </span><span class="c1">// GPIO 32</span>
 <span class="w">    </span><span class="p">.</span><span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_MODE_INPUT</span><span class="p">,</span>
@@ -154,7 +155,7 @@ The internal pull-up ensures the pin reads HIGH (on-hook) when the SLIC is not c
 <section id="polling-implementation">
 <h3>Polling Implementation<a class="headerlink" href="#polling-implementation" title="Link to this heading"></a></h3>
 <p>The module uses a FreeRTOS task to poll the GPIO at regular intervals:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">phone_monitor_task</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg</span><span class="p">)</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">slic_monitor_task</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg</span><span class="p">)</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Read GPIO level</span>
@@ -229,11 +230,11 @@ The internal pull-up ensures the pin reads HIGH (on-hook) when the SLIC is not c
 </section>
 <section id="initialization">
 <h2>Initialization<a class="headerlink" href="#initialization" title="Link to this heading"></a></h2>
-<p>The phone hardware module is initialized during the hardware subsystem startup:</p>
+<p>The SLIC interface module is initialized during the hardware subsystem startup:</p>
 <p><strong>Call Hierarchy:</strong></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>main()
   └─ hardware_init()          (main/hardware/hardware_init.c)
-       └─ phone_hardware_init()  (main/hardware/phone_hardware.c)
+       └─ slic_interface_init()  (main/hardware/slic_interface.c)
 </pre></div>
 </div>
 <p><strong>Initialization Steps:</strong></p>
@@ -245,24 +246,24 @@ The internal pull-up ensures the pin reads HIGH (on-hook) when the SLIC is not c
 <li><p>Log initialization status</p></li>
 </ol>
 <p><strong>Error Handling:</strong></p>
-<p>If GPIO configuration or task creation fails, <code class="docutils literal notranslate"><span class="pre">phone_hardware_init()</span></code> returns an error code and logs the failure. The main initialization routine handles this with <code class="docutils literal notranslate"><span class="pre">ESP_ERROR_CHECK()</span></code>, which will halt the system if phone hardware initialization fails.</p>
+<p>If GPIO configuration or task creation fails, <code class="docutils literal notranslate"><span class="pre">slic_interface_init()</span></code> returns an error code and logs the failure. The main initialization routine handles this with <code class="docutils literal notranslate"><span class="pre">ESP_ERROR_CHECK()</span></code>, which will halt the system if SLIC interface initialization fails.</p>
 </section>
 <section id="diagnostic-output">
 <h2>Diagnostic Output<a class="headerlink" href="#diagnostic-output" title="Link to this heading"></a></h2>
 <p>The module provides detailed logging for troubleshooting:</p>
 <p><strong>Initialization Logs:</strong></p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I (1234) phone_hw: Initializing phone hardware monitoring
-I (1235) phone_hw: GPIO 32 configured for off-hook detection
-I (1236) phone_hw: Initial hook state: on-hook
-I (1237) phone_hw: Phone monitor task started
-I (1238) phone_hw: Phone hardware monitoring started successfully
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I (1234) slic_if: Initializing SLIC interface monitoring
+I (1235) slic_if: GPIO 32 configured for off-hook detection
+I (1236) slic_if: Initial hook state: on-hook
+I (1237) slic_if: SLIC monitor task started
+I (1238) slic_if: SLIC interface monitoring started successfully
 </pre></div>
 </div>
 <p><strong>Runtime Logs:</strong></p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I (5432) phone_hw: Phone off-hook detected
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>I (5432) slic_if: Phone off-hook detected
 I (5434) ma_bell_state: Phone state changed: 0x00 -&gt; 0x01
 
-I (12345) phone_hw: Phone on-hook detected
+I (12345) slic_if: Phone on-hook detected
 I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 </pre></div>
 </div>
@@ -375,20 +376,20 @@ I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 <h2>Module Files<a class="headerlink" href="#module-files" title="Link to this heading"></a></h2>
 <p><strong>Source Files:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">main/hardware/phone_hardware.c</span></code> - Implementation</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">main/hardware/phone_hardware.h</span></code> - Public API</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main/hardware/slic_interface.c</span></code> - Implementation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main/hardware/slic_interface.h</span></code> - Public API</p></li>
 </ul>
 <p><strong>Dependencies:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">main/app/pin_assignments.h</span></code> - GPIO pin definitions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main/config/pin_assignments.h</span></code> - GPIO pin definitions</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">main/app/state/ma_bell_state.h</span></code> - State management API</p></li>
 <li><p>FreeRTOS - Task management and delays</p></li>
 <li><p>ESP-IDF GPIO driver</p></li>
 </ul>
 <p><strong>Build Integration:</strong></p>
 <p>The module is included in the main component’s CMakeLists.txt:</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="err">SRCS</span><span class="w"> </span><span class="err">&quot;hardware/phone_hardware.c&quot;</span>
-<span class="w">     </span><span class="err">...</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>SRCS &quot;hardware/slic_interface.c&quot;
+     ...
 </pre></div>
 </div>
 </section>
@@ -415,7 +416,7 @@ I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 27, 2025.
+      <span class="lastupdated">Last updated on Dec 28, 2025.
       </span></p>
   </div>
 

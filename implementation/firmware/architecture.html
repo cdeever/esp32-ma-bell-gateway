@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-27T01:04:28+00:00" />
+    <meta property="article:modified_time" content="2025-12-28T22:37:12+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Firmware Architecture &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -21,7 +21,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="State Management" href="state-management.html" />
+    <link rel="next" title="Audio Subsystem" href="audio-subsystem.html" />
     <link rel="prev" title="Firmware" href="index.html" /> 
 </head>
 
@@ -61,8 +61,9 @@
 <li class="toctree-l4"><a class="reference internal" href="#development-guidelines">Development Guidelines</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="audio-subsystem.html">Audio Subsystem</a></li>
 <li class="toctree-l3"><a class="reference internal" href="state-management.html">State Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="phone-hardware.html">Phone Hardware Monitoring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="phone-hardware.html">SLIC Interface Monitoring</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pcb/index.html">PCB Design &amp; Assembly</a></li>
@@ -113,13 +114,34 @@
 <h2>Directory Layout<a class="headerlink" href="#directory-layout" title="Link to this heading"></a></h2>
 <p>The Ma Bell Gateway firmware is organized into logical modules and directories:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>main/
-  app/          # Application logic, state machine, and event coordination
-  hardware/     # Phone line, GPIO, tones, analog/digital hardware interface
-  bluetooth/    # Bluetooth stack, Hands-Free Profile (HFP), and related protocols
-  network/      # Wi-Fi management and web interface (REST API, device status)
-  storage/      # Persistent storage of configuration and device settings
-  platform/     # ESP32/RTOS-specific glue code and project entry point
-  include/      # Public headers (optional, if using)
+  app/              # Application logic and event coordination
+    state/          # Centralized state management (ma_bell_state.c)
+    bluetooth/      # HFP message handling (app_hf_msg_set.c)
+    web/            # HTTP web interface (web_interface.c)
+    events/         # Event publish/subscribe system (event_system.c)
+  audio/            # Audio subsystem
+    audio_output.c  # I2S TX/RX, tone generation, audio write API
+    audio_bridge.c  # BT↔Phone ring buffers and bridging tasks
+    tones.c         # Telephone tone definitions
+  bluetooth/        # Bluetooth stack integration
+    bt_init.c       # BT subsystem initialization
+    bt_app_core.c   # Work dispatcher and task management
+    bt_app_hf.c     # HFP client event handling, audio callbacks
+    bt_connection_manager.c  # GAP, pairing, reconnection
+  config/           # Centralized configuration
+    audio_config.h  # I2S and audio parameters
+    bluetooth_config.h  # BT device name, PIN, timeouts
+    pin_assignments.h   # GPIO pin definitions
+    wifi_config.h   # WiFi credentials
+  hardware/         # Hardware abstraction
+    hardware_init.c     # Hardware initialization wrapper
+    gpio_pcm_config.c   # PCM/I2S GPIO configuration
+    slic_interface.c    # SLIC monitoring (off-hook, etc.)
+  network/          # Network connectivity
+    wifi/           # WiFi subsystem
+    mqtt/           # MQTT client (optional)
+  storage/          # NVS abstraction
+  main.c            # Application entry point
   CMakeLists.txt
 </pre></div>
 </div>
@@ -129,25 +151,45 @@
 <dl class="simple">
 <dt><strong>app/</strong></dt><dd><ul class="simple">
 <li><p>Contains the application’s core logic, including the state machine, event system, and all “business logic.”</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state/</span></code> - Centralized state management with bitmask-based state tracking</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">events/</span></code> - Lightweight publish/subscribe event system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">web/</span></code> - HTTP web interface for status monitoring</p></li>
 <li><p>Coordinates between hardware, Bluetooth, network, and user interfaces.</p></li>
 </ul>
 </dd>
-<dt><strong>hardware/</strong></dt><dd><ul class="simple">
-<li><p>Manages all interaction with the physical hardware:
-- Pin configuration (GPIO, PCM/I2S) - <code class="docutils literal notranslate"><span class="pre">gpio_pcm_config.c</span></code>
-- Phone hardware monitoring (off-hook/ring detect, pulse dial) - <code class="docutils literal notranslate"><span class="pre">phone_hardware.c</span></code>
-- Generation of all telephony tones
-- Overall hardware initialization - <code class="docutils literal notranslate"><span class="pre">hardware_init.c</span></code></p></li>
-<li><p>Abstracts hardware details from application logic.</p></li>
-<li><p>See <a class="reference internal" href="phone-hardware.html"><span class="doc">Phone Hardware Monitoring</span></a> for details on SLIC interface monitoring.</p></li>
+<dt><strong>audio/</strong></dt><dd><ul class="simple">
+<li><p>Manages bidirectional audio between phone handset and Bluetooth:
+- <code class="docutils literal notranslate"><span class="pre">audio_output.c</span></code> - I2S TX/RX initialization, tone generation task, audio write API
+- <code class="docutils literal notranslate"><span class="pre">audio_bridge.c</span></code> - Ring buffer management, BT↔Phone bridging tasks
+- <code class="docutils literal notranslate"><span class="pre">tones.c</span></code> - Telephone tone definitions (frequencies, cadences)</p></li>
+<li><p>Uses HCI audio path for software control over Bluetooth audio</p></li>
+<li><p>See <a class="reference internal" href="audio-subsystem.html"><span class="doc">Audio Subsystem</span></a> for detailed documentation.</p></li>
 </ul>
 </dd>
 <dt><strong>bluetooth/</strong></dt><dd><ul class="simple">
-<li><p>Implements all Bluetooth functionality, including:
-- Stack integration
-- Hands-Free Profile (HFP) protocol handling
-- Audio routing and call event management</p></li>
+<li><p>Implements all Bluetooth functionality:
+- <code class="docutils literal notranslate"><span class="pre">bt_init.c</span></code> - Complete BT subsystem initialization
+- <code class="docutils literal notranslate"><span class="pre">bt_app_hf.c</span></code> - HFP client event handling and audio data callbacks
+- <code class="docutils literal notranslate"><span class="pre">bt_connection_manager.c</span></code> - GAP events, pairing, auto-reconnection
+- <code class="docutils literal notranslate"><span class="pre">bt_app_core.c</span></code> - Work dispatcher pattern for async event handling</p></li>
 <li><p>Provides a clear API for application modules to initiate or respond to Bluetooth events.</p></li>
+</ul>
+</dd>
+<dt><strong>config/</strong></dt><dd><ul class="simple">
+<li><p>Centralized configuration headers:
+- <code class="docutils literal notranslate"><span class="pre">audio_config.h</span></code> - I2S port, sample rate, buffer sizes
+- <code class="docutils literal notranslate"><span class="pre">bluetooth_config.h</span></code> - Device name, PIN, task configs
+- <code class="docutils literal notranslate"><span class="pre">pin_assignments.h</span></code> - All GPIO pin definitions
+- <code class="docutils literal notranslate"><span class="pre">wifi_config.h</span></code> - WiFi credentials and timeouts</p></li>
+</ul>
+</dd>
+<dt><strong>hardware/</strong></dt><dd><ul class="simple">
+<li><p>Manages interaction with the physical hardware:
+- <code class="docutils literal notranslate"><span class="pre">hardware_init.c</span></code> - Hardware subsystem initialization wrapper
+- <code class="docutils literal notranslate"><span class="pre">gpio_pcm_config.c</span></code> - PCM/I2S GPIO matrix configuration
+- <code class="docutils literal notranslate"><span class="pre">slic_interface.c</span></code> - SLIC monitoring (off-hook detection)</p></li>
+<li><p>Abstracts hardware details from application logic.</p></li>
+<li><p>See <a class="reference internal" href="phone-hardware.html"><span class="doc">SLIC Interface Monitoring</span></a> for details on SLIC interface monitoring.</p></li>
 </ul>
 </dd>
 <dt><strong>network/</strong></dt><dd><ul class="simple">
@@ -192,14 +234,14 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Firmware" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="state-management.html" class="btn btn-neutral float-right" title="State Management" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="audio-subsystem.html" class="btn btn-neutral float-right" title="Audio Subsystem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 27, 2025.
+      <span class="lastupdated">Last updated on Dec 28, 2025.
       </span></p>
   </div>
 

@@ -1,7 +1,7 @@
-Phone Hardware Monitoring
+SLIC Interface Monitoring
 =========================
 
-The phone hardware monitoring module (`main/hardware/phone_hardware.c`) provides real-time detection of telephone line events from the HC-5504B SLIC, including off-hook detection, ring status, and (future) dial pulse detection.
+The SLIC interface module (``main/hardware/slic_interface.c``) provides real-time detection of telephone line events from the HC-5504B SLIC, including off-hook detection, ring status, and (future) dial pulse detection.
 
 Overview
 --------
@@ -39,7 +39,7 @@ Hardware Connection
 GPIO Configuration
 ^^^^^^^^^^^^^^^^^^
 
-The off-hook detect pin is configured during `phone_hardware_init()`:
+The off-hook detect pin is configured during ``slic_interface_init()``:
 
 .. code-block:: c
 
@@ -61,7 +61,7 @@ The module uses a FreeRTOS task to poll the GPIO at regular intervals:
 
 .. code-block:: c
 
-   static void phone_monitor_task(void *arg)
+   static void slic_monitor_task(void *arg)
    {
        while (1) {
            // Read GPIO level
@@ -142,7 +142,7 @@ For details on the state management system, see :doc:`state-management`.
 Initialization
 --------------
 
-The phone hardware module is initialized during the hardware subsystem startup:
+The SLIC interface module is initialized during the hardware subsystem startup:
 
 **Call Hierarchy:**
 
@@ -150,7 +150,7 @@ The phone hardware module is initialized during the hardware subsystem startup:
 
    main()
      └─ hardware_init()          (main/hardware/hardware_init.c)
-          └─ phone_hardware_init()  (main/hardware/phone_hardware.c)
+          └─ slic_interface_init()  (main/hardware/slic_interface.c)
 
 **Initialization Steps:**
 
@@ -162,7 +162,7 @@ The phone hardware module is initialized during the hardware subsystem startup:
 
 **Error Handling:**
 
-If GPIO configuration or task creation fails, ``phone_hardware_init()`` returns an error code and logs the failure. The main initialization routine handles this with ``ESP_ERROR_CHECK()``, which will halt the system if phone hardware initialization fails.
+If GPIO configuration or task creation fails, ``slic_interface_init()`` returns an error code and logs the failure. The main initialization routine handles this with ``ESP_ERROR_CHECK()``, which will halt the system if SLIC interface initialization fails.
 
 Diagnostic Output
 -----------------
@@ -173,20 +173,20 @@ The module provides detailed logging for troubleshooting:
 
 .. code-block:: text
 
-   I (1234) phone_hw: Initializing phone hardware monitoring
-   I (1235) phone_hw: GPIO 32 configured for off-hook detection
-   I (1236) phone_hw: Initial hook state: on-hook
-   I (1237) phone_hw: Phone monitor task started
-   I (1238) phone_hw: Phone hardware monitoring started successfully
+   I (1234) slic_if: Initializing SLIC interface monitoring
+   I (1235) slic_if: GPIO 32 configured for off-hook detection
+   I (1236) slic_if: Initial hook state: on-hook
+   I (1237) slic_if: SLIC monitor task started
+   I (1238) slic_if: SLIC interface monitoring started successfully
 
 **Runtime Logs:**
 
 .. code-block:: text
 
-   I (5432) phone_hw: Phone off-hook detected
+   I (5432) slic_if: Phone off-hook detected
    I (5434) ma_bell_state: Phone state changed: 0x00 -> 0x01
 
-   I (12345) phone_hw: Phone on-hook detected
+   I (12345) slic_if: Phone on-hook detected
    I (12346) ma_bell_state: Phone state changed: 0x01 -> 0x00
 
 Web API Integration
@@ -301,12 +301,12 @@ Module Files
 
 **Source Files:**
 
-- ``main/hardware/phone_hardware.c`` - Implementation
-- ``main/hardware/phone_hardware.h`` - Public API
+- ``main/hardware/slic_interface.c`` - Implementation
+- ``main/hardware/slic_interface.h`` - Public API
 
 **Dependencies:**
 
-- ``main/app/pin_assignments.h`` - GPIO pin definitions
+- ``main/config/pin_assignments.h`` - GPIO pin definitions
 - ``main/app/state/ma_bell_state.h`` - State management API
 - FreeRTOS - Task management and delays
 - ESP-IDF GPIO driver
@@ -315,9 +315,9 @@ Module Files
 
 The module is included in the main component's CMakeLists.txt:
 
-.. code-block:: cmake
+.. code-block:: none
 
-   SRCS "hardware/phone_hardware.c"
+   SRCS "hardware/slic_interface.c"
         ...
 
 References
