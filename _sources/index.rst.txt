@@ -22,8 +22,8 @@ By blending retro hardware with modern embedded technology, this project faithfu
    :hidden:
 
    introduction
-   standards
    bell-system-blueprint/index
+   standards
    /solution-design/index
    /implementation/index
    usage
