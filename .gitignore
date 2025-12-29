@@ -47,6 +47,7 @@ Thumbs.db
 # Ignore other temp files
 *.tmp
 *.bak
+*.bak2
 *.zip
 *.lck
 main/wifi copy.h
