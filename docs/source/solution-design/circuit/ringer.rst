@@ -64,6 +64,14 @@ Contemporary and hobbyist systems may employ a variety of approaches to generate
 - This approach provides galvanic isolation, robust voltage swing, and a waveform profile **closest to authentic Bell System signals**.
 - The oscillator can be implemented using analog circuits or digitally via a microcontroller, enabling flexible frequency, cadence, and pattern control.
 
+**4. Commercial Telecom Ring Generator Module**
+- Pre-built DC-to-AC inverter modules designed specifically for telecom applications.
+- Accepts 48V DC input, outputs 90V AC at 20Hz with proper sine wave shape.
+- Provides galvanic isolation between input and output.
+- Examples include Beta Dyne RG3000 series and specialty telecom power modules.
+- Simplest integration path—no custom oscillator design or transformer winding required.
+- Matches the "dedicated IC" design philosophy used elsewhere in the system (e.g., using a SLIC for line interface rather than discrete components).
+
 .. important::
    **Authentic Bell System Ringing:**  
    For true compatibility with vintage electromechanical ringers, the signal must be a **20 Hz sine wave at approximately 90 V RMS**.  
