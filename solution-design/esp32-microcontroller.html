@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-27T01:04:28+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T13:05:40+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ESP32 Microcontroller &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
@@ -51,10 +51,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../historical-perspective.html">The Bell System Blueprint</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Solution Design</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">ESP32 Microcontroller</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#why-esp32">Why ESP32?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selecting-the-right-variant">Selecting the Right Variant</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bluetooth-classic-vs-ble">Bluetooth Classic vs BLE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#simultaneous-wi-fi-bluetooth">Simultaneous Wi-Fi + Bluetooth</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#audio-output-architecture">Audio Output Architecture</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#audio-input-architecture">Audio Input Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audio-interface">Audio Interface</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="circuit/index.html">Circuit Design</a></li>
@@ -95,6 +96,21 @@
 <h1>ESP32 Microcontroller<a class="headerlink" href="#esp32-microcontroller" title="Link to this heading"></a></h1>
 <a class="reference internal image-reference" href="../_images/esp32-wrover-ie.png"><img alt="ESP32-WROVER-IE Module" class="align-center" src="../_images/esp32-wrover-ie.png" style="width: 300px;" />
 </a>
+<section id="why-esp32">
+<h2>Why ESP32?<a class="headerlink" href="#why-esp32" title="Link to this heading"></a></h2>
+<p>The Ma Bell Gateway requires both <strong>Bluetooth</strong> (for phone calls via HFP) and <strong>Wi-Fi</strong> (for the status web interface)—a combination that immediately narrows the field of suitable microcontrollers. While options like the Raspberry Pi Zero or Pico, Arduino-based boards, or other MCUs exist, the <strong>ESP32</strong> stands out as the best fit for this project:</p>
+<ul class="simple">
+<li><p><strong>Integrated Bluetooth Classic + Wi-Fi</strong> in a single chip, with well-tested coexistence</p></li>
+<li><p><strong>Mature SDK (ESP-IDF)</strong> with extensive documentation and active community support</p></li>
+<li><p><strong>Real-time capable</strong> via FreeRTOS for handling telephony timing requirements</p></li>
+<li><p><strong>Cost-effective</strong> compared to Linux-based alternatives like the Raspberry Pi</p></li>
+<li><p><strong>Low power</strong> compared to running a full Linux OS for what is fundamentally an embedded task</p></li>
+<li><p><strong>Rich peripheral support</strong> including I2S for high-quality audio, GPIOs for phone line control, and hardware timers for precise tone generation</p></li>
+</ul>
+<p>For a project that bridges vintage analog hardware with modern wireless connectivity, the ESP32’s combination of wireless radios, real-time performance, and embedded simplicity makes it the natural choice.</p>
+</section>
+<section id="selecting-the-right-variant">
+<h2>Selecting the Right Variant<a class="headerlink" href="#selecting-the-right-variant" title="Link to this heading"></a></h2>
 <p>Selecting the right ESP32 variant can be surprisingly tricky. There are dozens of versions—ESP32-C2, ESP32-S3, ESP32-WROVER, WROOM-32, and more—each with its own trade-offs in price, peripherals, core count, wireless support, and package size. After researching compatibility, availability, and feature sets, the <strong>ESP32-WROVER-IE</strong> was chosen for this project.</p>
 <p>This module strikes an ideal balance for the Ma Bell Gateway:</p>
 <ul class="simple">
@@ -105,6 +121,7 @@
 <li><p>✅ <strong>External antenna connector</strong> – The “IE” version includes a u.FL connector for an external antenna, ensuring strong signal coverage throughout the home.</p></li>
 <li><p>✅ <strong>Flexible audio I/O support</strong> – The ESP32 supports multiple options for generating and capturing audio signals. These include I2S for high-quality digital audio, built-in DACs for simple tones, ADC input for analog microphones, and optional support for external audio codecs. This flexibility allows the Ma Bell Gateway to mix modern Bluetooth voice with vintage analog signaling.</p></li>
 </ul>
+</section>
 <section id="bluetooth-classic-vs-ble">
 <h2>Bluetooth Classic vs BLE<a class="headerlink" href="#bluetooth-classic-vs-ble" title="Link to this heading"></a></h2>
 <p>Although many ESP32 variants support <strong>Bluetooth Low Energy (BLE)</strong>, this project requires <strong>Bluetooth Classic</strong> due to its support for audio via the <strong>Hands-Free Profile (HFP)</strong>. BLE is optimized for short, energy-efficient data bursts (e.g. sensors, beacons), but it does not support voice or audio streaming. For this reason, only ESP32 modules that include Bluetooth Classic were considered.</p>
@@ -119,37 +136,10 @@
 </ul>
 <p>The ability to reliably run both wireless stacks alongside real-time GPIO handling was a key reason the WROVER-IE was selected.</p>
 </section>
-<section id="audio-output-architecture">
-<h2>Audio Output Architecture<a class="headerlink" href="#audio-output-architecture" title="Link to this heading"></a></h2>
-<p>The Ma Bell Gateway uses an <strong>external DAC connected via I2S</strong> for all audio output, including tones and Bluetooth-transmitted voice. This design decision provides several key advantages:</p>
-<ul class="simple">
-<li><p><strong>High Audio Quality:</strong> 16-bit+ resolution ensures clear voice transmission and high-fidelity tone generation</p></li>
-<li><p><strong>Flexible Output:</strong> Single audio path supports both tone generation and voice playback, with hardware managing source switching</p></li>
-<li><p><strong>Hardware-Configured Operation:</strong> Pin-strapping configuration eliminates complex software initialization and reduces potential software bugs</p></li>
-<li><p><strong>Production-Ready Quality:</strong> Professional telephony audio suitable for commercial deployment</p></li>
-</ul>
-<p>Audio output is routed from the external DAC to the telephone earpiece via the SLIC line interface, with proper impedance matching and AC coupling to ensure compatibility with standard telephone handsets.</p>
-<p><strong>Alternative Approaches Considered:</strong></p>
-<ul class="simple">
-<li><p><em>ESP32 Built-in DAC (GPIO25/26):</em> 8-bit resolution insufficient for high-quality voice transmission; suitable only for prototyping and early development testing</p></li>
-<li><p><em>PWM Audio (LEDC):</em> Square-wave generation adequate for simple tones but lacks fidelity for voice and introduces switching noise incompatible with telephony quality standards</p></li>
-</ul>
-</section>
-<section id="audio-input-architecture">
-<h2>Audio Input Architecture<a class="headerlink" href="#audio-input-architecture" title="Link to this heading"></a></h2>
-<p>The Ma Bell Gateway uses an <strong>external ADC connected via I2S</strong> for capturing microphone audio from the telephone handset. This architectural decision enables high-quality voice transmission over Bluetooth with several advantages:</p>
-<ul class="simple">
-<li><p><strong>Clear Voice Capture:</strong> High signal-to-noise ratio and low distortion ensure intelligible voice transmission for Bluetooth HFP calls</p></li>
-<li><p><strong>Hardware-Configured Operation:</strong> Pin-strapping configuration simplifies firmware and eliminates codec initialization complexity</p></li>
-<li><p><strong>Digital Interface Noise Immunity:</strong> I2S digital interface reduces susceptibility to analog noise and ground loops common in telephony circuits</p></li>
-<li><p><strong>Legacy Phone Microphone Compatibility:</strong> External ADC allows proper gain staging and filtering for vintage telephone handset microphones</p></li>
-</ul>
-<p>The audio input path interfaces with the Bluetooth HFP stack to transmit voice from the telephone handset to the paired mobile device. Circuit design includes impedance matching, DC blocking, and AC coupling to ensure clean audio capture from the SLIC’s transmit path.</p>
-<p><strong>Alternative Approaches Considered:</strong></p>
-<ul class="simple">
-<li><p><em>ESP32 Built-in ADC (GPIO36-39):</em> Designed for sensor readings, not continuous audio sampling; insufficient sample rate and quality for telephony applications</p></li>
-<li><p><em>I2S Digital Microphone:</em> Would require replacing the telephone handset’s microphone entirely; not applicable to the Ma Bell Gateway’s use case of preserving the vintage phone experience</p></li>
-</ul>
+<section id="audio-interface">
+<h2>Audio Interface<a class="headerlink" href="#audio-interface" title="Link to this heading"></a></h2>
+<p>The ESP32 provides <strong>I2S (Inter-IC Sound)</strong> as its primary interface for high-quality digital audio. This allows connection to external DACs and ADCs for voice and tone generation/capture, which is essential for telephony-grade audio quality.</p>
+<p>For detailed audio design alternatives and the external codec architecture, see <a class="reference internal" href="circuit/audio.html"><span class="doc">Voice and Tone Audio Design</span></a>.</p>
 </section>
 </section>
 
@@ -165,7 +155,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 27, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

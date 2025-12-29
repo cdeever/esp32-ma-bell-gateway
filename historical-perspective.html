@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-29T12:41:10+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T13:05:40+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Bell System Blueprint &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
@@ -62,6 +62,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#historical-evolution">Historical Evolution</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#power-domains">Power Domains</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="solution-design/index.html">Solution Design</a></li>
@@ -223,6 +224,17 @@ Common methods include transformers and optocouplers.</p>
 <li><p>Provide built-in gain, echo cancellation, and tone injection in VoIP gear.</p></li>
 </ul>
 </section>
+</section>
+<section id="power-domains">
+<h2>Power Domains<a class="headerlink" href="#power-domains" title="Link to this heading"></a></h2>
+<p>The Bell System established standard voltages for line and subscriber equipment by the early 20th century:</p>
+<ul class="simple">
+<li><p><strong>Subscriber Loop (-48V DC):</strong> Established for consistent talk battery voltage and to minimize corrosion at outdoor wiring connections</p></li>
+<li><p><strong>Ringing Signal (~90V AC &#64; 20Hz):</strong> Used to activate electromechanical bells</p></li>
+<li><p><strong>Lamp Circuits (6–12V AC or DC):</strong> Powered dial illumination and panel indicators</p></li>
+<li><p><strong>Logic Circuits (varied):</strong> Central office and PBX logic voltages often used -24V or +5V DC depending on the technology</p></li>
+</ul>
+<p>As systems evolved, switchmode regulators, SLICs, and integrated isolation became common in embedded and VoIP equipment. However, traditional analog phones still require these distinct voltages to function authentically.</p>
 </section>
 </section>
 

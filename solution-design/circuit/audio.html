@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-29T12:41:10+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T13:05:40+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Voice and Tone Audio Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -58,6 +58,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#transmit-path-microphone-input">Transmit Path: Microphone Input</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#tone-injection">Tone Injection</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hybrid-and-echo-control">Hybrid and Echo Control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#digital-audio-interface-esp32-side">Digital Audio Interface (ESP32 Side)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
@@ -211,6 +212,76 @@
 <li><p><strong>Digital echo cancellation</strong> (in SLICs or DSP chips)</p></li>
 </ul>
 </section>
+<section id="digital-audio-interface-esp32-side">
+<h2>Digital Audio Interface (ESP32 Side)<a class="headerlink" href="#digital-audio-interface-esp32-side" title="Link to this heading"></a></h2>
+<p>Between the ESP32 microcontroller and the analog telephone line, digital-to-analog and analog-to-digital conversion is required. The ESP32 provides I2S (Inter-IC Sound) as its primary interface for high-quality audio.</p>
+<section id="audio-output-dac">
+<h3>Audio Output (DAC)<a class="headerlink" href="#audio-output-dac" title="Link to this heading"></a></h3>
+<p>The Ma Bell Gateway uses an <strong>external DAC connected via I2S</strong> for all audio output, including tones and Bluetooth-transmitted voice.</p>
+<p><strong>Design Options:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Method</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Trade-Offs</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>External I2S DAC</strong></p></td>
+<td><p>Dedicated audio DAC (e.g., PCM5100) with 16-bit+ resolution</p></td>
+<td><p>High audio quality, hardware-configured operation, production-ready</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>ESP32 Built-in DAC</strong></p></td>
+<td><p>GPIO25/26 with 8-bit resolution</p></td>
+<td><p>Insufficient for voice quality; suitable only for prototyping</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>PWM Audio (LEDC)</strong></p></td>
+<td><p>Square-wave generation filtered to analog</p></td>
+<td><p>Adequate for simple tones but introduces switching noise</p></td>
+</tr>
+</tbody>
+</table>
+<p>Audio output is routed from the external DAC to the telephone earpiece via the SLIC line interface, with proper impedance matching and AC coupling.</p>
+</section>
+<section id="audio-input-adc">
+<h3>Audio Input (ADC)<a class="headerlink" href="#audio-input-adc" title="Link to this heading"></a></h3>
+<p>The Ma Bell Gateway uses an <strong>external ADC connected via I2S</strong> for capturing microphone audio from the telephone handset.</p>
+<p><strong>Design Options:</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 40.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Method</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Trade-Offs</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>External I2S ADC</strong></p></td>
+<td><p>Dedicated audio ADC (e.g., PCM1808) with high SNR</p></td>
+<td><p>Clear voice capture, digital noise immunity, legacy mic compatible</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>ESP32 Built-in ADC</strong></p></td>
+<td><p>GPIO36-39 designed for sensor readings</p></td>
+<td><p>Insufficient sample rate and quality for telephony</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>I2S Digital Microphone</strong></p></td>
+<td><p>MEMS microphone with digital output</p></td>
+<td><p>Would require replacing vintage phone’s microphone</p></td>
+</tr>
+</tbody>
+</table>
+<p>The audio input path interfaces with the Bluetooth HFP stack to transmit voice from the telephone handset to the paired mobile device.</p>
+</section>
+</section>
 <section id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h2>
 <p>When selecting an audio design approach for the Ma Bell Gateway:</p>
@@ -218,6 +289,7 @@
 <li><p><strong>Transformer-based stages</strong> offer the best isolation and authentic Bell System behavior</p></li>
 <li><p><strong>Active circuits</strong> provide flexibility and compact footprint</p></li>
 <li><p><strong>SLIC ICs</strong> (like the HC-5504B) integrate hybrid, codec, and audio functions in one chip</p></li>
+<li><p><strong>External I2S DAC/ADC</strong> provides high-quality digital audio interface to the ESP32</p></li>
 </ul>
 <p>For the Ma Bell Gateway implementation using the HC-5504B SLIC and external audio codecs, see <a class="reference internal" href="../../implementation/circuit/line-interface-hc5504b.html"><span class="doc">Line Interface: HC-5504B SLIC</span></a> and <a class="reference internal" href="../../implementation/firmware/audio-subsystem.html"><span class="doc">Audio Subsystem</span></a>.</p>
 <div class="admonition note">

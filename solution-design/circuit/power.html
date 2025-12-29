@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-27T01:34:03+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T13:05:40+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Power Supply Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -54,7 +54,6 @@
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Design</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Power Supply Design</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#historical-framing">Historical Framing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#power-domains">Power Domains</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#v-dc-subscriber-loop-voltage">-48V DC – Subscriber Loop Voltage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#v-dc-slic-analog-power-supply">+12V DC – SLIC Analog Power Supply</a></li>
@@ -112,21 +111,11 @@
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>Legacy analog telephone systems operated across multiple voltage domains, each serving a distinct role—subscriber loop voltage, AC ringing, lamp power, and logic control. In recreating this behavior, the Ma Bell Gateway must provide safe and isolated supplies that replicate historical behavior while remaining compatible with modern digital components.</p>
+<p>For historical context on Bell System standard voltages, see <a class="reference internal" href="../../historical-perspective.html"><span class="doc">The Bell System Blueprint</span></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>Safety First:</strong> Voltages above 48V can be hazardous. High-voltage domains must be clearly labeled, well-isolated, and treated with care. Never connect unisolated high-voltage rails directly to logic circuits or USB-connected equipment.</p>
 </div>
-</section>
-<section id="historical-framing">
-<h2>Historical Framing<a class="headerlink" href="#historical-framing" title="Link to this heading"></a></h2>
-<p>The Bell System established standard voltages for line and subscriber equipment by the early 20th century:</p>
-<ul class="simple">
-<li><p><strong>Subscriber Loop (-48V DC):</strong> Established for consistent talk battery voltage and to minimize corrosion (see below)</p></li>
-<li><p><strong>Ringing Signal (~90V AC &#64; 20Hz):</strong> Used to activate electromechanical bells</p></li>
-<li><p><strong>Lamp Circuits (6–12V AC or DC):</strong> Powered dial illumination and panel indicators</p></li>
-<li><p><strong>Logic Circuits (varied):</strong> Central office and PBX logic voltages often used -24V or +5V DC depending on the technology</p></li>
-</ul>
-<p>As systems evolved, switchmode regulators, SLICs, and integrated isolation became common in embedded and VoIP equipment. However, traditional analog phones still require these distinct voltages to function authentically.</p>
 </section>
 <section id="power-domains">
 <h2>Power Domains<a class="headerlink" href="#power-domains" title="Link to this heading"></a></h2>
@@ -266,7 +255,7 @@ Audio DACs and ADCs (e.g., PCM5100, PCM1808) are sensitive to power supply noise
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 27, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

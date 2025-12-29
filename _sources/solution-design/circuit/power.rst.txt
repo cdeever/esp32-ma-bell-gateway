@@ -6,20 +6,10 @@ Overview
 
 Legacy analog telephone systems operated across multiple voltage domains, each serving a distinct role—subscriber loop voltage, AC ringing, lamp power, and logic control. In recreating this behavior, the Ma Bell Gateway must provide safe and isolated supplies that replicate historical behavior while remaining compatible with modern digital components.
 
+For historical context on Bell System standard voltages, see :doc:`/historical-perspective`.
+
 .. note::
    **Safety First:** Voltages above 48V can be hazardous. High-voltage domains must be clearly labeled, well-isolated, and treated with care. Never connect unisolated high-voltage rails directly to logic circuits or USB-connected equipment.
-
-Historical Framing
-------------------
-
-The Bell System established standard voltages for line and subscriber equipment by the early 20th century:
-
-- **Subscriber Loop (-48V DC):** Established for consistent talk battery voltage and to minimize corrosion (see below)
-- **Ringing Signal (~90V AC @ 20Hz):** Used to activate electromechanical bells
-- **Lamp Circuits (6–12V AC or DC):** Powered dial illumination and panel indicators
-- **Logic Circuits (varied):** Central office and PBX logic voltages often used -24V or +5V DC depending on the technology
-
-As systems evolved, switchmode regulators, SLICs, and integrated isolation became common in embedded and VoIP equipment. However, traditional analog phones still require these distinct voltages to function authentically.
 
 Power Domains
 -------------
