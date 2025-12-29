@@ -1,7 +1,7 @@
 Voice and Tone Audio Design
 ===========================
 
-This section covers design alternatives for implementing voice and tone audio paths in the Ma Bell Gateway. For historical background on Bell System audio standards and evolution, see :doc:`/historical-perspective`.
+This section covers design alternatives for implementing voice and tone audio paths in the Ma Bell Gateway. For historical background on Bell System audio standards and evolution, see :doc:`/bell-system-blueprint/voice`.
 
 The design must support bidirectional voice and in-band signaling tones across the tip/ring pair, with 600 Ω impedance matching and galvanic isolation.
 
