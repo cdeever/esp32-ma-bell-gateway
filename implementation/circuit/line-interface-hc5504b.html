@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-27T01:04:28+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T04:12:23+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Line Interface: HC-5504B SLIC &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -435,11 +435,10 @@ Telephone handset microphone → SLIC TX (Pin 24) → Codec ADC → I2S → ESP3
 <section id="why-this-configuration">
 <h4>Why This Configuration<a class="headerlink" href="#why-this-configuration" title="Link to this heading"></a></h4>
 <ul class="simple">
-<li><p><strong>Excellent Audio Quality:</strong> 16-bit+ audio with high SNR (106 dB DAC, 98 dB ADC)</p></li>
-<li><p><strong>No I2C Configuration:</strong> Hardware-configured via pin strapping (simpler firmware)</p></li>
-<li><p><strong>Flexible Development:</strong> Can implement DAC first (playback), then add ADC (recording)</p></li>
-<li><p><strong>Reliable:</strong> Hardware configuration eliminates software bugs related to codec initialization</p></li>
-<li><p><strong>Production-Ready:</strong> Professional telephony audio quality</p></li>
+<li><p><strong>“Wire and Go” Simplicity:</strong> Hardware-configured via pin strapping - no I2C initialization, no MCLK signal required. Just connect power, I2S signals, and audio - it works.</p></li>
+<li><p><strong>Reliable Integration:</strong> No codec driver code means no codec-related bugs. The chips configure themselves via pin strapping.</p></li>
+<li><p><strong>Overkill Specs (Intentional):</strong> The 106 dB SNR DAC and 98 dB SNR ADC far exceed 8kHz telephony requirements. These chips were chosen for integration simplicity, not optimal specification matching.</p></li>
+<li><p><strong>Trade-off Acknowledged:</strong> Using two separate chips instead of one integrated codec (like ES8388 or WM8960) costs slightly more in BOM, but eliminates firmware complexity entirely.</p></li>
 </ul>
 </section>
 <section id="pcm5100-dac-digital-to-analog-converter">
@@ -1535,7 +1534,7 @@ RING─┴─[ F2: 0.5A ]──┴────────┴──────�
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 27, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

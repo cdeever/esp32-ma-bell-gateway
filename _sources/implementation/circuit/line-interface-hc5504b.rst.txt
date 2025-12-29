@@ -291,11 +291,10 @@ The Ma Bell Gateway uses the **PCM5100 (DAC) + PCM1808 (ADC)** from Texas Instru
 Why This Configuration
 """""""""""""""""""""""
 
-- **Excellent Audio Quality:** 16-bit+ audio with high SNR (106 dB DAC, 98 dB ADC)
-- **No I2C Configuration:** Hardware-configured via pin strapping (simpler firmware)
-- **Flexible Development:** Can implement DAC first (playback), then add ADC (recording)
-- **Reliable:** Hardware configuration eliminates software bugs related to codec initialization
-- **Production-Ready:** Professional telephony audio quality
+- **"Wire and Go" Simplicity:** Hardware-configured via pin strapping - no I2C initialization, no MCLK signal required. Just connect power, I2S signals, and audio - it works.
+- **Reliable Integration:** No codec driver code means no codec-related bugs. The chips configure themselves via pin strapping.
+- **Overkill Specs (Intentional):** The 106 dB SNR DAC and 98 dB SNR ADC far exceed 8kHz telephony requirements. These chips were chosen for integration simplicity, not optimal specification matching.
+- **Trade-off Acknowledged:** Using two separate chips instead of one integrated codec (like ES8388 or WM8960) costs slightly more in BOM, but eliminates firmware complexity entirely.
 
 PCM5100 (DAC) - Digital to Analog Converter
 """"""""""""""""""""""""""""""""""""""""""""

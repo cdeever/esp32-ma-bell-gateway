@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-28T22:37:12+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T04:12:23+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Audio Subsystem &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -201,7 +201,11 @@ Phone Earpiece/Speaker
 </section>
 <section id="i2s-configuration">
 <h2>I2S Configuration<a class="headerlink" href="#i2s-configuration" title="Link to this heading"></a></h2>
-<p>Both TX and RX channels share a single I2S port with unified configuration:</p>
+<p>Both TX and RX channels share a single I2S port with unified configuration.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>Codec Choice Rationale:</strong> The PCM5100 (DAC) and PCM1808 (ADC) were selected for “wire and go” simplicity - they require no I2C initialization or MCLK signal. While their specs (106 dB / 98 dB SNR) far exceed 8kHz telephony requirements, this trade-off eliminates codec driver complexity entirely. See the circuit documentation for details.</p>
+</div>
 <p><strong>I2S Parameters:</strong></p>
 <table class="docutils align-default">
 <colgroup>
@@ -525,7 +529,7 @@ I (9001) audio_bridge: Audio TX task started (Bluetooth → Phone)
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 28, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

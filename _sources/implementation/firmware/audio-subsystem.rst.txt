@@ -104,7 +104,10 @@ Bidirectional audio flows between the phone handset and Bluetooth:
 I2S Configuration
 -----------------
 
-Both TX and RX channels share a single I2S port with unified configuration:
+Both TX and RX channels share a single I2S port with unified configuration.
+
+.. note::
+   **Codec Choice Rationale:** The PCM5100 (DAC) and PCM1808 (ADC) were selected for "wire and go" simplicity - they require no I2C initialization or MCLK signal. While their specs (106 dB / 98 dB SNR) far exceed 8kHz telephony requirements, this trade-off eliminates codec driver complexity entirely. See the circuit documentation for details.
 
 **I2S Parameters:**
 
