@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-29T04:18:17+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T12:15:21+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Line Interface: HC-5504B SLIC &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="ESP32 Pin Assignments" href="pin-assignments.html" />
-    <link rel="prev" title="Circuit Implementation" href="index.html" /> 
+    <link rel="next" title="Ring Generator" href="ring-generator.html" />
+    <link rel="prev" title="ESP32 Pin Assignments" href="pin-assignments.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,6 +53,9 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">Implementation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../bom.html">Bill of Materials</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Implementation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="system-overview.html">System Block Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="power-supply.html">Power Implementation (48V Central Supply)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pin-assignments.html">ESP32 Pin Assignments</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Line Interface: HC-5504B SLIC</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pinout-summary-dip-24">Pinout Summary (DIP-24)</a></li>
@@ -67,8 +70,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="pin-assignments.html">ESP32 Pin Assignments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="power-supply.html">Power Implementation (48V Central Supply)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ring-generator.html">Ring Generator</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../firmware/index.html">Firmware</a></li>
@@ -1338,161 +1340,14 @@ RING─┴─[ F2: 0.5A ]──┴────────┴──────�
 </section>
 <section id="pcb-design-guidelines">
 <h2>PCB Design Guidelines<a class="headerlink" href="#pcb-design-guidelines" title="Link to this heading"></a></h2>
-<p>Proper PCB layout is critical for the SLIC circuit to function reliably and meet noise/EMI requirements. Follow these guidelines during board design.</p>
-<section id="general-layout-strategy">
-<h3>General Layout Strategy<a class="headerlink" href="#general-layout-strategy" title="Link to this heading"></a></h3>
-<ol class="arabic">
-<li><p><strong>Functional Zones:</strong></p>
+<p>The SLIC circuit requires careful PCB layout for reliable operation. Key considerations include:</p>
 <ul class="simple">
-<li><p>Protection zone (fuses, bridge, MOV) near phone jack</p></li>
-<li><p>SLIC zone (IC and immediate passives) in center</p></li>
-<li><p>Audio zone (codec and coupling) near SLIC</p></li>
-<li><p>Power supply zone (buck converters, decoupling) separate from audio</p></li>
+<li><p>Star ground topology for SLIC ground pins (AG, DG, BG)</p></li>
+<li><p>High voltage clearances for -48V and 90V ring signals</p></li>
+<li><p>Separation of analog audio paths from digital signals</p></li>
+<li><p>Protection circuit placement near phone jack</p></li>
 </ul>
-</li>
-<li><p><strong>Signal Flow:</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Phone Jack ──► Protection ──► SLIC ──► Audio Codec ──► ESP32
-                               │
-                            Power Supply
-</pre></div>
-</div>
-<p>Arrange components to follow this left-to-right signal flow on PCB.</p>
-</li>
-</ol>
-</section>
-<section id="grounding">
-<h3>Grounding<a class="headerlink" href="#grounding" title="Link to this heading"></a></h3>
-<p><strong>Star Ground Topology:</strong></p>
-<p>The three SLIC ground pins (AG, DG, BG) must connect at a single star ground point as close to the SLIC as possible.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────┐
-│        SLIC IC (Top View)        │
-│                                  │
-│   Pin 23 (AG) ──┐               │
-│   Pin 6  (DG) ──┼───► ★ Star    │
-│   Pin 12 (BG) ──┘      GND Pad  │
-│                        (Copper)  │
-└─────────────────────────────────┘
-         │
-         └──► System Ground Plane
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Use wide traces (&gt;50 mil) or copper pour for star ground connection</p></li>
-<li><p>Avoid running return currents from other circuits through SLIC ground</p></li>
-<li><p>Connect star ground to main PCB ground plane at single point</p></li>
-</ul>
-</section>
-<section id="id1">
-<h3>Power Supply Decoupling<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p><strong>Ceramic capacitors (100nF):</strong> Place within 0.5” (12mm) of VB+ pin</p></li>
-<li><p><strong>Bulk capacitors (10µF):</strong> Place within 1” (25mm) of VB+ and VB- pins</p></li>
-<li><p><strong>Via placement:</strong> Use multiple vias (2-4) for power/ground connections to reduce inductance</p></li>
-</ul>
-</section>
-<section id="high-voltage-clearances">
-<h3>High Voltage Clearances<a class="headerlink" href="#high-voltage-clearances" title="Link to this heading"></a></h3>
-<p>For traces carrying -48V, +12V, or ring voltage (90V AC):</p>
-<ul class="simple">
-<li><p><strong>Trace spacing:</strong> Minimum 2mm (80 mil) between high voltage and low voltage traces</p></li>
-<li><p><strong>Creepage:</strong> Maintain 2.5mm creepage distance for 150V rating</p></li>
-<li><p><strong>Clearance:</strong> Air gap ≥2mm for 150V</p></li>
-<li><p><strong>Solder mask:</strong> Use solder mask as additional barrier but don’t rely on it alone for isolation</p></li>
-</ul>
-</section>
-<section id="audio-path-layout">
-<h3>Audio Path Layout<a class="headerlink" href="#audio-path-layout" title="Link to this heading"></a></h3>
-<p>Audio traces (SLIC TX/RX to codec) should be:</p>
-<ul class="simple">
-<li><p><strong>Short and direct:</strong> Minimize trace length (&lt;3 inches ideal)</p></li>
-<li><p><strong>Differential routing:</strong> Route TX+ and TX- as differential pair (if applicable)</p></li>
-<li><p><strong>Guard traces:</strong> Surround audio traces with ground guard traces</p></li>
-<li><p><strong>Ground plane:</strong> Provide solid ground plane under audio signals</p></li>
-<li><p><strong>Separation:</strong> Keep audio traces away from digital signals (I2S clock, data) and switching power supplies</p></li>
-</ul>
-</section>
-<section id="digital-signal-integrity">
-<h3>Digital Signal Integrity<a class="headerlink" href="#digital-signal-integrity" title="Link to this heading"></a></h3>
-<p>For ESP32 GPIO and I2S signals:</p>
-<ul class="simple">
-<li><p><strong>Trace impedance:</strong> Target 50Ω for high-speed signals (I2S BCLK, LRCLK)</p></li>
-<li><p><strong>Length matching:</strong> Match I2S data and clock trace lengths within 0.5”</p></li>
-<li><p><strong>Termination:</strong> Series 22-33Ω resistors on I2S signals near ESP32 if trace length &gt;3”</p></li>
-<li><p><strong>Crosstalk:</strong> Separate parallel traces by 3x trace width minimum</p></li>
-</ul>
-</section>
-<section id="protection-circuit-placement">
-<h3>Protection Circuit Placement<a class="headerlink" href="#protection-circuit-placement" title="Link to this heading"></a></h3>
-<p>Place protection components (fuses, bridge, MOV) as close to the phone jack as possible:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Phone Jack ──[ &lt;0.5&quot; ]──► Fuses ──[ &lt;1&quot; ]──► Bridge/MOV ──► SLIC
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Minimizes unprotected trace length</p></li>
-<li><p>Reduces chances of surge coupling to other circuits</p></li>
-<li><p>Use wide traces (&gt;20 mil / 0.5mm) for TIP/RING to handle fault currents</p></li>
-</ul>
-</section>
-<section id="layer-stackup-for-multi-layer-boards">
-<h3>Layer Stackup (for multi-layer boards)<a class="headerlink" href="#layer-stackup-for-multi-layer-boards" title="Link to this heading"></a></h3>
-<p>Recommended 4-layer stackup:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Layer</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Signal</span> <span class="o">+</span> <span class="n">Components</span> <span class="p">(</span><span class="n">top</span><span class="p">)</span>
-<span class="n">Layer</span> <span class="mi">2</span><span class="p">:</span> <span class="n">Ground</span> <span class="n">Plane</span>
-<span class="n">Layer</span> <span class="mi">3</span><span class="p">:</span> <span class="n">Power</span> <span class="n">Plane</span> <span class="p">(</span><span class="o">+</span><span class="mi">12</span><span class="n">V</span><span class="p">,</span> <span class="o">+</span><span class="mf">3.3</span><span class="n">V</span><span class="p">,</span> <span class="o">-</span><span class="mi">48</span><span class="n">V</span> <span class="n">zones</span><span class="p">)</span>
-<span class="n">Layer</span> <span class="mi">4</span><span class="p">:</span> <span class="n">Signal</span> <span class="o">+</span> <span class="n">Components</span> <span class="p">(</span><span class="n">bottom</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>For 2-layer boards:</p>
-<ul class="simple">
-<li><p>Top: Signals and components</p></li>
-<li><p>Bottom: Ground pour with power routing</p></li>
-</ul>
-</section>
-<section id="thermal-considerations">
-<h3>Thermal Considerations<a class="headerlink" href="#thermal-considerations" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p>SLIC IC can dissipate 1-2W during ringing</p></li>
-<li><p>Provide thermal relief with copper pour connected to ground pins</p></li>
-<li><p>If using DIP package, consider adding heat sink or thermal pad</p></li>
-</ul>
-</section>
-<section id="component-placement-summary">
-<h3>Component Placement Summary<a class="headerlink" href="#component-placement-summary" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌──────────────────────────────────────────────────┐
-│  Phone Jack (J1)                                  │
-│       │                                           │
-│   [Protection Zone]                               │
-│    F1, F2, BR1, MOV                               │
-│       │                                           │
-│    ┌──────────────────┐                          │
-│    │   SLIC IC (U1)   │   [Audio Zone]          │
-│    │   HC-5504B-5     │    Codec, coupling       │
-│    │                  ├──────────┐               │
-│    │  Passives around │          │               │
-│    │  (C2, C3, C4,    │      Codec IC            │
-│    │   R_TIP, R_RING) │          │               │
-│    └──────────────────┘          │               │
-│       │                           │               │
-│    [Power Zone]              I2S signals          │
-│    Buck converters           to ESP32 ───────────►│
-│    Decoupling caps                                │
-│                                                   │
-└───────────────────────────────────────────────────┘
-</pre></div>
-</div>
-</section>
-<section id="testing-validation">
-<h3>Testing &amp; Validation<a class="headerlink" href="#testing-validation" title="Link to this heading"></a></h3>
-<p>After PCB assembly:</p>
-<ol class="arabic simple">
-<li><p>Visual inspection for solder bridges, polarity</p></li>
-<li><p>Continuity check: Star ground, power rails</p></li>
-<li><p>Power-on test: Measure +12V, -48V at SLIC pins</p></li>
-<li><p>Off-hook test: Connect phone, lift handset, verify SHD signal</p></li>
-<li><p>Audio loopback: Test TX/RX paths with signal generator/scope</p></li>
-<li><p>Protection test: Apply controlled overvoltage to verify MOV clamping</p></li>
-</ol>
-</section>
+<p>For complete PCB layout guidelines including grounding, decoupling, layer stackup, and component placement, see <a class="reference internal" href="../pcb/pcb-design-overview.html"><span class="doc">PCB Design Overview</span></a>.</p>
 </section>
 <section id="design-notes">
 <h2>Design Notes<a class="headerlink" href="#design-notes" title="Link to this heading"></a></h2>
@@ -1526,8 +1381,8 @@ RING─┴─[ F2: 0.5A ]──┴────────┴──────�
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Circuit Implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="pin-assignments.html" class="btn btn-neutral float-right" title="ESP32 Pin Assignments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pin-assignments.html" class="btn btn-neutral float-left" title="ESP32 Pin Assignments" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ring-generator.html" class="btn btn-neutral float-right" title="Ring Generator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

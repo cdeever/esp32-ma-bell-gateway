@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta property="article:modified_time" content="2025-12-29T12:15:21+00:00" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Block Diagram &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Power Implementation (48V Central Supply)" href="power-supply.html" />
+    <link rel="prev" title="Circuit Implementation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../historical-perspective.html">The Bell System Blueprint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Implementation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../bom.html">Bill of Materials</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Implementation</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">System Block Diagram</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overall-system-architecture">Overall System Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#major-subsystems">Major Subsystems</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#signal-flow-summary">Signal Flow Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cross-references">Cross-References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="power-supply.html">Power Implementation (48V Central Supply)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pin-assignments.html">ESP32 Pin Assignments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="line-interface-hc5504b.html">Line Interface: HC-5504B SLIC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ring-generator.html">Ring Generator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../firmware/index.html">Firmware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pcb/index.html">PCB Design &amp; Assembly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Implementation</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Circuit Implementation</a></li>
+      <li class="breadcrumb-item active">System Block Diagram</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/implementation/circuit/system-overview.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="system-block-diagram">
+<h1>System Block Diagram<a class="headerlink" href="#system-block-diagram" title="Link to this heading"></a></h1>
+<p>This page provides a high-level overview of the Ma Bell Gateway hardware architecture, showing how all major subsystems interconnect.</p>
+<section id="overall-system-architecture">
+<h2>Overall System Architecture<a class="headerlink" href="#overall-system-architecture" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                                ┌─────────────────────────────┐
+                                │       Mobile Phone          │
+                                │    (Bluetooth HFP 1.7)      │
+                                └──────────────┬──────────────┘
+                                               │
+                                       Bluetooth Classic
+                                          (Audio + Control)
+                                               │
+┌──────────────────────────────────────────────┼──────────────────────────────────────────────┐
+│                                              │                                              │
+│                              MA BELL GATEWAY │                                              │
+│                                              │                                              │
+│  ┌────────────────┐                          │                                              │
+│  │  48V DC Power  │                          │                                              │
+│  │    Supply      │                          │                                              │
+│  │   (External)   │                          │                                              │
+│  └───────┬────────┘                          │                                              │
+│          │                                   │                                              │
+│          ▼                                   ▼                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐                    │
+│  │                        Power Distribution                          │                    │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────────┐  ┌────────────────┐  │                    │
+│  │  │ 48V→12V  │  │ 48V→3.3V │  │  48V→-48V    │  │  Ring Generator│  │                    │
+│  │  │   Buck   │  │   Buck   │  │  Inverting   │  │   90V AC 20Hz  │  │                    │
+│  │  └────┬─────┘  └────┬─────┘  └──────┬───────┘  └───────┬────────┘  │                    │
+│  │       │             │               │                  │           │                    │
+│  │       │ 12V         │ 3.3V          │ -48V             │ 90VAC     │                    │
+│  └───────┼─────────────┼───────────────┼──────────────────┼───────────┘                    │
+│          │             │               │                  │                                │
+│          │             │               │                  │                                │
+│          ▼             ▼               ▼                  ▼                                │
+│  ┌───────────────────────────────────────────────────────────────────────────────────┐    │
+│  │                              HC-5504B SLIC                                         │    │
+│  │                     (Subscriber Line Interface Circuit)                            │    │
+│  │                                                                                    │    │
+│  │   • Battery Feed: -48V loop current to telephone                                   │    │
+│  │   • 2-to-4 Wire Hybrid: Separates TX/RX audio paths                               │    │
+│  │   • Off-Hook Detection: SHD pin → GPIO 32                                         │    │
+│  │   • Ring Control: GPIO 13 → RC pin (triggers 90VAC ring)                          │    │
+│  │   • Ring Status: RD pin → GPIO 33                                                 │    │
+│  │                                                                                    │    │
+│  │   Audio Out (RX pin 21) ◄──────────────┐    ┌──────────────► Audio In (TX pin 24) │    │
+│  └────────────────────────────────────────┼────┼─────────────────────────────────────┘    │
+│                                           │    │                                          │
+│                                           │    │ Analog Audio                             │
+│                                           │    │                                          │
+│  ┌────────────────────────────────────────┼────┼─────────────────────────────────────┐    │
+│  │                              Audio Codec                                          │    │
+│  │                                        │    │                                     │    │
+│  │   ┌─────────────────┐                  │    │              ┌─────────────────┐   │    │
+│  │   │    PCM5100      │◄─────────────────┘    └─────────────►│    PCM1808      │   │    │
+│  │   │      DAC        │                                      │      ADC        │   │    │
+│  │   │  (ESP32→Phone)  │                                      │  (Phone→ESP32)  │   │    │
+│  │   └────────┬────────┘                                      └────────┬────────┘   │    │
+│  │            │                                                        │            │    │
+│  │            │ I2S DOUT (GPIO 26)                    I2S DIN (GPIO 35)│            │    │
+│  │            │                                                        │            │    │
+│  │            │         Shared: BCLK (GPIO 5), LRCLK (GPIO 25)         │            │    │
+│  └────────────┼────────────────────────────────────────────────────────┼────────────┘    │
+│               │                                                        │                 │
+│               │                        I2S Bus                         │                 │
+│               │                                                        │                 │
+│               ▼                                                        ▼                 │
+│  ┌───────────────────────────────────────────────────────────────────────────────────┐   │
+│  │                             ESP32-WROVER-IE                                        │   │
+│  │                                                                                    │   │
+│  │   ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────────────────────┐ │   │
+│  │   │   I2S Driver    │   │  Bluetooth HFP  │   │         GPIO Control            │ │   │
+│  │   │                 │   │   (Internal)    │   │                                 │ │   │
+│  │   │ • 8kHz/16-bit   │   │                 │   │ • Off-hook: GPIO 32 (input)     │ │   │
+│  │   │ • Mono          │   │ • HFP 1.7       │   │ • Ring cmd: GPIO 13 (output)    │ │   │
+│  │   │ • HCI audio path│   │ • Audio routing │   │ • Ring status: GPIO 33 (input)  │ │   │
+│  │   └─────────────────┘   │ • Call control  │   │ • Pulse dial: GPIO 34 (input)   │ │   │
+│  │                         └─────────────────┘   └─────────────────────────────────┘ │   │
+│  │                                                                                    │   │
+│  │   ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────────────────────┐ │   │
+│  │   │   WiFi (STA)    │   │   Web Server    │   │     State Machine / App         │ │   │
+│  │   │  (Internal)     │   │   (HTTP API)    │   │  (Dial tone, busy, ringback)    │ │   │
+│  │   └─────────────────┘   └─────────────────┘   └─────────────────────────────────┘ │   │
+│  └───────────────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                          │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+                                               │
+                                   Tip/Ring (RJ11: green=Tip, red=Ring)
+                                               │
+                                               ▼
+                                ┌─────────────────────────────┐
+                                │     Vintage Telephone       │
+                                │   (500/2500 series, etc.)   │
+                                │                             │
+                                │  • Handset (mic + earpiece) │
+                                │  • Rotary or touch-tone dial│
+                                │  • Electromechanical ringer │
+                                └─────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<section id="major-subsystems">
+<h2>Major Subsystems<a class="headerlink" href="#major-subsystems" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>Power Supply</strong></dt><dd><p>Converts external 48V DC into all required voltage rails. See <a class="reference internal" href="power-supply.html"><span class="doc">Power Implementation (48V Central Supply)</span></a> for detailed design.</p>
+<ul class="simple">
+<li><p><strong>12V</strong>: SLIC analog power (VB+ pin)</p></li>
+<li><p><strong>3.3V</strong>: ESP32, audio codecs, digital logic</p></li>
+<li><p><strong>-48V</strong>: Telephone loop feed (on-hook voltage)</p></li>
+<li><p><strong>90V AC 20Hz</strong>: Ringer voltage (via ring relay)</p></li>
+</ul>
+</dd>
+<dt><strong>ESP32-WROVER-IE</strong></dt><dd><p>Central microcontroller handling all digital functions:</p>
+<ul class="simple">
+<li><p>Bluetooth HFP 1.7 client (internal radio)</p></li>
+<li><p>I2S audio interface (8kHz, 16-bit, mono)</p></li>
+<li><p>GPIO monitoring and control</p></li>
+<li><p>WiFi for status/configuration web interface</p></li>
+<li><p>FreeRTOS-based firmware</p></li>
+</ul>
+</dd>
+<dt><strong>Audio Codec (PCM5100 + PCM1808)</strong></dt><dd><p>Converts between digital I2S and analog audio for the SLIC. See <a class="reference internal" href="line-interface-hc5504b.html"><span class="doc">Line Interface: HC-5504B SLIC</span></a> for codec details.</p>
+<ul class="simple">
+<li><p><strong>PCM5100 DAC</strong>: ESP32 → Phone earpiece path</p></li>
+<li><p><strong>PCM1808 ADC</strong>: Phone microphone → ESP32 path</p></li>
+<li><p>Hardware-configured (“wire and go” - no I2C needed)</p></li>
+</ul>
+</dd>
+<dt><strong>HC-5504B SLIC</strong></dt><dd><p>Subscriber Line Interface Circuit - the heart of the telephone interface. See <a class="reference internal" href="line-interface-hc5504b.html"><span class="doc">Line Interface: HC-5504B SLIC</span></a> for complete documentation.</p>
+<ul class="simple">
+<li><p>Provides -48V battery feed to telephone</p></li>
+<li><p>2-wire to 4-wire hybrid conversion</p></li>
+<li><p>Off-hook detection (switch hook detect)</p></li>
+<li><p>Ring relay control for ringer activation</p></li>
+</ul>
+</dd>
+<dt><strong>Vintage Telephone</strong></dt><dd><p>Standard analog telephone connected via RJ11 (tip/ring):</p>
+<ul class="simple">
+<li><p>Receives -48V loop current when on-hook</p></li>
+<li><p>Off-hook draws 20-80mA loop current</p></li>
+<li><p>Ringer activated by 90V AC at 20Hz</p></li>
+<li><p>Audio via tip/ring pair (green=Tip, red=Ring)</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="signal-flow-summary">
+<h2>Signal Flow Summary<a class="headerlink" href="#signal-flow-summary" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>Outgoing Call (Phone → Mobile)</strong></dt><dd><ol class="arabic simple">
+<li><p>User lifts handset (off-hook detected via GPIO 32)</p></li>
+<li><p>ESP32 plays dial tone via I2S → DAC → SLIC → earpiece</p></li>
+<li><p>User dials number (pulse or DTMF detected)</p></li>
+<li><p>ESP32 initiates call via Bluetooth HFP</p></li>
+<li><p>Voice: Mic → SLIC TX → ADC → I2S → ESP32 → Bluetooth → Mobile</p></li>
+</ol>
+</dd>
+<dt><strong>Incoming Call (Mobile → Phone)</strong></dt><dd><ol class="arabic simple">
+<li><p>Mobile phone rings, HFP notifies ESP32</p></li>
+<li><p>ESP32 activates ring relay (GPIO 13 → SLIC RC)</p></li>
+<li><p>90V AC rings the telephone bell</p></li>
+<li><p>User lifts handset (off-hook detected, ring stops)</p></li>
+<li><p>Voice: Mobile → Bluetooth → ESP32 → I2S → DAC → SLIC RX → earpiece</p></li>
+</ol>
+</dd>
+</dl>
+</section>
+<section id="cross-references">
+<h2>Cross-References<a class="headerlink" href="#cross-references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="power-supply.html"><span class="doc">Power Implementation (48V Central Supply)</span></a> - Power supply design and voltage rails</p></li>
+<li><p><a class="reference internal" href="pin-assignments.html"><span class="doc">ESP32 Pin Assignments</span></a> - Complete ESP32 GPIO pin mapping</p></li>
+<li><p><a class="reference internal" href="line-interface-hc5504b.html"><span class="doc">Line Interface: HC-5504B SLIC</span></a> - HC-5504B SLIC circuit details</p></li>
+<li><p><a class="reference internal" href="../firmware/architecture.html"><span class="doc">Firmware Architecture</span></a> - Firmware module organization</p></li>
+<li><p><a class="reference internal" href="../firmware/audio-subsystem.html"><span class="doc">Audio Subsystem</span></a> - Audio software implementation</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Circuit Implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="power-supply.html" class="btn btn-neutral float-right" title="Power Implementation (48V Central Supply)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

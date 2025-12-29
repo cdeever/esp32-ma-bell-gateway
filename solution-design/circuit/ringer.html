@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-06-30T11:23:02+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T12:15:21+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ringer Signaling &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -151,6 +151,13 @@
 - The amplified signal feeds a step-up transformer, producing ~90 V RMS at 20 Hz for the ringer.
 - This approach provides galvanic isolation, robust voltage swing, and a waveform profile <strong>closest to authentic Bell System signals</strong>.
 - The oscillator can be implemented using analog circuits or digitally via a microcontroller, enabling flexible frequency, cadence, and pattern control.</p>
+<p><strong>4. Commercial Telecom Ring Generator Module</strong>
+- Pre-built DC-to-AC inverter modules designed specifically for telecom applications.
+- Accepts 48V DC input, outputs 90V AC at 20Hz with proper sine wave shape.
+- Provides galvanic isolation between input and output.
+- Examples include Beta Dyne RG3000 series and specialty telecom power modules.
+- Simplest integration path—no custom oscillator design or transformer winding required.
+- Matches the “dedicated IC” design philosophy used elsewhere in the system (e.g., using a SLIC for line interface rather than discrete components).</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p><strong>Authentic Bell System Ringing:</strong>
@@ -182,7 +189,7 @@ For true compatibility with vintage electromechanical ringers, the signal must b
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Jun 30, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

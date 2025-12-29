@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-28T22:37:12+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T12:15:21+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SLIC Interface Monitoring &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -64,6 +64,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#diagnostic-output">Diagnostic Output</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#web-api-integration">Web API Integration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ring-control">Ring Control</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#future-enhancements">Future Enhancements</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-files">Module Files</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
@@ -330,6 +331,87 @@ I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 </div>
 </section>
 </section>
+<section id="ring-control">
+<h2>Ring Control<a class="headerlink" href="#ring-control" title="Link to this heading"></a></h2>
+<p>The ESP32 controls the ringing cadence by driving the SLIC RC (Ring Command) pin. The SLIC does NOT generate the 90V AC ring signal—it only controls the relay that switches between normal battery feed and the external ring generator.</p>
+<p>For hardware details on the ring generator circuit, see <a class="reference internal" href="../circuit/ring-generator.html"><span class="doc">Ring Generator</span></a>.</p>
+<section id="id1">
+<h3>Hardware Connection<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>ESP32-WROVER                    HC-5504B SLIC
+┌─────────────┐                ┌────────────┐
+│             │                │            │
+│  GPIO 13    ├────────────────┤ Pin 16     │
+│  (Output)   │   Active LOW   │ (RC)       │
+│             │                │            │
+└─────────────┘                └────────────┘
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>ESP32 GPIO 13:</strong> Ring Command output</p></li>
+<li><p><strong>SLIC Pin 16 (RC):</strong> Ring Command input</p></li>
+<li><p><strong>Signal Logic:</strong> Active LOW (0V = ring, 3.3V = idle)</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>GPIO Configuration<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<p>The ring command pin is configured during initialization:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define PIN_RING_COMMAND    GPIO_NUM_13</span>
+
+<span class="n">gpio_config_t</span><span class="w"> </span><span class="n">io_conf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">.</span><span class="n">pin_bit_mask</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">1ULL</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">PIN_RING_COMMAND</span><span class="p">),</span>
+<span class="w">    </span><span class="p">.</span><span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_MODE_OUTPUT</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">pull_up_en</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_PULLUP_DISABLE</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">pull_down_en</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_PULLDOWN_DISABLE</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">intr_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GPIO_INTR_DISABLE</span>
+<span class="p">};</span>
+<span class="n">gpio_config</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io_conf</span><span class="p">);</span>
+<span class="n">gpio_set_level</span><span class="p">(</span><span class="n">PIN_RING_COMMAND</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// Start in idle state (HIGH)</span>
+</pre></div>
+</div>
+</section>
+<section id="cadence-generation">
+<h3>Cadence Generation<a class="headerlink" href="#cadence-generation" title="Link to this heading"></a></h3>
+<p>Standard North American ringing uses a 2 seconds ON, 4 seconds OFF cadence. The firmware generates this pattern:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define RING_ON_MS          2000    </span><span class="c1">// 2 seconds</span>
+<span class="cp">#define RING_OFF_MS         4000    </span><span class="c1">// 4 seconds</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">ring_telephone</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ring_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">incoming_call_active</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">phone_off_hook</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Ring ON</span>
+<span class="w">        </span><span class="n">gpio_set_level</span><span class="p">(</span><span class="n">PIN_RING_COMMAND</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w">  </span><span class="c1">// LOW = ring</span>
+<span class="w">        </span><span class="n">vTaskDelay</span><span class="p">(</span><span class="n">pdMS_TO_TICKS</span><span class="p">(</span><span class="n">RING_ON_MS</span><span class="p">));</span>
+
+<span class="w">        </span><span class="c1">// Check for ring trip (off-hook)</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">phone_off_hook</span><span class="p">)</span><span class="w"> </span><span class="k">break</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Ring OFF</span>
+<span class="w">        </span><span class="n">gpio_set_level</span><span class="p">(</span><span class="n">PIN_RING_COMMAND</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// HIGH = idle</span>
+<span class="w">        </span><span class="n">vTaskDelay</span><span class="p">(</span><span class="n">pdMS_TO_TICKS</span><span class="p">(</span><span class="n">RING_OFF_MS</span><span class="p">));</span>
+
+<span class="w">        </span><span class="n">ring_count</span><span class="o">++</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Ensure ring is off</span>
+<span class="w">    </span><span class="n">gpio_set_level</span><span class="p">(</span><span class="n">PIN_RING_COMMAND</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Cadence Parameters:</strong></p>
+<ul class="simple">
+<li><p><strong>Ring ON:</strong> 2000ms (2 seconds)</p></li>
+<li><p><strong>Ring OFF:</strong> 4000ms (4 seconds)</p></li>
+<li><p><strong>Cycle:</strong> 6 seconds total</p></li>
+</ul>
+</section>
+<section id="ring-trip-detection">
+<h3>Ring Trip Detection<a class="headerlink" href="#ring-trip-detection" title="Link to this heading"></a></h3>
+<p>The SLIC automatically detects if the phone goes off-hook during ringing (ring trip). The firmware monitors GPIO 32 (SHD pin) to detect this condition and stop the ring sequence. When <code class="docutils literal notranslate"><span class="pre">phone_off_hook</span></code> becomes true, the ring loop exits and the ring command is deactivated.</p>
+<p>This prevents the ringer from sounding after the user has answered the call.</p>
+</section>
+</section>
 <section id="future-enhancements">
 <h2>Future Enhancements<a class="headerlink" href="#future-enhancements" title="Link to this heading"></a></h2>
 <p>The current implementation provides a foundation for expanded phone hardware monitoring:</p>
@@ -342,13 +424,6 @@ I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 <li><p>Detect ring cadence patterns</p></li>
 </ul>
 </li>
-<li><p><strong>Ring Control (GPIO 13):</strong></p>
-<ul class="simple">
-<li><p>Output to SLIC RC pin to trigger ringing</p></li>
-<li><p>Implement ring cadence generation</p></li>
-<li><p>Control ring voltage relay</p></li>
-</ul>
-</li>
 <li><p><strong>Pulse Dial Detection (GPIO 34):</strong></p>
 <ul class="simple">
 <li><p>Decode rotary dial pulses (10 PPS typical)</p></li>
@@ -356,6 +431,8 @@ I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 <li><p>Implement inter-digit timeout detection</p></li>
 </ul>
 </li>
+</ol>
+<ol class="arabic simple" start="4">
 <li><p><strong>Interrupt-Based Detection:</strong></p>
 <ul class="simple">
 <li><p>Replace polling with GPIO edge interrupts</p></li>
@@ -416,7 +493,7 @@ I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 28, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

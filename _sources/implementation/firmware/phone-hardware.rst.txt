@@ -259,6 +259,95 @@ Tasks can register to receive notifications when phone state changes:
        5000  // 5 second timeout
    );
 
+Ring Control
+------------
+
+The ESP32 controls the ringing cadence by driving the SLIC RC (Ring Command) pin. The SLIC does NOT generate the 90V AC ring signal—it only controls the relay that switches between normal battery feed and the external ring generator.
+
+For hardware details on the ring generator circuit, see :doc:`../circuit/ring-generator`.
+
+Hardware Connection
+^^^^^^^^^^^^^^^^^^^
+
+::
+
+    ESP32-WROVER                    HC-5504B SLIC
+    ┌─────────────┐                ┌────────────┐
+    │             │                │            │
+    │  GPIO 13    ├────────────────┤ Pin 16     │
+    │  (Output)   │   Active LOW   │ (RC)       │
+    │             │                │            │
+    └─────────────┘                └────────────┘
+
+- **ESP32 GPIO 13:** Ring Command output
+- **SLIC Pin 16 (RC):** Ring Command input
+- **Signal Logic:** Active LOW (0V = ring, 3.3V = idle)
+
+GPIO Configuration
+^^^^^^^^^^^^^^^^^^
+
+The ring command pin is configured during initialization:
+
+.. code-block:: c
+
+   #define PIN_RING_COMMAND    GPIO_NUM_13
+
+   gpio_config_t io_conf = {
+       .pin_bit_mask = (1ULL << PIN_RING_COMMAND),
+       .mode = GPIO_MODE_OUTPUT,
+       .pull_up_en = GPIO_PULLUP_DISABLE,
+       .pull_down_en = GPIO_PULLDOWN_DISABLE,
+       .intr_type = GPIO_INTR_DISABLE
+   };
+   gpio_config(&io_conf);
+   gpio_set_level(PIN_RING_COMMAND, 1);  // Start in idle state (HIGH)
+
+Cadence Generation
+^^^^^^^^^^^^^^^^^^
+
+Standard North American ringing uses a 2 seconds ON, 4 seconds OFF cadence. The firmware generates this pattern:
+
+.. code-block:: c
+
+   #define RING_ON_MS          2000    // 2 seconds
+   #define RING_OFF_MS         4000    // 4 seconds
+
+   void ring_telephone(void)
+   {
+       int ring_count = 0;
+
+       while (incoming_call_active && !phone_off_hook) {
+           // Ring ON
+           gpio_set_level(PIN_RING_COMMAND, 0);  // LOW = ring
+           vTaskDelay(pdMS_TO_TICKS(RING_ON_MS));
+
+           // Check for ring trip (off-hook)
+           if (phone_off_hook) break;
+
+           // Ring OFF
+           gpio_set_level(PIN_RING_COMMAND, 1);  // HIGH = idle
+           vTaskDelay(pdMS_TO_TICKS(RING_OFF_MS));
+
+           ring_count++;
+       }
+
+       // Ensure ring is off
+       gpio_set_level(PIN_RING_COMMAND, 1);
+   }
+
+**Cadence Parameters:**
+
+- **Ring ON:** 2000ms (2 seconds)
+- **Ring OFF:** 4000ms (4 seconds)
+- **Cycle:** 6 seconds total
+
+Ring Trip Detection
+^^^^^^^^^^^^^^^^^^^
+
+The SLIC automatically detects if the phone goes off-hook during ringing (ring trip). The firmware monitors GPIO 32 (SHD pin) to detect this condition and stop the ring sequence. When ``phone_off_hook`` becomes true, the ring loop exits and the ring command is deactivated.
+
+This prevents the ringer from sounding after the user has answered the call.
+
 Future Enhancements
 -------------------
 
@@ -272,13 +361,7 @@ The current implementation provides a foundation for expanded phone hardware mon
    - Count ring cycles
    - Detect ring cadence patterns
 
-2. **Ring Control (GPIO 13):**
-
-   - Output to SLIC RC pin to trigger ringing
-   - Implement ring cadence generation
-   - Control ring voltage relay
-
-3. **Pulse Dial Detection (GPIO 34):**
+2. **Pulse Dial Detection (GPIO 34):**
 
    - Decode rotary dial pulses (10 PPS typical)
    - Accumulate digit values (1-9 pulses = 1-9, 10 pulses = 0)
