@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-29T04:12:23+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T04:18:17+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Line Interface: HC-5504B SLIC &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -424,10 +424,10 @@ Audio does not connect directly to ESP32. Instead, the SLIC’s TX and RX pins c
                                         - GPIO 35 (DIN from codec)
 </pre></div>
 </div>
-<p><strong>Transmit Path (ESP32 → Phone):</strong>
-ESP32 → I2S → Codec DAC → SLIC RX (Pin 21) → Telephone handset speaker</p>
-<p><strong>Receive Path (Phone → ESP32):</strong>
-Telephone handset microphone → SLIC TX (Pin 24) → Codec ADC → I2S → ESP32</p>
+<p><strong>Transmit Path (ESP32 → Phone Earpiece):</strong>
+ESP32 → I2S → Codec DAC → SLIC RX (Pin 21) → Tip/Ring (RJ11: green=Tip, red=Ring) → Telephone handset earpiece</p>
+<p><strong>Receive Path (Phone Microphone → ESP32):</strong>
+Telephone handset microphone → Tip/Ring (RJ11: green=Tip, red=Ring) → SLIC TX (Pin 24) → Codec ADC → I2S → ESP32</p>
 </section>
 <section id="selected-audio-codec-configuration">
 <h3>Selected Audio Codec Configuration<a class="headerlink" href="#selected-audio-codec-configuration" title="Link to this heading"></a></h3>

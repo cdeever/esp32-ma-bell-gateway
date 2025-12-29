@@ -277,11 +277,11 @@ Signal Flow Diagram
                                             - GPIO 26 (DOUT to codec)
                                             - GPIO 35 (DIN from codec)
 
-**Transmit Path (ESP32 → Phone):**
-ESP32 → I2S → Codec DAC → SLIC RX (Pin 21) → Telephone handset speaker
+**Transmit Path (ESP32 → Phone Earpiece):**
+ESP32 → I2S → Codec DAC → SLIC RX (Pin 21) → Tip/Ring (RJ11: green=Tip, red=Ring) → Telephone handset earpiece
 
-**Receive Path (Phone → ESP32):**
-Telephone handset microphone → SLIC TX (Pin 24) → Codec ADC → I2S → ESP32
+**Receive Path (Phone Microphone → ESP32):**
+Telephone handset microphone → Tip/Ring (RJ11: green=Tip, red=Ring) → SLIC TX (Pin 24) → Codec ADC → I2S → ESP32
 
 Selected Audio Codec Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
