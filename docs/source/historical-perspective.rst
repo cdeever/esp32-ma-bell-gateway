@@ -132,3 +132,15 @@ The Bell System employed a variety of techniques over the decades to achieve cle
 - SLICs include balanced drivers, hybrids, and filters internally.
 - Audio is digitized near the line, with signal paths managed digitally.
 - Provide built-in gain, echo cancellation, and tone injection in VoIP gear.
+
+Power Domains
+-------------
+
+The Bell System established standard voltages for line and subscriber equipment by the early 20th century:
+
+- **Subscriber Loop (-48V DC):** Established for consistent talk battery voltage and to minimize corrosion at outdoor wiring connections
+- **Ringing Signal (~90V AC @ 20Hz):** Used to activate electromechanical bells
+- **Lamp Circuits (6–12V AC or DC):** Powered dial illumination and panel indicators
+- **Logic Circuits (varied):** Central office and PBX logic voltages often used -24V or +5V DC depending on the technology
+
+As systems evolved, switchmode regulators, SLICs, and integrated isolation became common in embedded and VoIP equipment. However, traditional analog phones still require these distinct voltages to function authentically.

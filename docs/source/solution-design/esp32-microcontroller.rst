@@ -7,6 +7,23 @@ ESP32 Microcontroller
    :width: 300px
    :align: center
 
+Why ESP32?
+----------
+
+The Ma Bell Gateway requires both **Bluetooth** (for phone calls via HFP) and **Wi-Fi** (for the status web interface)—a combination that immediately narrows the field of suitable microcontrollers. While options like the Raspberry Pi Zero or Pico, Arduino-based boards, or other MCUs exist, the **ESP32** stands out as the best fit for this project:
+
+- **Integrated Bluetooth Classic + Wi-Fi** in a single chip, with well-tested coexistence
+- **Mature SDK (ESP-IDF)** with extensive documentation and active community support
+- **Real-time capable** via FreeRTOS for handling telephony timing requirements
+- **Cost-effective** compared to Linux-based alternatives like the Raspberry Pi
+- **Low power** compared to running a full Linux OS for what is fundamentally an embedded task
+- **Rich peripheral support** including I2S for high-quality audio, GPIOs for phone line control, and hardware timers for precise tone generation
+
+For a project that bridges vintage analog hardware with modern wireless connectivity, the ESP32's combination of wireless radios, real-time performance, and embedded simplicity makes it the natural choice.
+
+Selecting the Right Variant
+---------------------------
+
 Selecting the right ESP32 variant can be surprisingly tricky. There are dozens of versions—ESP32-C2, ESP32-S3, ESP32-WROVER, WROOM-32, and more—each with its own trade-offs in price, peripherals, core count, wireless support, and package size. After researching compatibility, availability, and feature sets, the **ESP32-WROVER-IE** was chosen for this project.
 
 This module strikes an ideal balance for the Ma Bell Gateway:
@@ -34,36 +51,9 @@ While Wi-Fi and Bluetooth share the same radio hardware, the ESP32 manages coexi
 
 The ability to reliably run both wireless stacks alongside real-time GPIO handling was a key reason the WROVER-IE was selected.
 
-Audio Output Architecture
--------------------------
+Audio Interface
+---------------
 
-The Ma Bell Gateway uses an **external DAC connected via I2S** for all audio output, including tones and Bluetooth-transmitted voice. This design decision provides several key advantages:
+The ESP32 provides **I2S (Inter-IC Sound)** as its primary interface for high-quality digital audio. This allows connection to external DACs and ADCs for voice and tone generation/capture, which is essential for telephony-grade audio quality.
 
-- **High Audio Quality:** 16-bit+ resolution ensures clear voice transmission and high-fidelity tone generation
-- **Flexible Output:** Single audio path supports both tone generation and voice playback, with hardware managing source switching
-- **Hardware-Configured Operation:** Pin-strapping configuration eliminates complex software initialization and reduces potential software bugs
-- **Production-Ready Quality:** Professional telephony audio suitable for commercial deployment
-
-Audio output is routed from the external DAC to the telephone earpiece via the SLIC line interface, with proper impedance matching and AC coupling to ensure compatibility with standard telephone handsets.
-
-**Alternative Approaches Considered:**
-
-- *ESP32 Built-in DAC (GPIO25/26):* 8-bit resolution insufficient for high-quality voice transmission; suitable only for prototyping and early development testing
-- *PWM Audio (LEDC):* Square-wave generation adequate for simple tones but lacks fidelity for voice and introduces switching noise incompatible with telephony quality standards
-
-Audio Input Architecture
-------------------------
-
-The Ma Bell Gateway uses an **external ADC connected via I2S** for capturing microphone audio from the telephone handset. This architectural decision enables high-quality voice transmission over Bluetooth with several advantages:
-
-- **Clear Voice Capture:** High signal-to-noise ratio and low distortion ensure intelligible voice transmission for Bluetooth HFP calls
-- **Hardware-Configured Operation:** Pin-strapping configuration simplifies firmware and eliminates codec initialization complexity
-- **Digital Interface Noise Immunity:** I2S digital interface reduces susceptibility to analog noise and ground loops common in telephony circuits
-- **Legacy Phone Microphone Compatibility:** External ADC allows proper gain staging and filtering for vintage telephone handset microphones
-
-The audio input path interfaces with the Bluetooth HFP stack to transmit voice from the telephone handset to the paired mobile device. Circuit design includes impedance matching, DC blocking, and AC coupling to ensure clean audio capture from the SLIC's transmit path.
-
-**Alternative Approaches Considered:**
-
-- *ESP32 Built-in ADC (GPIO36-39):* Designed for sensor readings, not continuous audio sampling; insufficient sample rate and quality for telephony applications
-- *I2S Digital Microphone:* Would require replacing the telephone handset's microphone entirely; not applicable to the Ma Bell Gateway's use case of preserving the vintage phone experience
+For detailed audio design alternatives and the external codec architecture, see :doc:`circuit/audio`.
