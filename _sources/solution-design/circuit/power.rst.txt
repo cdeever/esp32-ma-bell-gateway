@@ -6,7 +6,7 @@ Overview
 
 Legacy analog telephone systems operated across multiple voltage domains, each serving a distinct role—subscriber loop voltage, AC ringing, lamp power, and logic control. In recreating this behavior, the Ma Bell Gateway must provide safe and isolated supplies that replicate historical behavior while remaining compatible with modern digital components.
 
-For historical context on Bell System standard voltages, see :doc:`/historical-perspective`.
+For historical context on Bell System standard voltages, see :doc:`/bell-system-blueprint/power`.
 
 .. note::
    **Safety First:** Voltages above 48V can be hazardous. High-voltage domains must be clearly labeled, well-isolated, and treated with care. Never connect unisolated high-voltage rails directly to logic circuits or USB-connected equipment.

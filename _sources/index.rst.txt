@@ -23,7 +23,7 @@ By blending retro hardware with modern embedded technology, this project faithfu
 
    introduction
    standards
-   historical-perspective
+   bell-system-blueprint/index
    /solution-design/index
    /implementation/index
    usage

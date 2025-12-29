@@ -7,7 +7,7 @@
 
     <meta property="article:modified_time" content="2025-12-29T14:50:01+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Solution Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+  <title>The Bell System Blueprint &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=edc13519" />
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ESP32 Microcontroller" href="esp32-microcontroller.html" />
-    <link rel="prev" title="Power Domains" href="../bell-system-blueprint/power.html" /> 
+    <link rel="next" title="The BORSCHT Model" href="borscht.html" />
+    <link rel="prev" title="Telephone Service Standards" href="../standards.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,14 +48,15 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../standards.html">Telephone Service Standards</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../bell-system-blueprint/index.html">The Bell System Blueprint</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Solution Design</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="esp32-microcontroller.html">ESP32 Microcontroller</a></li>
-<li class="toctree-l2"><a class="reference internal" href="circuit/index.html">Circuit Design</a></li>
-<li class="toctree-l2"><a class="reference internal" href="software/index.html">Firmware Design</a></li>
-<li class="toctree-l2"><a class="reference internal" href="enclosure/index.html">Enclosure Design</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The Bell System Blueprint</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="borscht.html">The BORSCHT Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="voice.html">Voice Transmission</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signaling-tones.html">Signaling Tones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dialing.html">Dialing Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html">Power Domains</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../solution-design/index.html">Solution Design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../implementation/index.html">Implementation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">User Guide</a></li>
 </ul>
@@ -74,9 +75,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Solution Design</li>
+      <li class="breadcrumb-item active">The Bell System Blueprint</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/solution-design/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/bell-system-blueprint/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -84,27 +85,27 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="solution-design">
-<h1>Solution Design<a class="headerlink" href="#solution-design" title="Link to this heading"></a></h1>
-<p>This section documents the <strong>design decisions</strong> for the Ma Bell Gateway project—the “what” and “why” of the system architecture, not the “how” of building it.</p>
-<p><strong>What You’ll Find Here:</strong></p>
+  <section id="the-bell-system-blueprint">
+<h1>The Bell System Blueprint<a class="headerlink" href="#the-bell-system-blueprint" title="Link to this heading"></a></h1>
+<p>Before the rise of digital switching and VoIP, the <strong>Bell System</strong> established a rigorous engineering model for delivering reliable analog phone service across millions of subscriber lines. At the heart of this model was the <strong>subscriber line interface</strong>—the circuit that connected each individual phone to the central office (CO).</p>
+<p>To standardize the functions of these circuits, Bell Labs engineers coined the acronym <strong>BORSCHT</strong>, which neatly summarizes the core services every line interface must provide. This framework guided the design of <strong>line cards</strong> like the Western Electric 400E and its descendants—modular units that delivered service to one subscriber each and operated faithfully for decades inside CO switching racks.</p>
+<p>This section explores the engineering principles and historical evolution of the Bell System’s subscriber line technology—the foundation upon which the Ma Bell Gateway is built.</p>
 <ul class="simple">
-<li><p><strong>Design Alternatives:</strong> Multiple approaches considered for each subsystem</p></li>
-<li><p><strong>Trade-Off Analysis:</strong> Pros, cons, and constraints for each option</p></li>
-<li><p><strong>Decision Rationale:</strong> Why specific components and approaches were chosen</p></li>
-<li><p><strong>Requirements:</strong> Functional and non-functional requirements that drove decisions</p></li>
+<li><p><strong>BORSCHT Model</strong> – The seven core functions every subscriber line interface must provide</p></li>
+<li><p><strong>Voice Transmission</strong> – How the Bell System achieved clear, full-duplex audio over two wires</p></li>
+<li><p><strong>Signaling Tones</strong> – The evolution of dial tone, ringback, and busy signals</p></li>
+<li><p><strong>Dialing Methods</strong> – From rotary pulse dialing to Touch-Tone DTMF</p></li>
+<li><p><strong>Power Domains</strong> – The standard voltages that powered telephone equipment</p></li>
 </ul>
-<p><strong>Design vs. Implementation:</strong></p>
-<p>The design section focuses on <em>choices</em>—evaluating options, weighing trade-offs, and documenting decisions. The implementation section focuses on <em>execution</em>—how to actually build the chosen design, with schematics, code, and assembly instructions.</p>
-<p>For historical context on Bell System standards and engineering philosophy, see <a class="reference internal" href="../bell-system-blueprint/index.html"><span class="doc">The Bell System Blueprint</span></a>.</p>
 <hr class="docutils" />
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="esp32-microcontroller.html">ESP32 Microcontroller</a></li>
-<li class="toctree-l1"><a class="reference internal" href="circuit/index.html">Circuit Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="software/index.html">Firmware Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="enclosure/index.html">Enclosure Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="borscht.html">The BORSCHT Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="voice.html">Voice Transmission</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signaling-tones.html">Signaling Tones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dialing.html">Dialing Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="power.html">Power Domains</a></li>
 </ul>
 </div>
 </section>
@@ -113,8 +114,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../bell-system-blueprint/power.html" class="btn btn-neutral float-left" title="Power Domains" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="esp32-microcontroller.html" class="btn btn-neutral float-right" title="ESP32 Microcontroller" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../standards.html" class="btn btn-neutral float-left" title="Telephone Service Standards" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="borscht.html" class="btn btn-neutral float-right" title="The BORSCHT Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

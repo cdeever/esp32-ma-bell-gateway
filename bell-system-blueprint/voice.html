@@ -1,0 +1,208 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta property="article:modified_time" content="2025-12-29T14:50:01+00:00" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Transmission &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Signaling Tones" href="signaling-tones.html" />
+    <link rel="prev" title="The BORSCHT Model" href="borscht.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">The Bell System Blueprint</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="borscht.html">The BORSCHT Model</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Voice Transmission</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#target-parameters">Target Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audio-paths">Audio Paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#historical-evolution">Historical Evolution</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#carbon-microphone-induction-coil-1900s1940s">Carbon Microphone &amp; Induction Coil (1900s–1940s)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hybrid-transformers-1950s1980s">Hybrid Transformers (1950s–1980s)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#integrated-line-interface-circuits-1990spresent">Integrated Line Interface Circuits (1990s–Present)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#the-600-ohm-standard">The 600 Ohm Standard</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="signaling-tones.html">Signaling Tones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dialing.html">Dialing Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html">Power Domains</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../implementation/index.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">The Bell System Blueprint</a></li>
+      <li class="breadcrumb-item active">Voice Transmission</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/bell-system-blueprint/voice.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="voice-transmission">
+<h1>Voice Transmission<a class="headerlink" href="#voice-transmission" title="Link to this heading"></a></h1>
+<p>The analog telephone interface must support <strong>bidirectional voice transmission</strong> across just two wires: <strong>tip and ring</strong>. Achieving clear, full-duplex audio over a single pair of conductors was one of the Bell System’s most elegant engineering accomplishments.</p>
+<section id="target-parameters">
+<h2>Target Parameters<a class="headerlink" href="#target-parameters" title="Link to this heading"></a></h2>
+<p>Historically, analog telephone voice circuits adhered to the following standards:</p>
+<ul class="simple">
+<li><p><strong>Impedance:</strong> 600 Ω balanced (nominal)</p></li>
+<li><p><strong>Voice Bandwidth:</strong> 300 Hz to 3400 Hz (standard “voice band”)</p></li>
+<li><p><strong>Signal Level:</strong>
+- Transmit (talk-out): ~0 dBm nominal
+- Receive (talk-in): –10 to –20 dBm typical</p></li>
+<li><p><strong>Isolation:</strong> Galvanic isolation from line circuitry is essential</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>What is Galvanic Isolation?</strong>
+Galvanic isolation means there is <strong>no direct electrical connection</strong> between two circuits—only signal transfer via magnetic, optical, or capacitive coupling. This prevents high voltages or ground loops from damaging sensitive electronics or endangering users.
+Common methods include transformers and optocouplers.</p>
+</div>
+</section>
+<section id="audio-paths">
+<h2>Audio Paths<a class="headerlink" href="#audio-paths" title="Link to this heading"></a></h2>
+<p>Two independent analog paths must be supported:</p>
+<ul class="simple">
+<li><p><strong>Earpiece / Receive Path (to headset):</strong>
+- Delivers voice from the system into the phone’s earpiece</p></li>
+<li><p><strong>Microphone / Transmit Path (from handset):</strong>
+- Accepts voice from the microphone and routes it into the system for transmission</p></li>
+</ul>
+<p>Both paths share the same tip-ring pair, requiring a <strong>hybrid</strong> circuit (2-wire to 4-wire conversion) to separate transmit and receive signals and avoid feedback or echo.</p>
+</section>
+<section id="historical-evolution">
+<h2>Historical Evolution<a class="headerlink" href="#historical-evolution" title="Link to this heading"></a></h2>
+<p>The Bell System employed a variety of techniques over the decades to achieve clear, isolated, full-duplex audio across a two-wire line:</p>
+<section id="carbon-microphone-induction-coil-1900s1940s">
+<h3>Carbon Microphone &amp; Induction Coil (1900s–1940s)<a class="headerlink" href="#carbon-microphone-induction-coil-1900s1940s" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Carbon microphones modulated DC current flowing through granular carbon</p></li>
+<li><p>An <strong>induction coil</strong> (hybrid transformer) separated microphone and speaker paths</p></li>
+<li><p>Very robust and loud, but audio fidelity was limited</p></li>
+<li><p>This design remained in use for decades due to its simplicity and reliability</p></li>
+</ul>
+</section>
+<section id="hybrid-transformers-1950s1980s">
+<h3>Hybrid Transformers (1950s–1980s)<a class="headerlink" href="#hybrid-transformers-1950s1980s" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Voice signals traveled on a 2-wire loop to the subscriber</p></li>
+<li><p><strong>Hybrids</strong> converted between 2-wire (subscriber loop) and 4-wire (switching equipment)</p></li>
+<li><p>Careful impedance matching minimized echo and maximized signal separation</p></li>
+<li><p>Transformers provided galvanic isolation between subscriber and central office</p></li>
+</ul>
+</section>
+<section id="integrated-line-interface-circuits-1990spresent">
+<h3>Integrated Line Interface Circuits (1990s–Present)<a class="headerlink" href="#integrated-line-interface-circuits-1990spresent" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>SLICs</strong> (Subscriber Line Interface Circuits) include balanced drivers, hybrids, and filters internally</p></li>
+<li><p>Audio is often digitized near the line, with signal paths managed digitally</p></li>
+<li><p>Modern SLICs provide built-in gain control, echo cancellation, and impedance matching</p></li>
+<li><p>VoIP equipment uses DSP-based echo cancellation and codec conversion</p></li>
+</ul>
+</section>
+</section>
+<section id="the-600-ohm-standard">
+<h2>The 600 Ohm Standard<a class="headerlink" href="#the-600-ohm-standard" title="Link to this heading"></a></h2>
+<p>The 600 Ω impedance standard became universal in North American telephony. This impedance:</p>
+<ul class="simple">
+<li><p>Minimized reflections and echo on long subscriber loops</p></li>
+<li><p>Allowed standardized equipment to interconnect reliably</p></li>
+<li><p>Enabled predictable signal levels across the network</p></li>
+</ul>
+<p>While modern digital systems no longer require 600 Ω matching, vintage telephones and SLIC-based designs still expect this impedance for proper operation.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="borscht.html" class="btn btn-neutral float-left" title="The BORSCHT Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="signaling-tones.html" class="btn btn-neutral float-right" title="Signaling Tones" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta property="article:modified_time" content="2025-12-29T14:50:01+00:00" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signaling Tones &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Dialing Methods" href="dialing.html" />
+    <link rel="prev" title="Voice Transmission" href="voice.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">The Bell System Blueprint</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="borscht.html">The BORSCHT Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="voice.html">Voice Transmission</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Signaling Tones</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#in-band-signaling">In-Band Signaling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#standard-north-american-tones">Standard North American Tones</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dial-tone">Dial Tone</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ringback-tone">Ringback Tone</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#busy-signal">Busy Signal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reorder-tone-fast-busy">Reorder Tone (Fast Busy)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#off-hook-warning">Off-Hook Warning</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#historical-evolution">Historical Evolution</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mechanical-tone-generation-1920s1960s">Mechanical Tone Generation (1920s–1960s)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#solid-state-oscillators-1960s1990s">Solid-State Oscillators (1960s–1990s)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#digital-tone-generation-1990spresent">Digital Tone Generation (1990s–Present)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#the-dtmf-revolution">The DTMF Revolution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dialing.html">Dialing Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="power.html">Power Domains</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../implementation/index.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">The Bell System Blueprint</a></li>
+      <li class="breadcrumb-item active">Signaling Tones</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/bell-system-blueprint/signaling-tones.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="signaling-tones">
+<h1>Signaling Tones<a class="headerlink" href="#signaling-tones" title="Link to this heading"></a></h1>
+<p>The Bell System used <strong>in-band signaling tones</strong> to communicate call progress to subscribers. These audio signals—dial tone, ringback, busy, and others—share the same voice path as speech, falling within the 300–3400 Hz voice band.</p>
+<section id="in-band-signaling">
+<h2>In-Band Signaling<a class="headerlink" href="#in-band-signaling" title="Link to this heading"></a></h2>
+<p>Unlike modern digital networks with separate signaling channels, the analog telephone network transmitted call progress signals <strong>in the same audio path</strong> as voice. When you lifted the handset, you heard dial tone through the earpiece. When you dialed a number, you heard ringback or busy through the same speaker.</p>
+<p>This elegant approach required no additional wiring or protocols—the existing voice circuit carried everything.</p>
+</section>
+<section id="standard-north-american-tones">
+<h2>Standard North American Tones<a class="headerlink" href="#standard-north-american-tones" title="Link to this heading"></a></h2>
+<section id="dial-tone">
+<h3>Dial Tone<a class="headerlink" href="#dial-tone" title="Link to this heading"></a></h3>
+<p><strong>Purpose:</strong> Indicates the line is ready and the central office is awaiting digits.</p>
+<p><strong>Characteristics:</strong></p>
+<ul class="simple">
+<li><p><strong>Frequencies:</strong> 350 Hz + 440 Hz (continuous)</p></li>
+<li><p><strong>Cadence:</strong> Continuous until dialing begins</p></li>
+<li><p><strong>History:</strong> Originally generated by motor-driven tone generators at the central office</p></li>
+</ul>
+<p>Early dial tone was produced by electromechanical oscillators—rotating machinery that generated precise sine waves. By the 1960s, solid-state oscillators replaced these mechanical systems.</p>
+</section>
+<section id="ringback-tone">
+<h3>Ringback Tone<a class="headerlink" href="#ringback-tone" title="Link to this heading"></a></h3>
+<p><strong>Purpose:</strong> Indicates the called party’s phone is ringing.</p>
+<p><strong>Characteristics:</strong></p>
+<ul class="simple">
+<li><p><strong>Frequencies:</strong> 440 Hz + 480 Hz</p></li>
+<li><p><strong>Cadence:</strong> 2 seconds ON, 4 seconds OFF</p></li>
+<li><p><strong>History:</strong> Synchronized with the actual ring signal sent to the called phone</p></li>
+</ul>
+<p>The ringback cadence matches the ringing cadence at the destination, giving callers audible feedback that their call is progressing.</p>
+</section>
+<section id="busy-signal">
+<h3>Busy Signal<a class="headerlink" href="#busy-signal" title="Link to this heading"></a></h3>
+<p><strong>Purpose:</strong> Indicates the called line is in use.</p>
+<p><strong>Characteristics:</strong></p>
+<ul class="simple">
+<li><p><strong>Frequencies:</strong> 480 Hz + 620 Hz</p></li>
+<li><p><strong>Cadence:</strong> 0.5 seconds ON, 0.5 seconds OFF</p></li>
+<li><p><strong>History:</strong> Fast, distinctive cadence immediately recognizable</p></li>
+</ul>
+</section>
+<section id="reorder-tone-fast-busy">
+<h3>Reorder Tone (Fast Busy)<a class="headerlink" href="#reorder-tone-fast-busy" title="Link to this heading"></a></h3>
+<p><strong>Purpose:</strong> Indicates the call cannot be completed (network congestion, invalid number).</p>
+<p><strong>Characteristics:</strong></p>
+<ul class="simple">
+<li><p><strong>Frequencies:</strong> 480 Hz + 620 Hz (same as busy)</p></li>
+<li><p><strong>Cadence:</strong> 0.25 seconds ON, 0.25 seconds OFF (twice as fast as busy)</p></li>
+<li><p><strong>History:</strong> Distinguished from busy by faster cadence</p></li>
+</ul>
+</section>
+<section id="off-hook-warning">
+<h3>Off-Hook Warning<a class="headerlink" href="#off-hook-warning" title="Link to this heading"></a></h3>
+<p><strong>Purpose:</strong> Alerts user that handset has been off-hook too long without dialing.</p>
+<p><strong>Characteristics:</strong></p>
+<ul class="simple">
+<li><p><strong>Frequencies:</strong> 1400 Hz + 2060 Hz + 2450 Hz + 2600 Hz</p></li>
+<li><p><strong>Cadence:</strong> 0.1 seconds ON, 0.1 seconds OFF</p></li>
+<li><p><strong>History:</strong> Loud, attention-grabbing howler tone</p></li>
+</ul>
+</section>
+</section>
+<section id="historical-evolution">
+<h2>Historical Evolution<a class="headerlink" href="#historical-evolution" title="Link to this heading"></a></h2>
+<section id="mechanical-tone-generation-1920s1960s">
+<h3>Mechanical Tone Generation (1920s–1960s)<a class="headerlink" href="#mechanical-tone-generation-1920s1960s" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Motor-driven rotating generators produced stable sine waves</p></li>
+<li><p>Precision mechanical design ensured accurate frequencies</p></li>
+<li><p>Large, centralized equipment served entire exchanges</p></li>
+<li><p>Reliable but bulky and power-hungry</p></li>
+</ul>
+</section>
+<section id="solid-state-oscillators-1960s1990s">
+<h3>Solid-State Oscillators (1960s–1990s)<a class="headerlink" href="#solid-state-oscillators-1960s1990s" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Transistor and IC-based oscillators replaced motors</p></li>
+<li><p>Smaller, more efficient, and maintenance-free</p></li>
+<li><p>Wien bridge and phase-shift oscillators common</p></li>
+<li><p>Could be distributed to individual line cards</p></li>
+</ul>
+</section>
+<section id="digital-tone-generation-1990spresent">
+<h3>Digital Tone Generation (1990s–Present)<a class="headerlink" href="#digital-tone-generation-1990spresent" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Software-defined sine wave synthesis</p></li>
+<li><p>Direct Digital Synthesis (DDS) for precise frequency control</p></li>
+<li><p>Stored waveforms or real-time computation</p></li>
+<li><p>Modern VoIP and embedded systems use DSP-based generation</p></li>
+</ul>
+</section>
+</section>
+<section id="the-dtmf-revolution">
+<h2>The DTMF Revolution<a class="headerlink" href="#the-dtmf-revolution" title="Link to this heading"></a></h2>
+<p>In <strong>1963</strong>, the Bell System introduced <strong>Touch-Tone</strong> service—a revolutionary change from rotary dialing. Instead of counting pulses, touch-tone phones transmitted <strong>Dual-Tone Multi-Frequency (DTMF)</strong> signals.</p>
+<p>Each button press generated two simultaneous sine waves:</p>
+<ul class="simple">
+<li><p>One from a <strong>low-frequency group</strong> (697, 770, 852, 941 Hz)</p></li>
+<li><p>One from a <strong>high-frequency group</strong> (1209, 1336, 1477 Hz)</p></li>
+</ul>
+<p>This dual-tone approach was resistant to voice-frequency interference and enabled rapid, reliable digit transmission. Touch-Tone dialing was significantly faster than rotary and opened the door to automated phone systems, voicemail, and IVR menus.</p>
+<p>For detailed DTMF frequency assignments and detection methods, see <a class="reference internal" href="../solution-design/circuit/dtmf-dialing-detection.html"><span class="doc">DTMF Signaling (Detection and Generation)</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="voice.html" class="btn btn-neutral float-left" title="Voice Transmission" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dialing.html" class="btn btn-neutral float-right" title="Dialing Methods" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

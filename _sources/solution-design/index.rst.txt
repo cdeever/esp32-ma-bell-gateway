@@ -14,7 +14,7 @@ This section documents the **design decisions** for the Ma Bell Gateway project�
 
 The design section focuses on *choices*—evaluating options, weighing trade-offs, and documenting decisions. The implementation section focuses on *execution*—how to actually build the chosen design, with schematics, code, and assembly instructions.
 
-For historical context on Bell System standards and engineering philosophy, see :doc:`/historical-perspective`.
+For historical context on Bell System standards and engineering philosophy, see :doc:`/bell-system-blueprint/index`.
 
 ----
 
