@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-06-30T11:59:28+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T12:41:10+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The Bell System Blueprint &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
@@ -49,11 +49,19 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="standards.html">Telephone Service Standards</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The Bell System Blueprint</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#what-is-a-subscriber-line">What Is a Subscriber Line?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#borscht-model">BORSCHT Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#design-details-with-purpose">Design Details with Purpose</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#what-borscht-represents">What BORSCHT Represents</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#a-modern-tribute">A Modern Tribute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-borscht-model">The BORSCHT Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-is-a-subscriber-line">What Is a Subscriber Line?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-seven-functions">The Seven Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#design-details-with-purpose">Design Details with Purpose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-borscht-represents">What BORSCHT Represents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#voice-and-tone-audio">Voice and Tone Audio</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#target-parameters">Target Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audio-functions">Audio Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#historical-evolution">Historical Evolution</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="solution-design/index.html">Solution Design</a></li>
@@ -89,13 +97,15 @@
 <h1>The Bell System Blueprint<a class="headerlink" href="#the-bell-system-blueprint" title="Link to this heading"></a></h1>
 <p>Before the rise of digital switching and VoIP, the <strong>Bell System</strong> established a rigorous engineering model for delivering reliable analog phone service across millions of subscriber lines. At the heart of this model was the <strong>subscriber line interface</strong>—the circuit that connected each individual phone to the central office (CO).</p>
 <p>To standardize the functions of these circuits, Bell Labs engineers coined the acronym <strong>BORSCHT</strong>, which neatly summarizes the core services every line interface must provide. This framework guided the design of <strong>line cards</strong> like the Western Electric 400E and its descendants—modular units that delivered service to one subscriber each and operated faithfully for decades inside CO switching racks.</p>
+<section id="the-borscht-model">
+<h2>The BORSCHT Model<a class="headerlink" href="#the-borscht-model" title="Link to this heading"></a></h2>
 <section id="what-is-a-subscriber-line">
-<h2>What Is a Subscriber Line?<a class="headerlink" href="#what-is-a-subscriber-line" title="Link to this heading"></a></h2>
+<h3>What Is a Subscriber Line?<a class="headerlink" href="#what-is-a-subscriber-line" title="Link to this heading"></a></h3>
 <p>A subscriber line refers to the physical two-wire connection between a customer’s telephone and the central office. This pair—known as <strong>tip and ring</strong>—carries everything: DC power, ringing signals, supervision, and full-duplex audio. It’s a deceptively simple interface with astonishing versatility.</p>
 <p>To manage all this on just two wires, the Bell System broke the problem into discrete responsibilities—each handled by part of the line card circuit. That’s where <strong>BORSCHT</strong> comes in.</p>
 </section>
-<section id="borscht-model">
-<h2>BORSCHT Model<a class="headerlink" href="#borscht-model" title="Link to this heading"></a></h2>
+<section id="the-seven-functions">
+<h3>The Seven Functions<a class="headerlink" href="#the-seven-functions" title="Link to this heading"></a></h3>
 <p>The BORSCHT model defines the seven core functions every subscriber line interface must provide. Each responsibility is essential for delivering power, signaling, audio, and diagnostic capabilities over a simple two-wire phone line.</p>
 <table class="docutils align-default">
 <colgroup>
@@ -109,13 +119,13 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p><strong>B</strong> - Battery Feed</p></td>
-<td><p>Supplies loop current to power the telephone, typically –48 V DC.</p></td>
+<td><p>Supplies loop current to power the telephone, typically –48 V DC.</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>O</strong> - Overvoltage Protection</p></td>
 <td><p>Protects equipment from lightning strikes, surges, and accidental shorts.</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>R</strong> - Ringing</p></td>
-<td><p>Applies an AC ringing voltage (~90 V RMS at 20 Hz) to alert the subscriber of incoming calls.</p></td>
+<td><p>Applies an AC ringing voltage (~90 V RMS at 20 Hz) to alert the subscriber of incoming calls.</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>S</strong> - Supervision</p></td>
 <td><p>Monitors line status—detecting off-hook, on-hook, pulse dialing, and ring trip events.</p></td>
@@ -133,14 +143,14 @@
 </table>
 </section>
 <section id="design-details-with-purpose">
-<h2>Design Details with Purpose<a class="headerlink" href="#design-details-with-purpose" title="Link to this heading"></a></h2>
+<h3>Design Details with Purpose<a class="headerlink" href="#design-details-with-purpose" title="Link to this heading"></a></h3>
 <p>Each element of BORSCHT wasn’t arbitrary—it was engineered with care to balance <strong>functionality, safety, serviceability, and longevity</strong>. Here are just a few of the clever design decisions behind the acronym:</p>
 <ul class="simple">
-<li><p><strong>–48 V DC (Battery Feed)</strong>
+<li><p><strong>–48 V DC (Battery Feed)</strong>
 This negative voltage helps prevent electrolytic corrosion at wiring joints. With the central office (CO) negative relative to earth ground, stray currents flow into the ground instead of pulling oxygen into copper connections—prolonging cable life across thousands of miles.</p></li>
 <li><p><strong>Gas Tube Arrestors and Carbon Blocks (Overvoltage Protection)</strong>
 Subscriber loops often span outdoor lines, prone to lightning strikes. Telcos added surge protection at both ends—sometimes with audible “pops” when a strike occurred—preserving line cards and phones alike.</p></li>
-<li><p><strong>90 V RMS, 20 Hz Ringing (Ringing)</strong>
+<li><p><strong>90 V RMS, 20 Hz Ringing (Ringing)</strong>
 This frequency and voltage combo was optimized to mechanically resonate electromechanical bell clappers while avoiding interference with voice frequencies or excessive current draw.</p></li>
 <li><p><strong>Loop Current Detection (Supervision)</strong>
 A simple current sensor could detect if a handset was lifted, if dialing was in progress (via pulses), or if a call had been answered—all without extra wiring.</p></li>
@@ -153,16 +163,66 @@ Technicians could remotely inject tones, measure resistance, or verify loop stat
 </ul>
 </section>
 <section id="what-borscht-represents">
-<h2>What BORSCHT Represents<a class="headerlink" href="#what-borscht-represents" title="Link to this heading"></a></h2>
+<h3>What BORSCHT Represents<a class="headerlink" href="#what-borscht-represents" title="Link to this heading"></a></h3>
 <p>By organizing this model around <strong>BORSCHT</strong>, Bell System engineers distilled decades of evolving requirements into a modular, scalable standard. Whether servicing a rural home or a city high-rise, the network could be expanded one line card at a time, each implementing the exact same set of functions.</p>
 <p>That consistency, adaptability, and deep engineering discipline made the subscriber line interface one of the most quietly brilliant systems in 20th-century electronics.</p>
 </section>
-<section id="a-modern-tribute">
-<h2>A Modern Tribute<a class="headerlink" href="#a-modern-tribute" title="Link to this heading"></a></h2>
-<p>This project—the <strong>Ma Bell Gateway</strong>—is a modern, microcontroller-based reimagining of the subscriber line card. But instead of switching a real call through copper trunks, it hands off audio to a Bluetooth headset. And instead of being mounted in a climate-controlled CO, it lives in your workshop or home lab.</p>
-<p>Still, it honors the same <strong>functional separation and design philosophy</strong> that powered the public switched telephone network (PSTN) for over a hundred years.</p>
-<p>This project embraces that legacy—not just for nostalgia’s sake, but to learn from its clarity, its modularity, and its remarkable longevity.</p>
-<p>In the spirit of those engineers, we carry the signal forward.</p>
+</section>
+<section id="voice-and-tone-audio">
+<h2>Voice and Tone Audio<a class="headerlink" href="#voice-and-tone-audio" title="Link to this heading"></a></h2>
+<p>The analog telephone interface must support <strong>bidirectional voice transmission</strong> and <strong>in-band signaling tones</strong>, all delivered across just two wires: <strong>tip and ring</strong>. These audio paths must replicate the expectations of legacy Bell System telephony while remaining compatible with modern embedded systems and Bluetooth audio routing.</p>
+<section id="target-parameters">
+<h3>Target Parameters<a class="headerlink" href="#target-parameters" title="Link to this heading"></a></h3>
+<p>Historically, analog telephone audio adheres to the following standards:</p>
+<ul class="simple">
+<li><p><strong>Impedance:</strong> 600 Ω balanced (nominal)</p></li>
+<li><p><strong>Voice Bandwidth:</strong> 300 Hz to 3400 Hz (standard “voice band”)</p></li>
+<li><p><strong>Signal Level:</strong>
+- Transmit (talk-out): ~0 dBm nominal
+- Receive (talk-in): –10 to –20 dBm typical</p></li>
+<li><p><strong>Isolation:</strong> Galvanic isolation from line circuitry is essential</p></li>
+<li><p><strong>Tones:</strong> In-band tones (dial tone, ringback, busy, etc.) occupy same audio path as speech</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>What is Galvanic Isolation?</strong>
+Galvanic isolation means there is <strong>no direct electrical connection</strong> between two circuits—only signal transfer via magnetic, optical, or capacitive coupling. This prevents high voltages or ground loops from damaging sensitive electronics or endangering users.
+Common methods include transformers and optocouplers.</p>
+</div>
+</section>
+<section id="audio-functions">
+<h3>Audio Functions<a class="headerlink" href="#audio-functions" title="Link to this heading"></a></h3>
+<p>Two independent analog paths must be supported:</p>
+<ul class="simple">
+<li><p><strong>Earpiece / Receive Path (to headset):</strong>
+- Delivers voice and tones from the system into the phone’s earpiece</p></li>
+<li><p><strong>Microphone / Transmit Path (from handset):</strong>
+- Accepts voice from the microphone and routes it into the system for digitization or Bluetooth transmission</p></li>
+</ul>
+<p>Both paths share the same tip-ring pair, requiring either a <strong>hybrid</strong> circuit (2-wire to 4-wire conversion) or <strong>time-domain multiplexing</strong> to avoid feedback or echo.</p>
+</section>
+<section id="historical-evolution">
+<h3>Historical Evolution<a class="headerlink" href="#historical-evolution" title="Link to this heading"></a></h3>
+<p>The Bell System employed a variety of techniques over the decades to achieve clear, isolated, full-duplex audio across a two-wire line:</p>
+<p><strong>Carbon Microphone &amp; Induction Coil (1900s–1940s):</strong></p>
+<ul class="simple">
+<li><p>Carbon mics modulated DC current; an induction coil (hybrid transformer) separated mic and speaker paths.</p></li>
+<li><p>Tone signals were generated centrally and injected via coupling networks.</p></li>
+<li><p>Very robust, but audio fidelity was limited.</p></li>
+</ul>
+<p><strong>Hybrid Transformers and Voice Frequency Signaling (1950s–1980s):</strong></p>
+<ul class="simple">
+<li><p>Voice signals and tones shared a 2-wire loop.</p></li>
+<li><p>Hybrids converted between 2-wire (loop) and 4-wire (switching equipment) to manage echo and gain.</p></li>
+<li><p>Sine wave tones (e.g., DTMF, dial tone) were injected and filtered per ITU-T Q.23 standards.</p></li>
+</ul>
+<p><strong>Integrated Line Interface Circuits (1990s–Present):</strong></p>
+<ul class="simple">
+<li><p>SLICs include balanced drivers, hybrids, and filters internally.</p></li>
+<li><p>Audio is digitized near the line, with signal paths managed digitally.</p></li>
+<li><p>Provide built-in gain, echo cancellation, and tone injection in VoIP gear.</p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -178,7 +238,7 @@ Technicians could remotely inject tones, measure resistance, or verify loop stat
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Jun 30, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

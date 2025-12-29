@@ -44,4 +44,13 @@ At a high level, the project requires:
 
 What began as a nostalgic side project became a multi-disciplinary engineering effort — blending firmware, circuit design, mechanical design, and a deep respect for the phone system that connected generations.
 
+A Modern Tribute
+----------------
+
+The **Ma Bell Gateway** is a modern, microcontroller-based reimagining of the subscriber line card. But instead of switching a real call through copper trunks, it hands off audio to a Bluetooth headset. And instead of being mounted in a climate-controlled central office, it lives in your workshop or home lab.
+
+This project embraces the legacy of the Bell System—not just for nostalgia's sake, but to learn from its clarity, its modularity, and its remarkable longevity.
+
+In the spirit of those Bell System engineers, we carry the signal forward.
+
 This documentation walks through the journey from idea to fully operational gateway.
