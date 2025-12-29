@@ -1,20 +1,18 @@
 Solution Design
 ===============
 
-This section documents the **design decisions** for the Ma Bell Gateway project—the "what" and "why" of the system architecture, not the "how" of building it.
+Building a device that faithfully emulates a Bell System central office line card requires careful consideration of many interconnected subsystems: power supplies, analog interfaces, audio paths, digital control, and mechanical packaging. Each subsystem presents multiple valid approaches, and the choices made in one area often constrain or influence options in others.
 
-**What You'll Find Here:**
+This section explores the **design space** for the Ma Bell Gateway—examining the alternatives considered for each major subsystem, analyzing trade-offs, and documenting the rationale behind the chosen approach.
 
-- **Design Alternatives:** Multiple approaches considered for each subsystem
-- **Trade-Off Analysis:** Pros, cons, and constraints for each option
-- **Decision Rationale:** Why specific components and approaches were chosen
-- **Requirements:** Functional and non-functional requirements that drove decisions
+- **ESP32 Microcontroller** – Why this platform was selected over alternatives
+- **Circuit Design** – Audio paths, line interface, power supply, and signaling options
+- **Software Architecture** – Firmware structure, state management, and input detection strategies
+- **Enclosure Design** – Form factor and mounting considerations
 
-**Design vs. Implementation:**
+The goal is to provide enough context that readers can understand *why* the project is built the way it is—and have the information needed to make different choices if their requirements differ.
 
-The design section focuses on *choices*—evaluating options, weighing trade-offs, and documenting decisions. The implementation section focuses on *execution*—how to actually build the chosen design, with schematics, code, and assembly instructions.
-
-For historical context on Bell System standards and engineering philosophy, see :doc:`/bell-system-blueprint/index`.
+For historical context on Bell System standards and engineering philosophy, see :doc:`/bell-system-blueprint/index`. For the actual build instructions based on these design decisions, see :doc:`/implementation/index`.
 
 ----
 

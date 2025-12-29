@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-29T14:50:01+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T15:10:32+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solution Design &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
@@ -86,17 +86,16 @@
              
   <section id="solution-design">
 <h1>Solution Design<a class="headerlink" href="#solution-design" title="Link to this heading"></a></h1>
-<p>This section documents the <strong>design decisions</strong> for the Ma Bell Gateway project—the “what” and “why” of the system architecture, not the “how” of building it.</p>
-<p><strong>What You’ll Find Here:</strong></p>
+<p>Building a device that faithfully emulates a Bell System central office line card requires careful consideration of many interconnected subsystems: power supplies, analog interfaces, audio paths, digital control, and mechanical packaging. Each subsystem presents multiple valid approaches, and the choices made in one area often constrain or influence options in others.</p>
+<p>This section explores the <strong>design space</strong> for the Ma Bell Gateway—examining the alternatives considered for each major subsystem, analyzing trade-offs, and documenting the rationale behind the chosen approach.</p>
 <ul class="simple">
-<li><p><strong>Design Alternatives:</strong> Multiple approaches considered for each subsystem</p></li>
-<li><p><strong>Trade-Off Analysis:</strong> Pros, cons, and constraints for each option</p></li>
-<li><p><strong>Decision Rationale:</strong> Why specific components and approaches were chosen</p></li>
-<li><p><strong>Requirements:</strong> Functional and non-functional requirements that drove decisions</p></li>
+<li><p><strong>ESP32 Microcontroller</strong> – Why this platform was selected over alternatives</p></li>
+<li><p><strong>Circuit Design</strong> – Audio paths, line interface, power supply, and signaling options</p></li>
+<li><p><strong>Software Architecture</strong> – Firmware structure, state management, and input detection strategies</p></li>
+<li><p><strong>Enclosure Design</strong> – Form factor and mounting considerations</p></li>
 </ul>
-<p><strong>Design vs. Implementation:</strong></p>
-<p>The design section focuses on <em>choices</em>—evaluating options, weighing trade-offs, and documenting decisions. The implementation section focuses on <em>execution</em>—how to actually build the chosen design, with schematics, code, and assembly instructions.</p>
-<p>For historical context on Bell System standards and engineering philosophy, see <a class="reference internal" href="../bell-system-blueprint/index.html"><span class="doc">The Bell System Blueprint</span></a>.</p>
+<p>The goal is to provide enough context that readers can understand <em>why</em> the project is built the way it is—and have the information needed to make different choices if their requirements differ.</p>
+<p>For historical context on Bell System standards and engineering philosophy, see <a class="reference internal" href="../bell-system-blueprint/index.html"><span class="doc">The Bell System Blueprint</span></a>. For the actual build instructions based on these design decisions, see <a class="reference internal" href="../implementation/index.html"><span class="doc">Implementation</span></a>.</p>
 <hr class="docutils" />
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>

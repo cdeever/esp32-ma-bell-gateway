@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-07-09T12:25:20+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T15:10:32+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Implementation &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
@@ -87,7 +87,16 @@
              
   <section id="implementation">
 <h1>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h1>
-<p>This section contains the detailed implementation documentation for the Ma Bell Gateway project.</p>
+<p>This section contains the <strong>build instructions</strong> for the Ma Bell Gateway—the “how” of turning the design into a working device.</p>
+<p>Where the Design section explores alternatives and documents decisions, this section provides the concrete details needed to actually construct the gateway: schematics, component values, firmware code, PCB layouts, and mechanical assembly.</p>
+<ul class="simple">
+<li><p><strong>Bill of Materials</strong> – Complete parts list with sources and specifications</p></li>
+<li><p><strong>Circuit Implementation</strong> – Detailed schematics for the SLIC interface, ring generator, power supply, and audio paths</p></li>
+<li><p><strong>Firmware</strong> – ESP32 code architecture, state machine implementation, and audio subsystem details</p></li>
+<li><p><strong>PCB Design</strong> – Board layouts, routing guidelines, and manufacturing notes</p></li>
+<li><p><strong>Enclosure</strong> – Mechanical design for housing and mounting</p></li>
+</ul>
+<p>Each subsection builds on the decisions made in the Design section, providing step-by-step guidance for implementation.</p>
 <hr class="docutils" />
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
@@ -113,7 +122,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Jul 09, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 
