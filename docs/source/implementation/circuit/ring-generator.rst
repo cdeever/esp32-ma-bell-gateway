@@ -100,50 +100,59 @@ The HC-5504B SLIC provides ring **control**, not ring **generation**:
 Ring Generator Module
 ---------------------
 
-**Selected Component: Commercial Telecom Ring Generator**
+**Selected Component: LT1684 Ring Tone Generator IC**
 
-For the Ma Bell Gateway, we recommend a commercial ring generator module designed for telecom applications:
+For the Ma Bell Gateway, we use the **LT1684** from Analog Devices (formerly Linear Technology) - a dedicated micropower ring tone generator IC designed specifically for telephone ringing applications.
 
-**Specifications to look for:**
+**Key Specifications:**
 
 .. list-table::
    :header-rows: 1
    :widths: 25 35 40
 
    * - Parameter
-     - Requirement
+     - Specification
      - Notes
-   * - Input Voltage
-     - 48V DC (or 24-60V range)
-     - Must work with our 48V supply
    * - Output Voltage
-     - 85-90V RMS (120-254V p-p)
-     - Standard telephone ring level
+     - Up to ±240V (90V RMS typical)
+     - Adjustable via external components
    * - Output Frequency
-     - 20 Hz (±1 Hz)
-     - North American standard
-   * - Output Waveform
-     - Sine wave preferred
-     - Some modules output trapezoidal
+     - 20 Hz (software controlled)
+     - PWM input from ESP32
    * - Output Current
-     - 40 mA minimum
-     - Supports 1-2 ringers
-   * - Control Input
-     - Enable/disable pin
-     - For relay or direct control
+     - Up to 200 mA
+     - Well above 40mA ringer requirement
+   * - Output Waveform
+     - Clean sine wave
+     - 2nd order MFB lowpass filter
+   * - Control Interface
+     - PWM input
+     - ESP32 controls frequency, amplitude, cadence
 
-**Example Modules:**
+**Component Details:**
 
-- **Beta Dyne RG3000 series** - Professional telecom ring generator, 48V input, configurable output
-- **Custom telecom DC-AC inverter modules** - Available from specialty suppliers
-- **12V modules with boost** - Some 12V ring generators can be adapted with a 48V→12V stage
+- **IC:** `LT1684 <https://www.analog.com/en/products/lt1684.html>`_ (~$8-15 from Mouser/DigiKey)
+- **Datasheet:** `LT1684 Datasheet (PDF) <https://www.analog.com/media/en/technical-documentation/data-sheets/1684f.pdf>`_
+- **Application Note:** `The LT1684 Solves the Global Ringing Problem <https://www.analog.com/en/resources/technical-articles/lt1684-solves-global-ringing-problem.html>`_
 
-**Why Commercial Module:**
+**Why LT1684:**
 
-- Matches SLIC-based design philosophy (dedicated ICs)
-- No custom transformer winding or oscillator tuning
-- Known specifications and reliability
-- Faster development time
+- **Integrated solution** - Purpose-built for telephone ring generation
+- **ESP32 integration** - PWM input allows software control of frequency, amplitude, and cadence
+- **Flexible** - Can generate various international ring standards (not just North American)
+- **Cost effective** - Significantly cheaper than commercial ring generator modules (~$200+)
+- **Well documented** - Detailed datasheet with complete application circuits
+
+**Additional Components Required:**
+
+The LT1684 requires external components per the datasheet application circuit:
+
+- 2x Power MOSFETs (for H-bridge output stage)
+- Step-up transformer (for 90V output)
+- MFB filter components (resistors and capacitors)
+- Decoupling capacitors
+
+See the LT1684 datasheet for complete schematic and component values.
 
 Complete Ring Circuit
 ---------------------
@@ -266,14 +275,26 @@ Bill of Materials
      - Value/Type
      - Qty
      - Notes
-   * - Ring Generator Module
-     - 48V→90VAC 20Hz
+   * - Ring Generator IC
+     - LT1684
      - 1
-     - Commercial telecom module
+     - Analog Devices (DIP-16 or SOIC-16)
+   * - Power MOSFETs
+     - See LT1684 datasheet
+     - 2
+     - H-bridge output stage
+   * - Step-up Transformer
+     - See LT1684 datasheet
+     - 1
+     - For 90V output
+   * - Filter Components
+     - See LT1684 datasheet
+     - Various
+     - MFB lowpass filter (100Hz cutoff)
    * - Ring Relay
      - DPDT, 12V coil
      - 1
-     - Omron G5V-2 or equivalent
+     - Omron G5V-2-H1 or equivalent
    * - Flyback Diode
      - 1N4148
      - 1
