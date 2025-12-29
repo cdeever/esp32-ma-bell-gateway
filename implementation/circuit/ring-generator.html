@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-29T12:15:21+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T20:34:52+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ring Generator &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -208,9 +208,9 @@
 </section>
 <section id="ring-generator-module">
 <h2>Ring Generator Module<a class="headerlink" href="#ring-generator-module" title="Link to this heading"></a></h2>
-<p><strong>Selected Component: Commercial Telecom Ring Generator</strong></p>
-<p>For the Ma Bell Gateway, we recommend a commercial ring generator module designed for telecom applications:</p>
-<p><strong>Specifications to look for:</strong></p>
+<p><strong>Selected Component: LT1684 Ring Tone Generator IC</strong></p>
+<p>For the Ma Bell Gateway, we use the <strong>LT1684</strong> from Analog Devices (formerly Linear Technology) - a dedicated micropower ring tone generator IC designed specifically for telephone ringing applications.</p>
+<p><strong>Key Specifications:</strong></p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 25.0%" />
@@ -219,50 +219,56 @@
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
-<th class="head"><p>Requirement</p></th>
+<th class="head"><p>Specification</p></th>
 <th class="head"><p>Notes</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Input Voltage</p></td>
-<td><p>48V DC (or 24-60V range)</p></td>
-<td><p>Must work with our 48V supply</p></td>
+<tr class="row-even"><td><p>Output Voltage</p></td>
+<td><p>Up to ±240V (90V RMS typical)</p></td>
+<td><p>Adjustable via external components</p></td>
 </tr>
-<tr class="row-odd"><td><p>Output Voltage</p></td>
-<td><p>85-90V RMS (120-254V p-p)</p></td>
-<td><p>Standard telephone ring level</p></td>
-</tr>
-<tr class="row-even"><td><p>Output Frequency</p></td>
-<td><p>20 Hz (±1 Hz)</p></td>
-<td><p>North American standard</p></td>
-</tr>
-<tr class="row-odd"><td><p>Output Waveform</p></td>
-<td><p>Sine wave preferred</p></td>
-<td><p>Some modules output trapezoidal</p></td>
+<tr class="row-odd"><td><p>Output Frequency</p></td>
+<td><p>20 Hz (software controlled)</p></td>
+<td><p>PWM input from ESP32</p></td>
 </tr>
 <tr class="row-even"><td><p>Output Current</p></td>
-<td><p>40 mA minimum</p></td>
-<td><p>Supports 1-2 ringers</p></td>
+<td><p>Up to 200 mA</p></td>
+<td><p>Well above 40mA ringer requirement</p></td>
 </tr>
-<tr class="row-odd"><td><p>Control Input</p></td>
-<td><p>Enable/disable pin</p></td>
-<td><p>For relay or direct control</p></td>
+<tr class="row-odd"><td><p>Output Waveform</p></td>
+<td><p>Clean sine wave</p></td>
+<td><p>2nd order MFB lowpass filter</p></td>
+</tr>
+<tr class="row-even"><td><p>Control Interface</p></td>
+<td><p>PWM input</p></td>
+<td><p>ESP32 controls frequency, amplitude, cadence</p></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Example Modules:</strong></p>
+<p><strong>Component Details:</strong></p>
 <ul class="simple">
-<li><p><strong>Beta Dyne RG3000 series</strong> - Professional telecom ring generator, 48V input, configurable output</p></li>
-<li><p><strong>Custom telecom DC-AC inverter modules</strong> - Available from specialty suppliers</p></li>
-<li><p><strong>12V modules with boost</strong> - Some 12V ring generators can be adapted with a 48V→12V stage</p></li>
+<li><p><strong>IC:</strong> <a class="reference external" href="https://www.analog.com/en/products/lt1684.html">LT1684</a> (~$8-15 from Mouser/DigiKey)</p></li>
+<li><p><strong>Datasheet:</strong> <a class="reference external" href="https://www.analog.com/media/en/technical-documentation/data-sheets/1684f.pdf">LT1684 Datasheet (PDF)</a></p></li>
+<li><p><strong>Application Note:</strong> <a class="reference external" href="https://www.analog.com/en/resources/technical-articles/lt1684-solves-global-ringing-problem.html">The LT1684 Solves the Global Ringing Problem</a></p></li>
 </ul>
-<p><strong>Why Commercial Module:</strong></p>
+<p><strong>Why LT1684:</strong></p>
 <ul class="simple">
-<li><p>Matches SLIC-based design philosophy (dedicated ICs)</p></li>
-<li><p>No custom transformer winding or oscillator tuning</p></li>
-<li><p>Known specifications and reliability</p></li>
-<li><p>Faster development time</p></li>
+<li><p><strong>Integrated solution</strong> - Purpose-built for telephone ring generation</p></li>
+<li><p><strong>ESP32 integration</strong> - PWM input allows software control of frequency, amplitude, and cadence</p></li>
+<li><p><strong>Flexible</strong> - Can generate various international ring standards (not just North American)</p></li>
+<li><p><strong>Cost effective</strong> - Significantly cheaper than commercial ring generator modules (~$200+)</p></li>
+<li><p><strong>Well documented</strong> - Detailed datasheet with complete application circuits</p></li>
 </ul>
+<p><strong>Additional Components Required:</strong></p>
+<p>The LT1684 requires external components per the datasheet application circuit:</p>
+<ul class="simple">
+<li><p>2x Power MOSFETs (for H-bridge output stage)</p></li>
+<li><p>Step-up transformer (for 90V output)</p></li>
+<li><p>MFB filter components (resistors and capacitors)</p></li>
+<li><p>Decoupling capacitors</p></li>
+</ul>
+<p>See the LT1684 datasheet for complete schematic and component values.</p>
 </section>
 <section id="complete-ring-circuit">
 <h2>Complete Ring Circuit<a class="headerlink" href="#complete-ring-circuit" title="Link to this heading"></a></h2>
@@ -380,37 +386,52 @@ SLIC RD ───────┴──[R1]────┴───────�
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Ring Generator Module</p></td>
-<td><p>48V→90VAC 20Hz</p></td>
+<tr class="row-even"><td><p>Ring Generator IC</p></td>
+<td><p>LT1684</p></td>
 <td><p>1</p></td>
-<td><p>Commercial telecom module</p></td>
+<td><p>Analog Devices (DIP-16 or SOIC-16)</p></td>
 </tr>
-<tr class="row-odd"><td><p>Ring Relay</p></td>
+<tr class="row-odd"><td><p>Power MOSFETs</p></td>
+<td><p>See LT1684 datasheet</p></td>
+<td><p>2</p></td>
+<td><p>H-bridge output stage</p></td>
+</tr>
+<tr class="row-even"><td><p>Step-up Transformer</p></td>
+<td><p>See LT1684 datasheet</p></td>
+<td><p>1</p></td>
+<td><p>For 90V output</p></td>
+</tr>
+<tr class="row-odd"><td><p>Filter Components</p></td>
+<td><p>See LT1684 datasheet</p></td>
+<td><p>Various</p></td>
+<td><p>MFB lowpass filter (100Hz cutoff)</p></td>
+</tr>
+<tr class="row-even"><td><p>Ring Relay</p></td>
 <td><p>DPDT, 12V coil</p></td>
 <td><p>1</p></td>
-<td><p>Omron G5V-2 or equivalent</p></td>
+<td><p>Omron G5V-2-H1 or equivalent</p></td>
 </tr>
-<tr class="row-even"><td><p>Flyback Diode</p></td>
+<tr class="row-odd"><td><p>Flyback Diode</p></td>
 <td><p>1N4148</p></td>
 <td><p>1</p></td>
 <td><p>Across relay coil</p></td>
 </tr>
-<tr class="row-odd"><td><p>Driver Transistor</p></td>
+<tr class="row-even"><td><p>Driver Transistor</p></td>
 <td><p>2N2222 or 2N3904</p></td>
 <td><p>1</p></td>
 <td><p>If needed for relay drive</p></td>
 </tr>
-<tr class="row-even"><td><p>Base Resistor</p></td>
+<tr class="row-odd"><td><p>Base Resistor</p></td>
 <td><p>1kΩ</p></td>
 <td><p>1</p></td>
 <td><p>For transistor driver</p></td>
 </tr>
-<tr class="row-odd"><td><p>Fuse (output)</p></td>
+<tr class="row-even"><td><p>Fuse (output)</p></td>
 <td><p>100mA fast-blow</p></td>
 <td><p>1</p></td>
 <td><p>Ring circuit protection</p></td>
 </tr>
-<tr class="row-even"><td><p>MOV (optional)</p></td>
+<tr class="row-odd"><td><p>MOV (optional)</p></td>
 <td><p>150V</p></td>
 <td><p>1</p></td>
 <td><p>Relay contact protection</p></td>

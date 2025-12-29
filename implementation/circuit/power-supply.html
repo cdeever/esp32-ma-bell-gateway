@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-27T01:34:03+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T20:34:52+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Power Implementation (48V Central Supply) &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
@@ -279,31 +279,49 @@
 </section>
 <section id="component-notes">
 <h2>Component Notes<a class="headerlink" href="#component-notes" title="Link to this heading"></a></h2>
+<p><strong>Buck Converters (3.3V &amp; 12V)</strong></p>
+<p>Compact DC-DC buck modules are recommended for stepping down from 48V:</p>
 <ul class="simple">
-<li><p><strong>Buck converters (3.3V &amp; 12V):</strong> Compact DC-DC modules are recommended:</p>
+<li><p><strong>For 12V rail (SLIC power):</strong></p>
 <ul>
-<li><p><strong>For 3.3V rail:</strong> LM2596-based module or equivalent, configured for 3.3V output, minimum 1A current rating</p></li>
-<li><p><strong>For 12V rail:</strong> LM2596, MP1584, or similar, configured for 12V output, minimum 200mA current rating</p></li>
-<li><p>Available as ready-to-use boards from common suppliers</p></li>
+<li><p><strong>Recommended:</strong> <a class="reference external" href="https://www.amazon.com/Converter-DROK-Regulator-Transformer-Automotive/dp/B00CGURKUA">DROK 48V to 12V Buck Module</a> (~$10)</p></li>
+<li><p>Input: 15-55V DC (covers 48V with margin)</p></li>
+<li><p>Output: 12V DC, 1.5A capacity</p></li>
+<li><p>Compact DIP module, easy breadboard integration</p></li>
 </ul>
 </li>
-<li><p><strong>Inverting DC-DC (-48V):</strong> Use telecom-grade inverting modules or custom flyback circuits to generate -48V from +48V:</p>
+<li><p><strong>For 3.3V rail (ESP32, audio codecs):</strong></p>
 <ul>
-<li><p>Input: 48V DC</p></li>
-<li><p>Output: -48V DC regulated, minimum 150mA current rating</p></li>
-<li><p>Example modules: Mean Well IRM-02-48S, custom flyback converter</p></li>
-</ul>
-</li>
-<li><p><strong>Ring generator (90V AC &#64; 20Hz):</strong> Produces the ringing voltage for electromechanical telephone bells. Options include:</p>
-<ul>
-<li><p><strong>Commercial telecom ring generator modules:</strong> Input 48V DC, output 90V AC &#64; 20Hz, 50-100mA output current</p></li>
-<li><p><strong>DIY boost converter + H-bridge:</strong> Microcontroller-controlled (ESP32 GPIO) to generate 20Hz sine/square wave, boosted to 90V via transformer</p></li>
-<li><p><strong>Classic 555 timer + transformer:</strong> 555 configured as 20Hz oscillator driving push-pull transistor stage with step-up transformer</p></li>
-<li><p><strong>Power requirement:</strong> 48V input &#64; 100-150mA peak (4-7W) when ringing is active</p></li>
-<li><p><strong>Control:</strong> Typically activated by relay (Q1 in BOM) or MOSFET driven by ESP32 GPIO</p></li>
+<li><p><strong>Option A:</strong> Cascade from 12V using standard LM2596 3.3V module (~$3-5)</p></li>
+<li><p><strong>Option B:</strong> Use wide-input buck module (e.g., XL4015-based) directly from 48V</p></li>
+<li><p>Output: 3.3V DC, minimum 1A current rating</p></li>
+<li><p>Add 0.1µF + 10µF decoupling at output for audio codec power quality</p></li>
 </ul>
 </li>
 </ul>
+<p><strong>Inverting DC-DC (-48V)</strong></p>
+<p><em>Note: This component selection is deferred pending further research for a cost-effective solution.</em></p>
+<ul class="simple">
+<li><p><strong>Requirement:</strong> -48V DC, 150mA minimum (7.2W) for SLIC loop voltage</p></li>
+<li><p><strong>Challenge:</strong> 48V-to-48V isolated modules at appropriate power levels are expensive (~$50-70)</p></li>
+<li><p><strong>Options under consideration:</strong></p>
+<ul>
+<li><p>Isolated DC-DC module with output referenced to create -48V</p></li>
+<li><p>Dual bench supply approach for prototyping</p></li>
+<li><p>Alternative inverting topologies</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Ring Generator (90V AC &#64; 20Hz)</strong></p>
+<p>The ring generator uses the <strong>LT1684</strong> IC from Analog Devices:</p>
+<ul class="simple">
+<li><p><strong>IC:</strong> LT1684 micropower ring tone generator</p></li>
+<li><p><strong>Input:</strong> PWM signal from ESP32</p></li>
+<li><p><strong>Output:</strong> 90V RMS &#64; 20Hz sine wave</p></li>
+<li><p><strong>Power:</strong> ~4-7W when ringing is active</p></li>
+<li><p><strong>Control:</strong> ESP32 GPIO provides PWM for frequency/amplitude control</p></li>
+</ul>
+<p>For complete ring generator implementation details, see <a class="reference internal" href="ring-generator.html"><span class="doc">Ring Generator</span></a>.</p>
 </section>
 <section id="design-considerations">
 <h2>Design Considerations<a class="headerlink" href="#design-considerations" title="Link to this heading"></a></h2>
@@ -340,7 +358,7 @@ and expansion safe and reliable.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 27, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

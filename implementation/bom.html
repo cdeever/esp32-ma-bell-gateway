@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-27T01:34:03+00:00" />
+    <meta property="article:modified_time" content="2025-12-29T20:34:52+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bill of Materials &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
@@ -185,35 +185,71 @@ Values, part numbers, and notes are included for clarity.</p>
 <td><p>CUI PJ-102A or equivalent</p></td>
 <td><p>For 48V DC supply input (60W recommended)</p></td>
 </tr>
-<tr class="row-odd"><td><p>C1, C2, …</p></td>
-<td><p>Capacitors (see schematic)</p></td>
-<td><p>[values as needed]</p></td>
-<td><p>[Mfr/P/N]</p></td>
-<td><p>Filter, bypass, and timing</p></td>
+<tr class="row-odd"><td><p>U5</p></td>
+<td><p>Ring Generator IC</p></td>
+<td><p>LT1684</p></td>
+<td><p>Analog Devices LT1684CN (DIP-16)</p></td>
+<td><p>Telephone ring tone generator</p></td>
 </tr>
-<tr class="row-even"><td><p>R1, R2, …</p></td>
-<td><p>Resistors (see schematic)</p></td>
-<td><p>[values as needed]</p></td>
-<td><p>[Mfr/P/N]</p></td>
-<td><p>Feed, balance, pull-up/down, etc.</p></td>
+<tr class="row-even"><td><p>K1</p></td>
+<td><p>Ring Relay</p></td>
+<td><p>DPDT, 12V coil</p></td>
+<td><p>Omron G5V-2-H1-DC12</p></td>
+<td><p>Switches line between -48V and ring generator</p></td>
 </tr>
 <tr class="row-odd"><td><p>Q1</p></td>
-<td><p>Relay or MOSFET</p></td>
-<td><p>–</p></td>
-<td><p>[Part #]</p></td>
-<td><p>Ring relay driver or lamp control</p></td>
+<td><p>Relay Driver Transistor</p></td>
+<td><p>2N2222A</p></td>
+<td><p>Generic / ON Semi PN2222A</p></td>
+<td><p>Drives ring relay coil from SLIC RD pin</p></td>
 </tr>
-<tr class="row-even"><td><p>D1, D2, …</p></td>
-<td><p>Diodes/Bridge Rectifier</p></td>
-<td><p>–</p></td>
-<td><p>[Part #]</p></td>
-<td><p>Protection (bridge for line input, etc.)</p></td>
+<tr class="row-even"><td><p>D1</p></td>
+<td><p>Flyback Diode</p></td>
+<td><p>1N4148</p></td>
+<td><p>Generic</p></td>
+<td><p>Across relay coil</p></td>
 </tr>
-<tr class="row-odd"><td><p>T1</p></td>
-<td><p>Transformer (if used for ringing)</p></td>
-<td><p>20Hz, [spec]</p></td>
-<td><p>[Part #]</p></td>
-<td><p>Ring generator</p></td>
+<tr class="row-odd"><td><p>R_LED1, R_LED2</p></td>
+<td><p>LED Current Limiting Resistors</p></td>
+<td><p>330Ω, 1/4W</p></td>
+<td><p>Generic / Metal film</p></td>
+<td><p>For 3.3V status LEDs (GPIO 2, 18)</p></td>
+</tr>
+<tr class="row-even"><td><p>LED1, LED2</p></td>
+<td><p>Status LEDs</p></td>
+<td><p>3mm or 5mm</p></td>
+<td><p>Generic (any color)</p></td>
+<td><p>Power/status indicators</p></td>
+</tr>
+<tr class="row-odd"><td><p>R_BASE</p></td>
+<td><p>Relay Driver Base Resistor</p></td>
+<td><p>1kΩ, 1/4W</p></td>
+<td><p>Generic / Metal film</p></td>
+<td><p>Q1 base current limiting</p></td>
+</tr>
+<tr class="row-even"><td><p>C_DEC1-4</p></td>
+<td><p>IC Decoupling Capacitors</p></td>
+<td><p>0.1µF ceramic</p></td>
+<td><p>Generic / X7R</p></td>
+<td><p>Near each IC VDD pin</p></td>
+</tr>
+<tr class="row-odd"><td><p>PS1</p></td>
+<td><p>48V to 12V Buck Converter</p></td>
+<td><p>48V→12V, 1.5A</p></td>
+<td><p>DROK (Amazon) or LM2596HV module</p></td>
+<td><p>SLIC VB+ power</p></td>
+</tr>
+<tr class="row-even"><td><p>PS2</p></td>
+<td><p>12V to 3.3V Buck Converter</p></td>
+<td><p>12V→3.3V, 1A</p></td>
+<td><p>LM2596 module (3.3V fixed output)</p></td>
+<td><p>ESP32 and codec power</p></td>
+</tr>
+<tr class="row-odd"><td><p>PS3</p></td>
+<td><p>-48V DC-DC Converter</p></td>
+<td><p>48V→-48V isolated</p></td>
+<td><p>TBD (see power-supply.rst)</p></td>
+<td><p>SLIC VB- loop voltage (deferred)</p></td>
 </tr>
 <tr class="row-even"><td><p>Misc.</p></td>
 <td><p>PCB, hardware, headers, jumpers</p></td>
@@ -237,7 +273,7 @@ Values, part numbers, and notes are included for clarity.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 27, 2025.
+      <span class="lastupdated">Last updated on Dec 29, 2025.
       </span></p>
   </div>
 

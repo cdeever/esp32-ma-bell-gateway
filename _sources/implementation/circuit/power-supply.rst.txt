@@ -143,25 +143,47 @@ The 48V/60W supply provides a **4.3x safety margin** over the calculated 13.8W p
 Component Notes
 ---------------
 
-- **Buck converters (3.3V & 12V):** Compact DC-DC modules are recommended:
+**Buck Converters (3.3V & 12V)**
 
-  - **For 3.3V rail:** LM2596-based module or equivalent, configured for 3.3V output, minimum 1A current rating
-  - **For 12V rail:** LM2596, MP1584, or similar, configured for 12V output, minimum 200mA current rating
-  - Available as ready-to-use boards from common suppliers
+Compact DC-DC buck modules are recommended for stepping down from 48V:
 
-- **Inverting DC-DC (-48V):** Use telecom-grade inverting modules or custom flyback circuits to generate -48V from +48V:
+- **For 12V rail (SLIC power):**
 
-  - Input: 48V DC
-  - Output: -48V DC regulated, minimum 150mA current rating
-  - Example modules: Mean Well IRM-02-48S, custom flyback converter
+  - **Recommended:** `DROK 48V to 12V Buck Module <https://www.amazon.com/Converter-DROK-Regulator-Transformer-Automotive/dp/B00CGURKUA>`_ (~$10)
+  - Input: 15-55V DC (covers 48V with margin)
+  - Output: 12V DC, 1.5A capacity
+  - Compact DIP module, easy breadboard integration
 
-- **Ring generator (90V AC @ 20Hz):** Produces the ringing voltage for electromechanical telephone bells. Options include:
+- **For 3.3V rail (ESP32, audio codecs):**
 
-  - **Commercial telecom ring generator modules:** Input 48V DC, output 90V AC @ 20Hz, 50-100mA output current
-  - **DIY boost converter + H-bridge:** Microcontroller-controlled (ESP32 GPIO) to generate 20Hz sine/square wave, boosted to 90V via transformer
-  - **Classic 555 timer + transformer:** 555 configured as 20Hz oscillator driving push-pull transistor stage with step-up transformer
-  - **Power requirement:** 48V input @ 100-150mA peak (4-7W) when ringing is active
-  - **Control:** Typically activated by relay (Q1 in BOM) or MOSFET driven by ESP32 GPIO
+  - **Option A:** Cascade from 12V using standard LM2596 3.3V module (~$3-5)
+  - **Option B:** Use wide-input buck module (e.g., XL4015-based) directly from 48V
+  - Output: 3.3V DC, minimum 1A current rating
+  - Add 0.1µF + 10µF decoupling at output for audio codec power quality
+
+**Inverting DC-DC (-48V)**
+
+*Note: This component selection is deferred pending further research for a cost-effective solution.*
+
+- **Requirement:** -48V DC, 150mA minimum (7.2W) for SLIC loop voltage
+- **Challenge:** 48V-to-48V isolated modules at appropriate power levels are expensive (~$50-70)
+- **Options under consideration:**
+
+  - Isolated DC-DC module with output referenced to create -48V
+  - Dual bench supply approach for prototyping
+  - Alternative inverting topologies
+
+**Ring Generator (90V AC @ 20Hz)**
+
+The ring generator uses the **LT1684** IC from Analog Devices:
+
+- **IC:** LT1684 micropower ring tone generator
+- **Input:** PWM signal from ESP32
+- **Output:** 90V RMS @ 20Hz sine wave
+- **Power:** ~4-7W when ringing is active
+- **Control:** ESP32 GPIO provides PWM for frequency/amplitude control
+
+For complete ring generator implementation details, see :doc:`ring-generator`.
 
 
 Design Considerations
