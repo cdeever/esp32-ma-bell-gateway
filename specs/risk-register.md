@@ -1,6 +1,6 @@
 # Ma Bell Gateway Risk Register
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Date:** 2026-01-22
 **Project:** ESP32 Ma Bell Gateway
 
@@ -189,122 +189,11 @@ This document identifies, assesses, and provides mitigation strategies for risks
 
 ---
 
-### RISK-T005: Rotary Pulse Dial Detection Not Implemented
+### RISK-T005: Memory Leak Over Extended Operation
 
 | Attribute | Value |
 |-----------|-------|
 | **ID** | RISK-T005 |
-| **Category** | Technical - Feature Gap |
-| **Description** | Rotary pulse dial detection logic is not implemented despite GPIO configuration, limiting functionality to DTMF phones only. |
-| **Probability** | 5 - Almost Certain |
-| **Impact** | 3 - Moderate |
-| **Risk Score** | 15 - High |
-| **Status** | Open |
-
-**Root Cause:**
-- Feature not yet developed
-- GPIO 34 configured but no pulse counting/decoding logic
-
-**Technical Requirements:**
-- Pulse rate: 8-12 pulses per second (10 pps typical)
-- Pulse width: ~60ms make, ~40ms break
-- Inter-digit pause: 300-800ms
-- Debouncing required for mechanical contacts
-
-**Mitigation Strategies:**
-1. Implement pulse counting ISR or polling task
-2. Use hardware timer capture for accurate timing
-3. Add state machine for digit assembly
-4. Test with multiple vintage rotary phones
-
-**Contingency:**
-- Document as known limitation
-- Recommend DTMF adapter for rotary phones
-
-**Owner:** Hardware interface developer
-**Review Date:** Next sprint
-
----
-
-### RISK-T006: DTMF Detection Not Implemented
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | RISK-T006 |
-| **Category** | Technical - Feature Gap |
-| **Description** | DTMF tone detection is not implemented, requiring external DTMF decoder IC or software decoding. |
-| **Probability** | 5 - Almost Certain |
-| **Impact** | 3 - Moderate |
-| **Risk Score** | 15 - High |
-| **Status** | Open |
-
-**Root Cause:**
-- Feature not yet developed
-- GPIO 39 reserved but no detection logic
-
-**Technical Options:**
-1. **Hardware decoder (MT8870):** Dedicated IC, simple GPIO interface
-2. **Software Goertzel algorithm:** CPU-intensive but no additional hardware
-3. **Hybrid:** Use ADC input with software detection
-
-**Mitigation Strategies:**
-1. Evaluate hardware vs. software trade-offs
-2. If software: implement Goertzel filter for 8 DTMF frequencies
-3. If hardware: design decoder interface circuit
-4. Validate with standard DTMF test signals
-
-**Contingency:**
-- Prioritize rotary dial support for vintage phone compatibility
-- Add DTMF in subsequent release
-
-**Owner:** Hardware interface developer
-**Review Date:** Next sprint
-
----
-
-### RISK-T007: Ring Circuit Not Fully Implemented
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | RISK-T007 |
-| **Category** | Technical - Feature Gap |
-| **Description** | Ring command output (GPIO 13) is configured but actual ring generation circuit and control logic are incomplete. |
-| **Probability** | 4 - Likely |
-| **Impact** | 4 - Major |
-| **Risk Score** | 16 - Critical |
-| **Status** | Open |
-
-**Root Cause:**
-- Ring voltage generation requires external circuit (90V AC)
-- Safety considerations for high voltage
-- Control timing logic not implemented
-
-**Technical Requirements:**
-- Ring voltage: 90V RMS, 20 Hz
-- Ring cadence: 2 seconds on, 4 seconds off
-- Ring trip detection (stop when answered)
-- Safety isolation from ESP32
-
-**Mitigation Strategies:**
-1. Design ring generator circuit with proper isolation
-2. Implement ring cadence timing in software
-3. Add ring trip detection via SLIC feedback
-4. Conduct safety review of high-voltage design
-
-**Contingency:**
-- Use electronic ringer as alternative to electromechanical
-- External ring generator module
-
-**Owner:** Hardware designer
-**Review Date:** Before hardware rev 2
-
----
-
-### RISK-T008: Memory Leak Over Extended Operation
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | RISK-T008 |
 | **Category** | Technical - Reliability |
 | **Description** | Long-running operation may reveal memory leaks causing gradual DRAM exhaustion and eventual system instability. |
 | **Probability** | 3 - Possible |
@@ -334,11 +223,11 @@ This document identifies, assesses, and provides mitigation strategies for risks
 
 ---
 
-### RISK-T009: WiFi and Bluetooth Coexistence Issues
+### RISK-T006: WiFi and Bluetooth Coexistence Issues
 
 | Attribute | Value |
 |-----------|-------|
-| **ID** | RISK-T009 |
+| **ID** | RISK-T006 |
 | **Category** | Technical - Connectivity |
 | **Description** | Simultaneous WiFi and Bluetooth Classic operation may cause connectivity issues, packet loss, or audio artifacts. |
 | **Probability** | 3 - Possible |
@@ -366,11 +255,11 @@ This document identifies, assesses, and provides mitigation strategies for risks
 
 ---
 
-### RISK-T010: ESP-IDF Version Compatibility
+### RISK-T007: ESP-IDF Version Compatibility
 
 | Attribute | Value |
 |-----------|-------|
-| **ID** | RISK-T010 |
+| **ID** | RISK-T007 |
 | **Category** | Technical - Dependencies |
 | **Description** | Future ESP-IDF updates may introduce breaking changes to Bluetooth HFP, I2S, or WiFi APIs. |
 | **Probability** | 3 - Possible |
@@ -400,42 +289,11 @@ This document identifies, assesses, and provides mitigation strategies for risks
 
 ## 3. Operational Risks
 
-### RISK-O001: No WiFi Provisioning UI
+### RISK-O001: Single Paired Device Limitation
 
 | Attribute | Value |
 |-----------|-------|
 | **ID** | RISK-O001 |
-| **Category** | Operational - Usability |
-| **Description** | WiFi credentials must be provisioned via external tool or NVS programming; no built-in provisioning interface exists. |
-| **Probability** | 5 - Almost Certain |
-| **Impact** | 2 - Minor |
-| **Risk Score** | 10 - High |
-| **Status** | Open |
-
-**Root Cause:**
-- No AP mode or BLE provisioning implemented
-- Credentials stored in NVS require programming tool
-
-**Mitigation Strategies:**
-1. Document provisioning procedure clearly
-2. Create provisioning script/tool
-3. Consider adding BLE provisioning (SoftAP + web config)
-4. Allow operation without WiFi (degrades gracefully)
-
-**Contingency:**
-- Compile-time WiFi credentials for specific deployments
-- Pre-programmed NVS images
-
-**Owner:** Product owner
-**Review Date:** Before v1.0 release
-
----
-
-### RISK-O002: Single Paired Device Limitation
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | RISK-O002 |
 | **Category** | Operational - Usability |
 | **Description** | System only stores one paired Bluetooth device; pairing a new device overwrites the previous pairing. |
 | **Probability** | 4 - Likely |
@@ -461,11 +319,11 @@ This document identifies, assesses, and provides mitigation strategies for risks
 
 ---
 
-### RISK-O003: No Remote Diagnostics
+### RISK-O002: No Remote Diagnostics
 
 | Attribute | Value |
 |-----------|-------|
-| **ID** | RISK-O003 |
+| **ID** | RISK-O002 |
 | **Category** | Operational - Maintainability |
 | **Description** | Troubleshooting requires physical access to serial port; no remote logging or diagnostic capability. |
 | **Probability** | 4 - Likely |
@@ -490,37 +348,6 @@ This document identifies, assesses, and provides mitigation strategies for risks
 
 **Owner:** System architect
 **Review Date:** Post-v1.0
-
----
-
-### RISK-O004: No OTA Update Capability
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | RISK-O004 |
-| **Category** | Operational - Maintainability |
-| **Description** | Firmware updates require physical USB connection; no over-the-air update capability implemented. |
-| **Probability** | 5 - Almost Certain |
-| **Impact** | 2 - Minor |
-| **Risk Score** | 10 - High |
-| **Status** | Open |
-
-**Root Cause:**
-- OTA subsystem not implemented
-- Partition table supports OTA but code doesn't use it
-
-**Mitigation Strategies:**
-1. Implement ESP-IDF OTA component
-2. Add OTA trigger via web interface
-3. Add version checking and rollback capability
-4. Secure OTA with signature verification
-
-**Contingency:**
-- Provide USB update procedure documentation
-- Pre-configured update tool
-
-**Owner:** System architect
-**Review Date:** v1.1 feature
 
 ---
 
@@ -675,42 +502,86 @@ This document identifies, assesses, and provides mitigation strategies for risks
 
 ---
 
-## 6. Risk Summary Dashboard
+## 6. Planned Features / Known Limitations
+
+The following items represent planned functionality that has not yet been implemented. These are not risks (uncertain events with negative consequences) but rather known gaps in the current feature set. They are tracked here to provide visibility and inform prioritization decisions.
+
+| ID | Feature | Description | Priority | Notes |
+|----|---------|-------------|----------|-------|
+| PF-001 | Rotary Pulse Dial Detection | Decode rotary dial pulses (GPIO 34) | Medium | Enables vintage rotary phone support |
+| PF-002 | DTMF Detection | Decode touch-tone digits (GPIO 39 or software) | Medium | Enables touch-tone phone support |
+| PF-003 | Ring Circuit Control | Complete ring generation and control logic | High | Hardware design + firmware; safety aspects tracked in RISK-H002 |
+| PF-004 | WiFi Provisioning UI | Add AP mode or BLE provisioning interface | Low | Currently requires external tool |
+| PF-005 | OTA Updates | Over-the-air firmware update capability | Low | Partition table already supports OTA |
+
+### Feature Details
+
+#### PF-001: Rotary Pulse Dial Detection
+- **Technical Requirements:**
+  - Pulse rate: 8-12 pulses per second (10 pps typical)
+  - Pulse width: ~60ms make, ~40ms break
+  - Inter-digit pause: 300-800ms
+  - Debouncing required for mechanical contacts
+- **Implementation Approach:** Pulse counting ISR or polling task with hardware timer capture
+
+#### PF-002: DTMF Detection
+- **Technical Options:**
+  1. Hardware decoder (MT8870): Dedicated IC, simple GPIO interface
+  2. Software Goertzel algorithm: CPU-intensive but no additional hardware
+  3. Hybrid: Use ADC input with software detection
+
+#### PF-003: Ring Circuit Control
+- **Technical Requirements:**
+  - Ring voltage: 90V RMS, 20 Hz
+  - Ring cadence: 2 seconds on, 4 seconds off
+  - Ring trip detection (stop when answered)
+  - Safety isolation from ESP32
+- **Note:** High-voltage safety considerations are tracked separately as RISK-H002
+
+#### PF-004: WiFi Provisioning UI
+- **Options:**
+  - SoftAP mode with captive portal
+  - BLE provisioning (ESP-IDF component available)
+- **Current Workaround:** Compile-time credentials or NVS programming tool
+
+#### PF-005: OTA Updates
+- **Implementation:** Use ESP-IDF OTA component
+- **Requirements:** Version checking, rollback capability, signature verification
+- **Current Workaround:** USB update procedure
+
+---
+
+## 7. Risk Summary Dashboard
 
 ### Critical Risks (Score 16-25)
 | ID | Risk | Score | Status |
 |----|------|-------|--------|
 | RISK-T001 | Bluetooth Audio Quality | 16 | Active |
-| RISK-T007 | Ring Circuit Incomplete | 16 | Open |
 
 ### High Risks (Score 10-15)
 | ID | Risk | Score | Status |
 |----|------|-------|--------|
-| RISK-T005 | Rotary Dial Not Implemented | 15 | Open |
-| RISK-T006 | DTMF Not Implemented | 15 | Open |
 | RISK-T003 | Tone Blocking Audio | 12 | Active |
-| RISK-T008 | Memory Leak Risk | 12 | Active |
+| RISK-T005 | Memory Leak Risk | 12 | Active |
 | RISK-H001 | SLIC Availability | 12 | Monitoring |
 | RISK-S001 | Feature Scope Creep | 12 | Active |
-| RISK-O001 | No WiFi Provisioning | 10 | Open |
-| RISK-O004 | No OTA Updates | 10 | Open |
 | RISK-H002 | Ring Generator Safety | 10 | Active |
 
 ### Medium Risks (Score 5-9)
 | ID | Risk | Score | Status |
 |----|------|-------|--------|
-| RISK-T009 | WiFi/BT Coexistence | 9 | Active |
-| RISK-T010 | ESP-IDF Compatibility | 9 | Monitoring |
+| RISK-T006 | WiFi/BT Coexistence | 9 | Active |
+| RISK-T007 | ESP-IDF Compatibility | 9 | Monitoring |
 | RISK-S002 | Hardware Delays | 9 | Monitoring |
 | RISK-T004 | Stack Overflow | 8 | Active |
-| RISK-O002 | Single Device Limit | 8 | Accepted |
-| RISK-O003 | No Remote Diagnostics | 8 | Open |
+| RISK-O001 | Single Device Limit | 8 | Accepted |
+| RISK-O002 | No Remote Diagnostics | 8 | Open |
 | RISK-H003 | Codec Quality | 6 | Monitoring |
 | RISK-T002 | BT Init Bug (Fixed) | 5 | Mitigated |
 
 ---
 
-## 7. Risk Review Schedule
+## 8. Risk Review Schedule
 
 | Review Type | Frequency | Participants |
 |-------------|-----------|--------------|
@@ -720,8 +591,9 @@ This document identifies, assesses, and provides mitigation strategies for risks
 
 ---
 
-## 8. Document History
+## 9. Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-22 | Generated | Initial risk register based on codebase analysis |
+| 1.1 | 2026-01-22 | Generated | Separated feature gaps from risks; added Section 6 "Planned Features / Known Limitations"; renumbered technical and operational risks |
