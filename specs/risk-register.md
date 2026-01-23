@@ -42,6 +42,16 @@ This document identifies, assesses, and provides mitigation strategies for risks
 | 10-15 | High | Active mitigation, escalation |
 | 16-25 | Critical | Immediate action required |
 
+#### Risk Status
+| Status | Description |
+|--------|-------------|
+| Open | Risk identified but no mitigation work has begun |
+| Active | Risk is being actively monitored and mitigated |
+| Mitigated | Mitigation measures implemented; residual risk remains |
+| Monitoring | Risk is low-probability or external; watching for changes |
+| Accepted | Risk acknowledged and accepted without further mitigation |
+| Closed | Risk no longer applicable or has been fully eliminated |
+
 ---
 
 ## 2. Technical Risks
