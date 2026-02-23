@@ -23,8 +23,8 @@ to that existing assembly.
 | Hook switch (via SLIC SHD pin) | SPST toggle switch pulling GPIO 32 LOW | 3.3V |
 | Rotary dial pulses (via SLIC loop) | 555 timer pulse generator → GPIO 34 | 3.3V |
 | DTMF dialing (via line audio) | Smartphone DTMF app → mic → Goertzel in firmware | 3.3V |
-| 90V AC ringer (via ring generator) | Piezo buzzer via NPN from GPIO 13 | 3.3V |
-| SLIC ring detect status (RD pin) | Loopback from GPIO 13 or manual switch → GPIO 33 | 3.3V |
+| 90V AC ringer (via ring generator) | Piezo buzzer via NPN from GPIO 13, or LED flash | 3.3V |
+| SLIC ring detect status (RD pin) | Loopback from GPIO 13 → GPIO 33 (confirms ring output) | 3.3V |
 | Dial lamp (27V from line) | LED + resistor from GPIO 27 | 3.3V |
 | Status LEDs | LEDs + 330Ω on GPIO 2 and 18 | 3.3V |
 | User button | Tactile pushbutton on GPIO 4 | 3.3V |
@@ -280,13 +280,20 @@ algorithm works on the I2S audio data directly.
 
 ---
 
-### Module 5: Ring Indicator (Piezo Buzzer)
+### Module 5: Ring Indicator (Piezo Buzzer or LED)
 
 **GPIO 13** — `PIN_RING_COMMAND` (output)
 
-In production, GPIO 13 drives the SLIC ring command (RC) pin. In the test rig,
-it drives a piezo buzzer through an NPN transistor to simulate ringer output.
-The ring command is active LOW.
+**How incoming calls work:** The paired cell phone notifies the ESP32 of an
+incoming call via Bluetooth HFP. The firmware receives this event
+(`BT_EVENT_CALL_STARTED` / HFP ring indication) and responds by driving GPIO 13
+to activate the ringer. The cell phone is the source of the incoming call
+signal — the firmware just needs to produce an audible or visible alert.
+
+In production, GPIO 13 drives the SLIC ring command (RC) pin, which triggers
+90V AC ringing on the phone line. In the test rig, it drives a piezo buzzer
+through a transistor for an audible alert, or simply flashes an LED for a
+visual-only indicator. The ring command is active LOW.
 
 **Wiring:**
 
@@ -337,11 +344,20 @@ matches the active-LOW ring command directly.
 **Visual indicator:** Add an LED + 330Ω in parallel with the buzzer for a visual
 ring indication.
 
-**Ring cadence:** Standard North American ring cadence is 2 seconds on, 4 seconds
-off. The buzzer should follow this pattern during an incoming BT call.
+#### Option C: LED-Only (Simplest)
 
-**Test:** Initiate an incoming call to the paired phone via BT. The buzzer should
-sound for 2s and silence for 4s, repeating until the call is answered or ends.
+Skip the buzzer and transistor entirely. Connect an LED + 330Ω from GPIO 13 to
+GND (with appropriate polarity inversion if needed for the active-LOW signal).
+This gives a flashing visual ring indicator with zero extra components beyond
+what you already need for Module 7 LEDs.
+
+**Ring cadence:** Standard North American ring cadence is 2 seconds on, 4 seconds
+off. The buzzer/LED should follow this pattern during an incoming BT call.
+
+**Test:** Call the paired cell phone from another phone. The ESP32 receives the
+incoming call event via Bluetooth HFP and drives GPIO 13 with the ring cadence.
+The buzzer should sound (or LED should flash) for 2s on / 4s off, repeating
+until the call is answered (off-hook) or the caller hangs up.
 
 **Firmware references:**
 - `main/config/pin_assignments.h:11` — `PIN_RING_COMMAND` = GPIO 13
@@ -353,14 +369,22 @@ sound for 2s and silence for 4s, repeating until the call is answered or ends.
 
 **GPIO 33** — `PIN_RING_DETECT` (input)
 
-In production, the SLIC RD (ring detect) pin indicates when ringing voltage is
-present on the line. In the test rig, create a loopback from the ring command
-output so the firmware can verify ring status.
+**Important context:** The firmware already knows about incoming calls from the
+Bluetooth HFP event — it does not learn about incoming calls from GPIO 33.
+In production, the SLIC RD (ring detect) pin is a **feedback signal** that
+confirms ringing voltage is actually present on the phone line. This allows the
+firmware to verify that the ring generator is working and detect "ring trip"
+(when the subscriber goes off-hook during ringing, the ringing voltage drops
+and RD goes inactive).
 
-#### Option A: Direct Loopback
+In the test rig, a simple loopback from GPIO 13 confirms that when the firmware
+commands ringing, the ring-active feedback is consistent.
+
+#### Option A: Direct Loopback (Recommended)
 
 Wire GPIO 13 (ring command output) directly to GPIO 33 (ring detect input).
-When the firmware commands ringing, it immediately reads the ring-active status.
+When the firmware commands ringing, it reads back the ring-active status as
+confirmation.
 
 ```
 GPIO 13 ────── GPIO 33
@@ -378,10 +402,12 @@ GPIO 33 ──┤ ├── GND
 ```
 
 Enable the internal pull-up on GPIO 33. Switch CLOSED = ring detected (LOW).
-This allows testing ring detection independently from ring command.
+This allows testing ring detection independently from ring command — useful for
+testing ring-trip behavior without an actual incoming call.
 
-**Test:** During an incoming call, verify that GPIO 33 reads LOW (ring active)
-when GPIO 13 is driving the ringer, and HIGH when ringing stops.
+**Test:** During an incoming BT call, verify that GPIO 33 reads LOW (ring active)
+when GPIO 13 is driving the ringer, and HIGH when ringing stops or the call is
+answered.
 
 **Firmware references:**
 - `main/config/pin_assignments.h:10` — `PIN_RING_DETECT` = GPIO 33
