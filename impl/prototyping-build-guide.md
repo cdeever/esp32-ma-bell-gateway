@@ -266,7 +266,7 @@ Run jumper wires from the SLIC breadboard to the Sub-A inter-board header:
 | SLIC Pin | Function | Direction | ESP32 GPIO | Header Pin |
 |---|---|---|---|---|
 | Pin 13 (SHD) | Off-hook detect | SLIC → ESP32 | GPIO 32 (input) | 3 |
-| Pin 8 (RD) | Ring relay driver | SLIC → ESP32 | GPIO 33 (input) | 4 |
+| Pin 8 (RD) | Ring detect feedback | SLIC → ESP32 | GPIO 33 (input) | 4 |
 | Pin 16 (RC) | Ring command | ESP32 → SLIC | GPIO 13 (output) | 5 |
 
 Also connect:
@@ -346,7 +346,7 @@ coupling, RJ11 jack, and line protection.
 | 5 | Dial tone through handset earpiece | 350Hz + 440Hz continuous | Ear / scope on SLIC TX |
 | 6 | Speak into handset mic, check ADC | Audio data on GPIO 35 (I2S DIN) | Oscilloscope |
 | 7 | BT call, listen through handset | Clear bidirectional audio | Phone call |
-| 8 | RD pin (Pin 8 / GPIO 33) | HIGH on-hook, LOW during ring command | Multimeter |
+| 8 | RD pin (Pin 8 / GPIO 33) | HIGH on-hook, LOW when ESP32 drives RC (GPIO 13) LOW | Multimeter |
 
 **If SHD doesn't change on hook lift:** Check −48V polarity, verify feed resistors
 (150Ω) are in place between Pins 9/10 and TIP/RING, confirm star ground.
@@ -503,6 +503,12 @@ traces.
   (Pin 8, via jumper from Sub-B)
 ```
 
+**Signal chain for incoming calls:** The paired cell phone notifies the ESP32 of
+an incoming call via Bluetooth HFP. The firmware drives GPIO 13 (RC) LOW to
+command the SLIC to ring. The SLIC responds by pulling RD (Pin 8) LOW, which
+confirms ring-active status. RD then drives Q1, energizing the relay to switch
+the phone line from −48V to the 90V AC ring generator output.
+
 1. Solder relay K1, driver Q1, base resistor (1kΩ), flyback diode (1N4148)
 2. Wire relay coil to +12V and Q1 collector
 3. Wire Q1 base (via 1kΩ) to terminal block (connects to SLIC RD / GPIO 33)
@@ -514,8 +520,9 @@ traces.
 - NO (Normally Open) contacts: Ring generator 90V AC output
 - Common contacts: To SLIC TIP/RING (via Sub-B perfboard)
 
-When SLIC RD goes LOW (ring active), Q1 turns on, relay energizes, line switches
-from −48V to 90V AC ring signal.
+When the ESP32 commands ringing (RC LOW via GPIO 13), the SLIC pulls RD LOW.
+Q1 turns on, the relay energizes, and the line switches from −48V to the 90V AC
+ring signal.
 
 **Step 6 — Output protection:**
 
@@ -528,7 +535,7 @@ Wire terminal blocks for:
 - 48V DC power input (from bench supply)
 - 12V power input (for relay coil — from Sub-B supply or separate)
 - PWM input from ESP32 (2 wires: IN A, IN B)
-- SLIC RD signal input (1 wire from Sub-B)
+- SLIC RD feedback signal (1 wire from Sub-B — confirms ring-active status)
 - Ring output to Sub-B relay contacts (2 wires: to TIP/RING)
 - GND (common with Sub-A and Sub-B)
 
@@ -645,15 +652,19 @@ Connect Sub-A and Sub-B via the inter-board header. Test these functions:
 
 ### Integration Step 2: Add Sub-C
 
-Connect Sub-C relay contacts and RD signal to Sub-B. Test incoming call flow:
+Connect Sub-C relay contacts and RD signal to Sub-B. Test incoming call flow.
+
+**Incoming call signal chain:** Cell phone receives call → BT HFP notifies ESP32
+→ firmware drives RC (GPIO 13) LOW → SLIC activates ring mode → SLIC RD (Pin 8)
+goes LOW → relay switches line to 90V AC ring generator → phone bell rings.
 
 | # | Test | Expected Result |
 |---|------|----------------|
-| 1 | Incoming call via BT | ESP32 drives GPIO 13 LOW (RC) |
+| 1 | Call the paired cell phone from another phone | ESP32 receives BT HFP ring event, drives GPIO 13 LOW (RC) |
 | 2 | SLIC RD goes LOW | Relay clicks, line switches to ring gen |
 | 3 | Phone rings | Electromechanical bell rings at 20Hz |
 | 4 | Ring cadence | 2s ON, 4s OFF |
-| 5 | Lift handset during ring (ring trip) | Ringing stops, call connects |
+| 5 | Lift handset during ring (ring trip) | Ringing stops, call connects via BT audio |
 | 6 | Full call flow: ring → answer → talk → hang up | All states transition correctly |
 
 ### Final Verification Checklist
@@ -755,7 +766,7 @@ Authoritative source: `main/config/pin_assignments.h`
 | 26 | PIN_PCM_DOUT | I2S Data Out (to DAC) | Output | A |
 | 35 | PIN_PCM_DIN | I2S Data In (from ADC) | Input | A |
 | 32 | PIN_OFF_HOOK_DETECT | SLIC SHD — off-hook detect | Input | B |
-| 33 | PIN_RING_DETECT | SLIC RD — ring relay status | Input | B |
+| 33 | PIN_RING_DETECT | SLIC RD — ring detect feedback | Input | B |
 | 13 | PIN_RING_COMMAND | SLIC RC — ring command | Output | B |
 | 27 | PIN_DIAL_LAMP_CTRL | Dial lamp relay/MOSFET | Output | B |
 | 34 | PIN_PULSE_DIAL_IN | Rotary dial pulse input | Input | B |
