@@ -22,8 +22,8 @@ coupling, and indicator modules to that existing assembly.
 | | v1.0: Low-Voltage Build (this guide) | v2.0: SLIC Build |
 |---|---|---|
 | **Phone** | Cheap corded desk phone (~$15) | Vintage rotary (Western Electric 500, etc.) |
-| **Loop supply** | 5V USB via 330Ω (~15mA) | −48V via AG1171 SLIC (~25mA) |
-| **Hook/dial** | Phone's own hook switch, pulse dial, DTMF IC | SLIC SHD pin, loop current interruption |
+| **Loop supply** | 5V USB via 100Ω shunt + 330Ω (~8.6mA) | −48V via AG1171 SLIC (~25mA) |
+| **Hook/dial** | Phone's own hook switch, pulse dial, DTMF IC → NPN current sense | SLIC SHD pin, loop current interruption |
 | **Voice** | AC-coupled onto 5V loop (handset earpiece + mic) | SLIC hybrid 2-wire ↔ 4-wire conversion |
 | **Ring** | Piezo buzzer / LED from GPIO 13 | 90V AC ring generator → mechanical bell |
 | **Purpose** | Prove out all firmware end-to-end | Support vintage hardware with proper line voltages |
@@ -41,8 +41,8 @@ Grandma's 1965 rotary phone work exactly like it did when LBJ was president.
 | Production Hardware | v1.0 Replacement | Voltage |
 |---|---|---|
 | Telephone (via SLIC) | Cheap corded phone on 5V DC loop | 5V |
-| Hook switch (via SLIC SHD pin) | Phone's real hook switch → voltage divider → GPIO 32 | 5V → 3.3V |
-| Rotary dial pulses (via SLIC loop) | Phone's pulse dial (P mode) → GPIO 34 | 5V → 3.3V |
+| Hook switch (via SLIC SHD pin) | Phone's real hook switch → shunt current sense → NPN → GPIO 32 | 5V → 3.3V |
+| Rotary dial pulses (via SLIC loop) | Phone's pulse dial (P mode) → shunt current sense → NPN → GPIO 34 | 5V → 3.3V |
 | DTMF dialing (via line audio) | Phone's DTMF IC (T mode) → AC couple → ADC → Goertzel | 5V |
 | Earpiece audio (via SLIC hybrid) | DAC → AC couple onto loop → phone earpiece | 5V |
 | Microphone audio (via SLIC hybrid) | Phone mic on loop → AC couple → ADC | 5V |
@@ -74,16 +74,19 @@ PCM1808 ADC breakout, I2S wiring (GPIO 25/5/26/35), all codec pin strapping.
 | Qty | Component | Value / Part | Module | Notes |
 |-----|-----------|-------------|--------|-------|
 | 1 | Corded desk phone | With T/P switch | Phone loop | ~$10-15, thrift store or online |
+| 1 | Resistor | 100Ω ¼W | Phone loop | Current-sense shunt |
 | 1 | Resistor | 330Ω ¼W | Phone loop | DC loop current limiting |
-| 4 | Resistors | 10kΩ ¼W | Phone loop | Voltage dividers (hook sense, DTMF sense) |
-| 1 | Capacitor | 100nF ceramic | Phone loop | AC coupling DTMF to ADC |
-| 1 | Resistor | 1kΩ ¼W | Voice audio | Series resistor, DAC → loop injection |
+| 2 | NPN transistors | 2N2222A (TO-92) | Phone loop | Hook detect (Q1) and pulse detect (Q2) |
+| 4 | Resistors | 10kΩ ¼W | Phone loop | NPN base resistors ×2, ADC voltage divider ×2 |
+| 1 | Capacitor | 100nF ceramic | Phone loop | AC coupling DTMF/mic to ADC |
+| 1 | Capacitor | 47µF electrolytic | Phone loop | DTMF IC current buffer across TIP/RING |
+| 1 | Resistor | 1kΩ ¼W | Voice audio | Fixed series resistor, DAC → loop injection |
+| 1 | Trim pot | 5kΩ | Voice audio | Adjustable DAC inject level |
 | 1 | Capacitor | 10µF non-polarized | Voice audio | AC coupling DAC onto loop |
-| 1 | Capacitor | 100nF ceramic | Voice audio | AC coupling loop to ADC (mic path) |
+| 1 | PNP transistor | 2N3906 (TO-92) | Ring indicator | Buzzer driver |
 | 1 | Piezo buzzer | 3–5V, through-hole | Ring indicator | |
-| 1 | NPN transistor | 2N2222A (TO-92) | Ring indicator | Buzzer driver |
 | 1 | Resistor | 1kΩ ¼W | Ring indicator | Transistor base |
-| 1 | Diode | 1N4148 | Ring indicator | Flyback across piezo |
+| 1 | Diode | 1N4148 | Ring indicator | Flyback (for electromagnetic buzzers) |
 | 4 | LEDs | 3mm or 5mm, any color | Ring, lamp, status ×2 | |
 | 4 | Resistors | 330Ω ¼W | LED current limiting | |
 | 1 | Tactile pushbutton | 6mm through-hole | User button | |
@@ -102,69 +105,81 @@ switch) only need a few volts and milliamps of loop current. The phone doesn't
 care that it's running at 5V instead of −48V — it just needs enough current to
 power the DTMF oscillator and close the hook switch contact.
 
-#### DC Loop
+#### DC Loop — Two-Zone Architecture
 
-Supply 5V (from the ESP32 dev board's USB rail) through a 330Ω current-limiting
-resistor. The phone draws current when off-hook, creating voltage changes that
-the ESP32 can detect.
+The circuit is split into two zones by the 330Ω loop resistor. This separation
+keeps DC signaling (hook/pulse detection) clean and isolated from AC audio
+(DTMF, voice).
 
 ```
         5V (ESP32 USB rail)
          │
-       330Ω (R_loop)
-         │
-    A ───┤
-         │
-        TIP (phone, green wire)
-         │
-    [Corded Phone]
-         │
-       RING (phone, red wire)
-         │
-        GND
+         ├── R_shunt (100Ω)
+         │        │
+         │   Sense Zone ── hook detect (GPIO 32) and pulse detect (GPIO 34)
+         │        │
+         │      330Ω (R_loop)
+         │        │
+         │   B ── Phone Zone ── DTMF/voice AC coupling (to/from codecs)
+         │        │
+         │       TIP (phone, green wire)
+         │        │
+         │   [Corded Phone]
+         │        │
+         │      RING (phone, red wire)
+         │        │
+         └────── GND
 ```
 
-Point A is the sense point — where we tap voltage for hook detection, pulse
-detection, and DTMF signal extraction.
+- **Sense zone** (between 5V supply and 330Ω): The 100Ω shunt resistor develops
+  a voltage proportional to loop current. NPN transistors convert this into clean
+  3.3V logic for the GPIOs. No DAC audio, no DTMF AC — just a DC current signal.
+- **Phone zone** (Point B, between 330Ω and TIP): Where AC audio lives. DTMF
+  tones from the phone, mic signal from the handset, and DAC injection for the
+  earpiece all happen here. The 330Ω resistor provides natural AC isolation from
+  the sense zone.
 
-**Loop current math:** With 5V supply and 330Ω, and a typical phone off-hook DC
-resistance of ~100-200Ω, loop current is 5V / (330Ω + ~150Ω) ≈ 10-15mA. This
-is enough for the phone's DTMF IC, pulse switch logic, and microphone circuit.
-
-**Voltage at Point A:**
-- **On-hook:** No current flows. Point A sits at 5V (supply voltage).
-- **Off-hook:** Current flows through 330Ω and phone. Voltage at A drops to
-  roughly 1-3V depending on the phone's DC resistance.
+**Loop current math:** With 5V supply, 100Ω shunt, 330Ω loop resistor, and a
+typical phone off-hook DC resistance of ~100-200Ω, loop current is
+5V / (100Ω + 330Ω + ~150Ω) ≈ 8.6mA. This is enough for the phone's DTMF IC,
+pulse switch logic, and microphone circuit.
 
 **If 5V isn't enough:** Some DTMF ICs need 3.5V+ across them to oscillate. If
 yours doesn't generate tones at 5V, use a 9V battery with a 680Ω current-limiting
-resistor instead (still ~10mA). Size the voltage dividers accordingly.
+resistor instead (keeping the 100Ω shunt). A 47µF electrolytic cap across
+TIP/RING (at Point B and GND) helps buffer bursty current draw from the DTMF IC
+during tone generation.
 
 #### Hook Switch Detection — GPIO 32
 
 `PIN_OFF_HOOK_DETECT` (input, internal pull-up enabled)
 
-A voltage divider from Point A brings the 5V-swing signal into ESP32-safe range.
+An NPN transistor detects loop current via the shunt resistor, giving clean
+rail-to-rail 3.3V logic to the GPIO — no threshold ambiguity.
 
 ```
-    Point A (from loop)
+    Shunt junction (between R_shunt and 330Ω)
          │
-        10kΩ
+        10kΩ (R_base)
          │
-         ├──── GPIO 32
-         │
-        10kΩ
-         │
-        GND
+    2N2222A Base
+    2N2222A Emitter ──── GND
+    2N2222A Collector ──── GPIO 32
+                           │
+                     10kΩ pull-up to 3.3V
 ```
 
 **How it works:**
-- **On-hook:** Point A at 5V → divider outputs ~2.5V → GPIO 32 reads HIGH →
-  firmware sees on-hook.
-- **Off-hook:** Point A drops to ~1-3V → divider outputs ~0.5-1.5V → GPIO 32
-  reads LOW → firmware sees off-hook.
+- **Off-hook:** Current flows through shunt. Shunt voltage = ~8.6mA × 100Ω =
+  ~0.86V. Through 10kΩ to NPN base → ~86µA base current → NPN ON → collector
+  pulls GPIO 32 LOW → firmware sees off-hook.
+- **On-hook:** No current flows. 0V across shunt → NPN OFF → pull-up holds
+  GPIO 32 HIGH → firmware sees on-hook.
 
-This matches the firmware's active-LOW convention (LOW = off-hook, HIGH = on-hook).
+This matches the firmware's active-LOW convention directly (LOW = off-hook,
+HIGH = on-hook). The NPN gives full rail-to-rail switching (0V or 3.3V) with no
+undefined voltage zones — far more reliable than a passive voltage divider on a
+noisy breadboard.
 
 **Firmware references:**
 - `main/hardware/slic_interface.c` — poll interval 20ms, debounce 50ms, active LOW
@@ -174,10 +189,10 @@ This matches the firmware's active-LOW convention (LOW = off-hook, HIGH = on-hoo
 
 When the phone is in **T (Tone) mode** and a key is pressed, the DTMF IC generates
 dual tones directly on the wire as AC current variations. AC-couple these from
-Point A into the PCM1808 ADC for Goertzel decoding in firmware.
+Point B (phone zone) into the PCM1808 ADC for Goertzel decoding in firmware.
 
 ```
-    Point A (from loop)
+    Point B (phone zone, between 330Ω and TIP)
          │
         10kΩ
          │
@@ -191,6 +206,15 @@ Point A into the PCM1808 ADC for Goertzel decoding in firmware.
 The 10kΩ/10kΩ voltage divider halves the signal (−6dB) and the 100nF cap blocks
 DC. The resulting AC signal feeds the PCM1808 ADC, where the firmware's Goertzel
 algorithm detects the DTMF frequencies.
+
+Tapping from Point B (phone side of 330Ω) instead of the supply side keeps the
+audio sense path separated from the DC current-sensing shunt. The 330Ω loop
+resistor provides natural AC isolation between the two zones.
+
+**PCM1808 input biasing:** VINL is biased to ground via the 10kΩ resistor already
+soldered on the PCM1808 breakout board (Sub-Assembly A). No additional biasing
+is needed — the chip's internal input structure handles AC-coupled signals biased
+to ground per the standard application circuit.
 
 **DTMF frequency grid (for reference):**
 
@@ -213,27 +237,33 @@ receive happens during the call state, so they don't conflict.
 #### Pulse Dial Detection — GPIO 34
 
 When the phone is in **P (Pulse) mode** and a digit is dialed, the pulse switch
-opens and closes the loop rapidly. Each loop break causes the voltage at Point A
-to jump back to 5V (no current), then drop again when the loop closes. Standard
-rate: 10 pulses/second, 60ms break / 40ms make.
-
-Tap Point A through a second voltage divider to GPIO 34 (`PIN_PULSE_DIAL_IN`).
-GPIO 34 is input-only with no internal pull-up, so include an external 10kΩ
-pull-up to 3.3V.
+opens and closes the loop rapidly. Each loop break interrupts current through the
+shunt — the same physical event detected by the hook sense NPN. A second NPN on
+the same shunt gives GPIO 34 a dedicated pulse signal with clean digital edges.
 
 ```
-    Point A (from loop)
+    Shunt junction (between R_shunt and 330Ω)
          │
-        10kΩ
+        10kΩ (R_base)
          │
-         ├──── GPIO 34
-         │
-        10kΩ
-         │
-        GND
-
-    3.3V ── 10kΩ ──── GPIO 34  (external pull-up)
+    2N2222A Base
+    2N2222A Emitter ──── GND
+    2N2222A Collector ──── GPIO 34
+                           │
+                     10kΩ pull-up to 3.3V
 ```
+
+Standard pulse rate: 10 pulses/second, 60ms break / 40ms make.
+
+**How it works:** During each pulse break, shunt current drops to zero → NPN OFF
+→ GPIO 34 goes HIGH. When the loop closes again → current resumes → NPN ON →
+GPIO 34 goes LOW. The edges are crisp because NPN switching is binary — no
+analog voltage divider ambiguity.
+
+**Why a separate NPN?** GPIO 34 is input-only with no internal pull-up, so it
+needs its own external pull-up and dedicated NPN. This also keeps the pulse
+detect signal electrically independent from hook detect, preventing crosstalk
+from debounce filtering on GPIO 32 from affecting pulse timing.
 
 **Distinguishing pulses from hook flash:** Dial pulses arrive at ~10 per second
 (60ms break, 40ms make). A hook flash is a single 300-800ms transition. The
@@ -256,32 +286,38 @@ Switch between modes to test both dialing methods with the same hardware.
 
 #### Complete Module 1 Wiring Diagram
 
-All connections from a single sense point:
+Two zones separated by the 330Ω loop resistor:
 
 ```
         5V (USB rail)
          │
-       330Ω
+       100Ω (R_shunt)
          │
-    A ───┼──── TIP ──── [Corded Phone] ──── RING ──── GND
+    S ───┤  ← Sense Zone: shunt current drives both NPNs
          │
-         ├── 10kΩ ──┬── GPIO 32 (hook detect)
+         ├── 10kΩ ── Q1 base (2N2222A)    Q1 collector ── GPIO 32 (hook detect)
+         │           Q1 emitter ── GND      │              │
+         │                              10kΩ pull-up ── 3.3V
+         │
+         ├── 10kΩ ── Q2 base (2N2222A)    Q2 collector ── GPIO 34 (pulse detect)
+         │           Q2 emitter ── GND      │              │
+         │                              10kΩ pull-up ── 3.3V
+         │
+       330Ω (R_loop)
+         │
+    B ───┤  ← Phone Zone: AC audio lives here
+         │
+         ├── 10kΩ ──┬── 100nF ── PCM1808 VINL (DTMF/voice to ADC)
          │          │
          │        10kΩ
          │          │
          │         GND
          │
-         ├── 10kΩ ──┬── 100nF ── PCM1808 VINL (DTMF to ADC)
-         │          │
-         │        10kΩ
-         │          │
-         │         GND
+         ├── [DAC TX inject — see Module 2]
          │
-         └── 10kΩ ──┬── GPIO 34 (pulse detect)
-                    │
-                  10kΩ       3.3V ── 10kΩ ── GPIO 34 (pull-up)
-                    │
-                   GND
+         ├── 47µF (electrolytic, + toward B) ── GND   (DTMF current buffer)
+         │
+        TIP ──── [Corded Phone] ──── RING ──── GND
 ```
 
 **Test:**
@@ -307,28 +343,32 @@ ADC, the phone's handset becomes the audio I/O device.
 #### TX Path: DAC → Phone Earpiece
 
 The PCM5100 DAC output (far-end BT audio, tones) is AC-coupled onto the phone
-loop through a series resistor. The earpiece reproduces it.
+loop at Point B (phone zone) through a series resistor and trim pot. The earpiece
+reproduces it.
 
 ```
-    PCM5100 OUTL ── 10µF ── 1kΩ ──── Point A (on DC loop)
-                  (AC coupling)  (current limit)
+    PCM5100 OUTL ── 10µF ── 1kΩ ── 5kΩ trim pot ──── Point B (phone zone)
+                  (AC coupling)  (fixed)  (adjustable)
 ```
 
 - The 10µF cap blocks DC so the DAC doesn't fight the loop supply.
-- The 1kΩ resistor limits current from the DAC into the loop and provides some
-  isolation. The phone's earpiece (typically 100-300Ω) sees the AC signal as a
-  voltage variation on the loop.
-- At 20% volume (firmware default), the DAC outputs ~0.3Vrms. Through the 1kΩ
-  into the loop impedance, this produces adequate earpiece volume.
+- The 1kΩ fixed resistor provides a minimum series impedance (safety floor —
+  prevents a zeroed-out trim pot from shorting the DAC into the loop).
+- The 5kΩ trim pot lets you dial in the inject level empirically. Start with it
+  at maximum resistance (quiet) and turn down until earpiece volume is
+  comfortable. Lower resistance = louder earpiece but more echo on the far end.
+- Injecting at Point B (phone side of 330Ω) keeps DAC audio out of the sense
+  zone. The 330Ω loop resistor attenuates any DAC signal that tries to leak back
+  toward the shunt, preventing false triggers on the hook/pulse GPIOs.
 
 #### RX Path: Phone Mic → ADC
 
 The phone's mic signal appears as small AC current variations on the loop. Read
-these from Point A through a voltage divider and AC coupling cap into the PCM1808
-ADC.
+these from Point B through the same voltage divider and AC coupling cap used for
+DTMF detection in Module 1.
 
 ```
-    Point A (from loop)
+    Point B (phone zone)
          │
         10kΩ
          │
@@ -350,9 +390,11 @@ phone's mic signal (wanted) **and** the DAC's injected audio reflected back from
 the loop (echo). The far-end caller will hear their own voice echoed back.
 
 **How bad is it?** The echo level depends on the impedance relationships. The 1kΩ
-series resistor on the TX path provides some attenuation — the echo at the ADC
-will be weaker than the original DAC signal, but still audible to the far end.
-Sidetone (hearing yourself in the earpiece) is normal and expected in telephones.
++ trim pot series resistance on the TX path provides some attenuation — the echo
+at the ADC will be weaker than the original DAC signal, but still audible to the
+far end. Turning the trim pot up (more resistance) reduces both earpiece volume
+and echo. Sidetone (hearing yourself in the earpiece) is normal and expected in
+telephones.
 
 **Mitigation options, from simplest to best:**
 
@@ -439,7 +481,7 @@ The ring command is **active LOW**.
          │
        Piezo Buzzer (+)
          │
-    ┌────┤ 1N4148 (flyback diode, cathode at top)
+    ┌────┤ 1N4148 (flyback diode, cathode at top — see note below)
     │    │
     │  Piezo Buzzer (−)
     │    │
@@ -453,6 +495,12 @@ The ring command is **active LOW**.
 ```
 
 GPIO 13 LOW → PNP base pulled low → transistor ON → buzzer sounds.
+
+**Flyback diode note:** A bare piezo disc is capacitive — no flyback diode needed.
+But most cheap "piezo buzzers" from electronics suppliers are actually
+electromagnetic (they have a coil inside), which *does* need the diode. If you're
+not sure what you have, include the 1N4148 — it's harmless on a capacitive load
+and protective on an inductive one.
 
 **Visual indicator:** Add an LED + 330Ω in parallel with the buzzer.
 
@@ -570,10 +618,10 @@ triggers the expected action.
 │  ┌──────────────────────┐    ┌────────────────────────────────────┐ │
 │  │   SUB-ASSEMBLY A     │    │     v1.0 MODULES                   │ │
 │  │                      │    │                                    │ │
-│  │  ESP32 DevKitC       │    │  Phone loop (330Ω + dividers)      │ │
+│  │  ESP32 DevKitC       │    │  Phone loop (shunt + NPNs + 330Ω)  │ │
 │  │    (center span)     │    │                                    │ │
 │  │                      │    │  Voice audio coupling               │ │
-│  │  PCM5100 DAC         │    │    (caps + resistors)              │ │
+│  │  PCM5100 DAC         │    │    (caps + trim pot)               │ │
 │  │    (breakout board)  │    │                                    │ │
 │  │                      │    │  Buzzer + PNP driver                │ │
 │  │  PCM1808 ADC         │    │    (ring indicator)                │ │
@@ -694,9 +742,9 @@ All pin assignments from `main/config/pin_assignments.h`:
 | 25 | `PIN_PCM_FSYNC` | Output | I2S LRCLK → codecs (Sub-A) |
 | 26 | `PIN_PCM_DOUT` | Output | I2S data out → DAC (Sub-A) |
 | 27 | `PIN_DIAL_LAMP_CTRL` | Output | LED + 330Ω → GND |
-| 32 | `PIN_OFF_HOOK_DETECT` | Input | Phone loop voltage divider (hook sense) |
+| 32 | `PIN_OFF_HOOK_DETECT` | Input | NPN current sense from shunt (Q1, 10kΩ pull-up to 3.3V) |
 | 33 | `PIN_RING_DETECT` | Input | Loopback from GPIO 13 or switch |
-| 34 | `PIN_PULSE_DIAL_IN` | Input | Phone loop voltage divider (pulse sense) |
+| 34 | `PIN_PULSE_DIAL_IN` | Input | NPN current sense from shunt (Q2, 10kΩ pull-up to 3.3V) |
 | 35 | `PIN_PCM_DIN` | Input | I2S data in ← ADC (Sub-A) |
 | 39 | `PIN_DTMF_IN` | Input | Not used (Goertzel via I2S instead) |
 
