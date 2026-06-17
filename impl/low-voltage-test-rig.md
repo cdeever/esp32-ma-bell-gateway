@@ -19,6 +19,11 @@ coupling, and indicator modules to that existing assembly.
 
 ## v1.0 vs v2.0
 
+The **v2.0: SLIC Build** is documented in the
+[SLIC module build guide](slic-module-build-guide.md), which uses an AG1171/KS0835F SLIC
+module to drive a real phone (including ringing a mechanical bell) from a single +3.3–5V
+supply — no high-voltage hardware.
+
 | | v1.0: Low-Voltage Build (this guide) | v2.0: SLIC Build |
 |---|---|---|
 | **Phone** | Cheap corded desk phone (~$15) | Vintage rotary (Western Electric 500, etc.) |

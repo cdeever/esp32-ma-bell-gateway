@@ -180,6 +180,13 @@ oscilloscope.
 This sub-assembly adds the telephone line interface. After building it, you can
 pick up a rotary phone handset, hear dial tone, and make calls over Bluetooth.
 
+> **Easier prototyping alternative:** Sub-Assembly B and Sub-Assembly C (the HC-5504B
+> plus the LT1684 90V ring generator) can be replaced by a single **AG1171/KS0835F SLIC
+> module** that runs from one +3.3–5V supply — no −48V, +12V, or 90V AC rails, and no ring
+> generator board. It still drives a real phone and rings a mechanical bell. The HC-5504B
+> path below remains the from-scratch / production reference design. See the
+> [SLIC module build guide](slic-module-build-guide.md).
+
 ### Why Two Boards?
 
 - **Breadboard**: SLIC IC, digital interface, low-voltage decoupling — easy to modify
