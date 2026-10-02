@@ -19,7 +19,7 @@ output "broker" {
   value = {
     host = var.broker_host
     port = 8883
-    ca   = "site-ca.pem"
+    ca   = "deevnet-mobile-root-ca.pem"
   }
 }
 
