@@ -8,7 +8,7 @@ SHELL := /usr/bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
 export DEEVNET_API_ENDPOINT ?= https://api.mobile.deevnet.net:8080
-export DEEVNET_API_CACERT   ?= $(CURDIR)/deevnet-mobile-root-ca.pem
+export DEEVNET_API_CACERT   ?= $(CURDIR)/deevnet-root-ca.pem
 
 TF_APPROVE := $(if $(AUTO),-auto-approve,)
 

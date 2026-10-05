@@ -3,5 +3,6 @@ terraform.tfstate.backup
 .terraform/
 .terraform.lock.hcl
 *.auto.tfvars
+deevnet-root-ca.pem
 deevnet-mobile-root-ca.pem
 site-ca.pem

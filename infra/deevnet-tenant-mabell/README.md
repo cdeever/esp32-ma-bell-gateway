@@ -51,7 +51,7 @@ make plan
 make apply
 ```
 
-`deevnet-mobile-root-ca.pem` and the state file are **not** committed: the state holds every credential this tenant
+`deevnet-root-ca.pem` and the state file are **not** committed: the state holds every credential this tenant
 was issued, and it is the authoritative copy of most of them. Ask the operator for the CA.
 
 To move the state into the substrate's store, run `make state-backend`, uncomment the backend block
