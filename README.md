@@ -66,6 +66,14 @@ idf.py -p /dev/ttyUSB0 flash monitor
 
 Make sure you're using a compatible ESP-IDF version (v5.0 or later is recommended) and have set up your environment variables properly.
 
+## Infrastructure
+
+The gateway is not a device on the house Wi-Fi. It belongs to a tenant on the
+[Deevnet](https://github.com/deevnet) substrate, which issues the Wi-Fi key it associates with and
+the MQTT account it publishes to. That tenant is declared in Terraform under
+[`infra/deevnet-tenant-mabell/`](infra/deevnet-tenant-mabell/), beside the firmware that depends on
+it, rather than somewhere else entirely.
+
 ## Documentation
 
 The documentation is written in reStructuredText and built using [Sphinx](https://www.sphinx-doc.org/).
