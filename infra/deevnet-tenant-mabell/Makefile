@@ -7,6 +7,11 @@
 SHELL := /usr/bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
+# The state store's credentials (backend.tf). Written by `make state-backend`,
+# or copied from a machine that already has it; never committed.
+-include .backend.env
+export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+
 export DEEVNET_API_ENDPOINT ?= https://api.mobile.deevnet.net:8080
 export DEEVNET_API_CACERT   ?= $(CURDIR)/deevnet-root-ca.pem
 
@@ -21,7 +26,7 @@ help:
 	@echo "  plan           terraform plan"
 	@echo "  apply          terraform apply    (AUTO=1 to skip approval)"
 	@echo "  destroy        terraform destroy  (AUTO=1 to skip approval)"
-	@echo "  state-backend  print the backend block this tenant was issued"
+	@echo "  state-backend  write .backend.env, the state store's credentials, from the state"
 	@echo "  validate       fmt check + validate"
 	@echo
 	@echo "Needs DEEVNET_API_TOKEN: the enrollment token on the first apply,"
@@ -47,19 +52,17 @@ apply: require-token
 destroy: require-token
 	terraform destroy $(TF_APPROVE)
 
+# Writes the state store's credentials where terraform's s3 backend reads them.
+# Needs the state, so it runs on a machine that already has it: this is how the
+# file is made to carry to another one. Nothing is printed.
 state-backend:
-	@terraform output -json state_backend | python3 -c '
+	@umask 077; terraform output -json state_backend | python3 -c '
 	import json, sys
 	d = json.load(sys.stdin)
-	print("# Uncomment the backend block in main.tf with these values, then")
-	print("# export AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY and run")
-	print("#   terraform init -migrate-state")
-	print()
-	print("  bucket    = \"%s\"" % d["bucket"])
-	print("  key       = \"%s\"" % d["key"])
-	print("  endpoints = { s3 = \"%s\" }" % d["endpoint"])
-	print("  access_key: %s" % d["access_key"])
-	'
+	print("AWS_ACCESS_KEY_ID=%s" % d["access_key"])
+	print("AWS_SECRET_ACCESS_KEY=%s" % d["secret_key"])
+	' > .backend.env
+	@echo "wrote .backend.env (secret, not committed): the key to this tenant's state"
 
 fmt:
 	terraform fmt -recursive
