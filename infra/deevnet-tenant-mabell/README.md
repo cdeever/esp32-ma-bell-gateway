@@ -52,15 +52,22 @@ make plan
 make apply
 ```
 
-`deevnet-root-ca.pem` and the state file are **not** committed: the state holds every credential this tenant
-was issued, and it is the authoritative copy of most of them. Ask the operator for the CA.
+The state is in the substrate's state store (`backend.tf`), not in this repository: it holds every
+credential this tenant was issued, and it is the authoritative copy of most of them.
+
+Three files are **not** committed and have to be put in this directory on each machine:
+
+| File | What it is | Where it comes from |
+|---|---|---|
+| `.backend.env` | the state store's credentials | a machine that already has the state: `make state-backend` writes it |
+| `deevnet-root-ca.pem` | the site's root CA; public | the operator, or the tenant downloads site |
+| `gateway.auto.tfvars` | the gateway board's MAC | you: `gateway_mac = "..."` |
+
+With those in place, `terraform init` reads the state from the store. Needs Terraform 1.10 or later.
 
 The gateway's address is reserved for its board's Wi-Fi MAC, which is not committed either. Put it in
 `gateway.auto.tfvars` as `gateway_mac = "..."`; the firmware prints it at boot. Needs provider 0.6 or
 later (`terraform init -upgrade`). `terraform output gateway_address` shows where the gateway is.
-
-To move the state into the substrate's store, run `make state-backend`, uncomment the backend block
-in `main.tf` with what it prints, and `terraform init -migrate-state`.
 
 ## Careful
 

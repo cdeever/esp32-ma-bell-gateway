@@ -19,7 +19,7 @@
 # and the infrastructure it depends on stay together.
 
 terraform {
-  required_version = ">= 1.5"
+  required_version = ">= 1.10" # the state backend locks with use_lockfile
 
   required_providers {
     deevnet = {
@@ -28,28 +28,7 @@ terraform {
     }
   }
 
-  # The substrate's state store (ADR-0007). Its credentials are outputs of the
-  # tenant below, so it is configured AFTER the first apply: `make
-  # state-backend`, then `terraform init -migrate-state`.
-  #
-  # Until then the state is the local file, and that file holds every
-  # credential this tenant was issued. Losing it means asking the API to
-  # restore them; committing it would publish them.
-  #
-  # backend "s3" {
-  #   bucket       = "tf-state"
-  #   key          = "tenants/mabell/terraform.tfstate"
-  #   region       = "us-east-1"
-  #   endpoints    = { s3 = "http://tfstate.mobile.deevnet.net:9000" }
-  #   use_lockfile = true
-  #
-  #   skip_credentials_validation = true
-  #   skip_region_validation      = true
-  #   skip_requesting_account_id  = true
-  #   skip_metadata_api_check     = true
-  #   skip_s3_checksum            = true
-  #   use_path_style              = true
-  # }
+  # State is in the substrate's state store (ADR-0007): see backend.tf.
 }
 
 # DEEVNET_API_ENDPOINT, DEEVNET_API_TOKEN, DEEVNET_API_CACERT.
