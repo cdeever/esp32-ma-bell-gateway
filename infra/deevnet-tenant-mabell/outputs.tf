@@ -14,6 +14,14 @@ output "device_wifi" {
   }
 }
 
+output "gateway_address" {
+  description = "Where the gateway is found on the device network, and the name published for it."
+  value = {
+    address = deevnet_iot_address.gateway.address
+    fqdn    = deevnet_iot_address.gateway.fqdn
+  }
+}
+
 output "broker" {
   description = "Where the gateway dials, and what the broker's certificate is verified against."
   value = {
