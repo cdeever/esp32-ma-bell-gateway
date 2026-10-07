@@ -81,13 +81,33 @@ resource "deevnet_iot_wifi_key" "devices" {
 # issued against a device in trust class `iot`, the class for devices whose
 # firmware its owner controls.
 #
-# The MAC is deliberately unset: it is a label for the owner's own inventory,
-# the substrate enforces nothing with it, and recording one here would make a
-# first flash wait on a registration.
+# The MAC is recorded because the gateway holds a fixed address, below, and an
+# address is reserved for a MAC. It is never authorization: anyone on the
+# segment can copy one. Swapping the ESP32 means changing var.gateway_mac, and
+# the replacement is then found where the old one was.
 resource "deevnet_iot_device" "gateway" {
   tenant      = deevnet_tenant.mabell.name
   name        = "ma-bell-gw-01"
   trust_class = "iot"
+  mac         = var.gateway_mac
+}
+
+# The gateway's address on the device network (ADR-0035, CHG-0044).
+#
+# The gateway serves a web page, so it is dialed as well as heard from, and it
+# needs to be found at the same place every time it joins. The network is the
+# substrate's and shared by every tenant, so the API picks the address; this
+# state remembers it, and a rebuilt API is asked for the same one. The API also
+# publishes the gateway as ma-bell-gw-01.<this tenant's zone>.
+#
+# Before CHG-0044 the gateway was a substrate host in the site's inventory,
+# with a reservation the operator maintained. This is that, owned by the tenant.
+#
+# It changes nothing about what can reach the gateway: that is the substrate's
+# zone policy, which today admits the operator networks.
+resource "deevnet_iot_address" "gateway" {
+  tenant = deevnet_tenant.mabell.name
+  device = deevnet_iot_device.gateway.name
 }
 
 # The gateway's MQTT account (ADR-0012 §3, §10; CHG-0016).

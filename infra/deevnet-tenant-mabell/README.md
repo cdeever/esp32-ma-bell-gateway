@@ -15,6 +15,7 @@ infrastructure it depends on stay together. EdS made the same choice for the sam
 | `deevnet_iot_wifi_key.devices` | one PPSK for this tenant's devices, in trust class `iot` |
 | `deevnet_iot_device.gateway` | `ma-bell-gw-01` in the registry: an identity, no credential |
 | `deevnet_iot_broker_account.gateway` | the gateway's MQTT username and password, and its topics |
+| `deevnet_iot_address.gateway` | the gateway's fixed address on the device network, and its name `ma-bell-gw-01.<tenant zone>` |
 
 **No workload.** There is no backend service yet, and a VM that nothing runs on would cost memory on
 the tenant hypervisor and prove nothing. One is added when there is something to put on it.
@@ -53,6 +54,10 @@ make apply
 
 `deevnet-root-ca.pem` and the state file are **not** committed: the state holds every credential this tenant
 was issued, and it is the authoritative copy of most of them. Ask the operator for the CA.
+
+The gateway's address is reserved for its board's Wi-Fi MAC, which is not committed either. Put it in
+`gateway.auto.tfvars` as `gateway_mac = "..."`; the firmware prints it at boot. Needs provider 0.6 or
+later (`terraform init -upgrade`). `terraform output gateway_address` shows where the gateway is.
 
 To move the state into the substrate's store, run `make state-backend`, uncomment the backend block
 in `main.tf` with what it prints, and `terraform init -migrate-state`.
