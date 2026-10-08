@@ -1,21 +1,29 @@
 #ifndef MQTT_H
 #define MQTT_H
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include "esp_err.h"
 #include "mqtt_client.h"
 
 // MQTT Configuration structure
 typedef struct {
-    const char *broker_uri;      // MQTT broker URI
+    const char *broker_uri;      // MQTT broker URI; the scheme (mqtt://, mqtts://) selects the transport
     const char *client_id;       // Client ID for this device
     const char *username;        // Optional username
     const char *password;        // Optional password
     uint32_t port;              // Broker port
-    bool use_ssl;               // Whether to use SSL/TLS
+    const char *ca_cert_pem;     // CA the broker is verified against (PEM); must outlive the client
+    const char *lwt_topic;       // Optional last-will topic
+    const char *lwt_msg;         // Last-will payload (retained, QoS 1)
 } mqtt_config_t;
 
 // MQTT message callback type
 typedef void (*mqtt_message_callback_t)(const char *topic, const char *data, size_t len);
+
+// Called from the MQTT task each time the broker connection is established
+typedef void (*mqtt_connected_callback_t)(void);
 
 /**
  * @brief Initialize MQTT client with given configuration
@@ -67,5 +75,18 @@ esp_err_t mqtt_publish(const char *topic, const char *data, size_t len, int qos,
  * @return esp_err_t ESP_OK on success, error code otherwise
  */
 esp_err_t mqtt_register_message_callback(mqtt_message_callback_t callback);
+
+/**
+ * @brief Register callback for broker connection (including reconnections)
+ *
+ * @param callback Function to call when the client connects
+ * @return esp_err_t ESP_OK on success, error code otherwise
+ */
+esp_err_t mqtt_register_connected_callback(mqtt_connected_callback_t callback);
+
+/**
+ * @brief Whether the client is currently connected to the broker
+ */
+bool mqtt_is_connected(void);
 
 #endif // MQTT_H 

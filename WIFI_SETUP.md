@@ -12,6 +12,21 @@ WiFi credentials are stored in the ESP32's NVS flash partition and cannot be cha
 - esptool.py available (comes with ESP-IDF)
 - USB connection to ESP32 device
 
+## Provisioning as a Deevnet Tenant Device
+
+On the Deevnet substrate the gateway's WiFi key and MQTT account are issued by its tenant
+(`infra/deevnet-tenant-mabell/`). Provision both in one step from the tenant's Terraform outputs:
+
+```bash
+tools/provision_tenant.py
+```
+
+This writes the WiFi credentials plus the MQTT broker address, account, topics and root CA to NVS.
+Use `--dry-run` to check the values without touching the device. Like `provision_wifi.py`, it
+replaces the whole NVS partition, so the Bluetooth pairing is lost and the phone must be paired again.
+
+The steps below are for any other WiFi network; the gateway then runs without MQTT.
+
 ## Provisioning WiFi Credentials
 
 Use the provided provisioning tool to set your WiFi credentials.

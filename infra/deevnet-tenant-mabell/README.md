@@ -41,8 +41,23 @@ The gateway does not ship logs itself. It publishes them to `mabell/log/ma-bell-
 substrate bridge carries them into this tenant's device log partition, where `log_store.read_token`
 reads them back. `log` is a reserved first topic level, and this is what it is for.
 
-The firmware does not do this yet: its MQTT client is present but unused, and it logs to serial
-only. That is the next piece of work on the device side.
+The firmware does not do this yet: it logs to serial only. It does connect to the broker and
+publish its state, retained, to `mabell/phone/ma-bell-gw-01/state`, with a last will that marks it
+offline.
+
+## Putting it on the gateway
+
+```bash
+. $IDF_PATH/export.sh
+tools/provision_tenant.py            # --dry-run to build the image without touching the board
+```
+
+This reads the outputs here and writes the Wi-Fi key, the broker address, the gateway's account, its
+topics and the root CA to the board's NVS partition. Nothing is compiled into the firmware. It
+replaces the whole partition, so the phone has to be paired again afterwards.
+
+To test from where the gateway sits, `tools/wifi-tenant.sh` moves a Mac onto the device network with
+this tenant's key and back: `save` once on the operator network, then `use mabell` and `home`.
 
 ## Using it
 

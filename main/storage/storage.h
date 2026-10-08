@@ -9,10 +9,20 @@
 #define STORAGE_NAMESPACE_WIFI "wifi"
 #define STORAGE_NAMESPACE_BT   "bt"
 #define STORAGE_NAMESPACE_SYS  "sys"
+#define STORAGE_NAMESPACE_MQTT "mqtt"
 
 // Keys for WiFi configuration
 #define STORAGE_KEY_WIFI_SSID "ssid"
 #define STORAGE_KEY_WIFI_PASS "pass"
+
+// Keys for MQTT configuration (issued by the Deevnet tenant)
+#define STORAGE_KEY_MQTT_HOST        "host"
+#define STORAGE_KEY_MQTT_PORT        "port"
+#define STORAGE_KEY_MQTT_USER        "user"
+#define STORAGE_KEY_MQTT_PASS        "pass"
+#define STORAGE_KEY_MQTT_CA          "ca"
+#define STORAGE_KEY_MQTT_STATE_TOPIC "state_topic"
+#define STORAGE_KEY_MQTT_LOG_TOPIC   "log_topic"
 
 // Keys for Bluetooth configuration
 #define STORAGE_KEY_BT_DEVICE_NAME "dev_name"

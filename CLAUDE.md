@@ -80,7 +80,9 @@ main/
 │   ├── wifi/                 # WiFi subsystem
 │   │   ├── wifi_init.c       # WiFi initialization wrapper
 │   │   └── wifi.c            # WiFi connection management
-│   └── mqtt/                 # MQTT client (if enabled)
+│   └── mqtt/                 # MQTT subsystem
+│       ├── mqtt_init.c       # Reads tenant settings from NVS, publishes gateway state
+│       └── mqtt.c            # MQTT client wrapper (TLS, last will)
 └── storage/                  # NVS (Non-Volatile Storage) abstraction
 ```
 
@@ -257,7 +259,17 @@ Important build configurations are in `sdkconfig.defaults`:
 - Hands-Free Profile (HFP) client enabled
 - Single synchronous connection supported
 
-WiFi credentials are configured at compile time (see `main/network/wifi/wifi.h` for defaults) or can be stored in NVS.
+WiFi credentials are stored in NVS only; there are no compile-time defaults (see `WIFI_SETUP.md`).
+
+### Deevnet Tenant & MQTT
+
+The gateway is a device of the `mabell` tenant on the Deevnet substrate, declared in Terraform under `infra/deevnet-tenant-mabell/`. The tenant issues the WiFi key and the MQTT account.
+
+- `tools/provision_tenant.py` writes the tenant's Terraform outputs to NVS: namespace `wifi` (SSID, key) and namespace `mqtt` (host, port, user, pass, ca, state_topic, log_topic). It replaces the whole NVS partition, including the Bluetooth pairing.
+- `mqtt_init_and_start()` (called last in `main.c`) connects over TLS, verified against the CA in NVS, and publishes a retained JSON state to the state topic on connect and on phone/Bluetooth state changes. It returns `ESP_OK` and skips MQTT when WiFi is down or nothing is provisioned.
+- MQTT constants are in `main/config/mqtt_config.h`; the DHCP hostname (`WIFI_HOSTNAME`) is in `wifi_config.h`.
+- Log forwarding to the log topic is not implemented yet.
+- `tools/wifi-tenant.sh` switches a Mac between the operator network and the tenant's device network for testing.
 
 ### Web Interface
 

@@ -1,12 +1,16 @@
 #include "mqtt.h"
+#include "config/mqtt_config.h"
 #include "esp_log.h"
 #include "mqtt_client.h"
+#include <stdlib.h>
 #include <string.h>
 
 static const char *TAG = "mqtt";
 
 static esp_mqtt_client_handle_t mqtt_client = NULL;
 static mqtt_message_callback_t message_callback = NULL;
+static mqtt_connected_callback_t connected_callback = NULL;
+static volatile bool mqtt_connected = false;
 
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
@@ -14,9 +18,17 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT Connected");
+            mqtt_connected = true;
+            if (connected_callback) {
+                connected_callback();
+            }
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "MQTT Disconnected");
+            mqtt_connected = false;
+            break;
+        case MQTT_EVENT_PUBLISHED:
+            ESP_LOGI(TAG, "Publish acknowledged by broker, msg_id=%d", event->msg_id);
             break;
         case MQTT_EVENT_DATA:
             if (message_callback && event->data_len > 0) {
@@ -28,7 +40,14 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             }
             break;
         case MQTT_EVENT_ERROR:
-            ESP_LOGE(TAG, "MQTT Error");
+            if (event->error_handle->error_type == MQTT_ERROR_TYPE_CONNECTION_REFUSED) {
+                ESP_LOGE(TAG, "MQTT connection refused by broker, code %d", event->error_handle->connect_return_code);
+            } else {
+                ESP_LOGE(TAG, "MQTT transport error: esp_err=0x%x, tls=0x%x, errno=%d",
+                         event->error_handle->esp_tls_last_esp_err,
+                         event->error_handle->esp_tls_stack_err,
+                         event->error_handle->esp_transport_sock_errno);
+            }
             break;
         default:
             ESP_LOGD(TAG, "Other event id: %d", event->event_id);
@@ -46,11 +65,11 @@ esp_err_t mqtt_init(const mqtt_config_t *config)
         .broker = {
             .address = {
                 .uri = config->broker_uri,
+                // No .transport: the URI scheme selects it, and esp-mqtt rejects both
                 .port = config->port,
-                .transport = config->use_ssl ? MQTT_TRANSPORT_OVER_SSL : MQTT_TRANSPORT_OVER_TCP,
             },
             .verification = {
-                .certificate = NULL,
+                .certificate = config->ca_cert_pem,
             }
         },
         .credentials = {
@@ -59,7 +78,19 @@ esp_err_t mqtt_init(const mqtt_config_t *config)
                 .password = config->password,
             },
             .client_id = config->client_id,
-        }
+        },
+        .session = {
+            .keepalive = MQTT_KEEPALIVE_SEC,
+            .last_will = {
+                .topic = config->lwt_topic,
+                .msg = config->lwt_msg,
+                .qos = 1,
+                .retain = true,
+            },
+        },
+        .network = {
+            .reconnect_timeout_ms = MQTT_RECONNECT_TIMEOUT_MS,
+        },
     };
 
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
@@ -101,7 +132,9 @@ esp_err_t mqtt_publish(const char *topic, const char *data, size_t len, int qos,
     if (!mqtt_client || !topic || !data) {
         return ESP_ERR_INVALID_ARG;
     }
-    return esp_mqtt_client_publish(mqtt_client, topic, data, len, qos, retain);
+    // esp_mqtt_client_publish returns a message id (>= 0), or a negative value on failure
+    int msg_id = esp_mqtt_client_publish(mqtt_client, topic, data, len, qos, retain);
+    return (msg_id >= 0) ? ESP_OK : ESP_FAIL;
 }
 
 esp_err_t mqtt_register_message_callback(mqtt_message_callback_t callback)
@@ -111,4 +144,18 @@ esp_err_t mqtt_register_message_callback(mqtt_message_callback_t callback)
     }
     message_callback = callback;
     return ESP_OK;
-} 
+}
+
+esp_err_t mqtt_register_connected_callback(mqtt_connected_callback_t callback)
+{
+    if (!callback) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    connected_callback = callback;
+    return ESP_OK;
+}
+
+bool mqtt_is_connected(void)
+{
+    return mqtt_connected;
+}

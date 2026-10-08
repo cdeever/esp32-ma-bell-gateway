@@ -6,6 +6,7 @@
 #include "wifi.h"
 #include "config/wifi_config.h"
 #include "app/state/ma_bell_state.h"
+#include "config/web_config.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -51,7 +52,13 @@ esp_err_t wifi_init_and_connect(void)
     ESP_LOGI(TAG, "WiFi initialization complete, signaling dependent subsystems");
 
     if (bits & WIFI_CONNECTED_BIT) {
-        ESP_LOGI(TAG, "connected to ap");
+        const ma_bell_state_t *state = ma_bell_state_get();
+        const char *ip = (state != NULL) ? state->network.ip_address : "0.0.0.0";
+#if WEB_SERVER_PORT == 80
+        ESP_LOGI(TAG, "connected to ap, web interface at http://%s", ip);
+#else
+        ESP_LOGI(TAG, "connected to ap, web interface at http://%s:%d", ip, WEB_SERVER_PORT);
+#endif
         return ESP_OK;
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to AP");
