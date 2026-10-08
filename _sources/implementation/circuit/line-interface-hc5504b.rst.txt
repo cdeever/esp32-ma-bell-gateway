@@ -4,6 +4,13 @@ Line Interface: HC-5504B SLIC
 The HC-5504B Subscriber Line Interface Circuit (SLIC) is the critical component that connects the Ma Bell Gateway to a standard analog telephone.  
 It implements nearly all essential BORSCHT functions (Battery feed, Overvoltage protection, Ringing, Supervision, Codec hybrid, and Test), emulating the classic Bell System line card in a single chip.
 
+.. note::
+
+   This page is the **production / from-scratch reference design**, which requires discrete
+   −48V/+12V rails and a 90V AC ring generator. For **prototyping**, the recommended line
+   interface is the single-supply AG1171 SLIC module — see
+   :doc:`line-interface-ag1171-module`.
+
 Overview
 --------
 

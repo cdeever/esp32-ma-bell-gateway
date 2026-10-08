@@ -1,0 +1,520 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta property="article:modified_time" content="2026-10-08T12:10:36+00:00" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Line Interface: AG1171 SLIC Module (Prototyping) &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Ring Generator" href="ring-generator.html" />
+    <link rel="prev" title="Line Interface: HC-5504B SLIC" href="line-interface-hc5504b.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ESP32 Ma Bell Gateway
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bell-system-blueprint/index.html">The Bell System Blueprint</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standards.html">Telephone Service Standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../solution-design/index.html">Solution Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Implementation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../bom.html">Bill of Materials</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Circuit Implementation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="system-overview.html">System Block Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="power-supply.html">Power Implementation (48V Central Supply)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pin-assignments.html">ESP32 Pin Assignments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="line-interface-hc5504b.html">Line Interface: HC-5504B SLIC</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Line Interface: AG1171 SLIC Module (Prototyping)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pinout-summary-14-pin-sil">Pinout Summary (14-pin SIL)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#application-circuit">Application Circuit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#esp32-gpio-interface">ESP32 GPIO Interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#audio-signal-path">Audio Signal Path</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#power-supply-integration">Power Supply Integration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#line-protection">Line Protection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#component-selection-bill-of-materials">Component Selection &amp; Bill of Materials</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#design-notes">Design Notes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ring-generator.html">Ring Generator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../firmware/index.html">Firmware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pcb/index.html">PCB Design &amp; Assembly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enclosure/index.html">Enclosure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">User Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ESP32 Ma Bell Gateway</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Implementation</a></li>
+          <li class="breadcrumb-item"><a href="index.html">Circuit Implementation</a></li>
+      <li class="breadcrumb-item active">Line Interface: AG1171 SLIC Module (Prototyping)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/implementation/circuit/line-interface-ag1171-module.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="line-interface-ag1171-slic-module-prototyping">
+<h1>Line Interface: AG1171 SLIC Module (Prototyping)<a class="headerlink" href="#line-interface-ag1171-slic-module-prototyping" title="Link to this heading"></a></h1>
+<p>The <strong>AG1171 SLIC module</strong> (commonly sold as the <strong>KS0835F</strong>, advertised “AG1171 / AG1170
+compatible”) is the <strong>recommended line interface for prototyping</strong> the Ma Bell Gateway.
+It is a complete single-channel Subscriber Line Interface Circuit in a 14-pin SIL package
+with an <em>integral DC/DC converter</em>, so it provides the full BORSCHT line interface — real
+48V battery feed, 2-wire ↔ 4-wire hybrid, and ringing — from a <strong>single +3.3V to +5V
+supply, with no high-voltage hardware</strong>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This page documents the AG1171 module as the easy, low-voltage <strong>prototyping</strong> line
+interface. The <a class="reference internal" href="line-interface-hc5504b.html"><span class="doc">HC-5504B</span></a> remains the project’s
+<strong>production / from-scratch reference design</strong>. The two are interchangeable at the
+ESP32 interface (with the polarity and ringing differences noted below). For the
+hands-on bring-up procedure, see <code class="docutils literal notranslate"><span class="pre">impl/slic-module-build-guide.md</span></code>.</p>
+</div>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Single supply, <strong>+3.3V to +5V</strong> — the on-board DC/DC converter generates the ~48V
+battery feed and the ~65 Vrms / 20 Hz ringing voltage internally.</p></li>
+<li><p>Provides a constant ~30 mA loop feed and 600Ω line impedance (no programming resistors).</p></li>
+<li><p>Real 2-wire to 4-wire hybrid with 0 dB gain to ground-referenced <code class="docutils literal notranslate"><span class="pre">VIN</span></code> / <code class="docutils literal notranslate"><span class="pre">VOUT</span></code>.</p></li>
+<li><p>Rings a real bell: ≥40 Vrms into <strong>2 mechanical bells</strong> (or 3 tone ringers).</p></li>
+<li><p>Off-hook and loop-disconnect (pulse) dialing reported on a single <code class="docutils literal notranslate"><span class="pre">SHK</span></code> output.</p></li>
+<li><p>Minimal external parts: supply caps, two audio coupling caps, ESD diodes.</p></li>
+<li><p><strong>No −48V, +12V, or 90V AC rails, and no external ring generator or relay.</strong></p></li>
+</ul>
+</section>
+<section id="pinout-summary-14-pin-sil">
+<h2>Pinout Summary (14-pin SIL)<a class="headerlink" href="#pinout-summary-14-pin-sil" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10.8%" />
+<col style="width: 18.9%" />
+<col style="width: 16.2%" />
+<col style="width: 54.1%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pin</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Direction</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>RING (B)</p></td>
+<td><p>–</p></td>
+<td><p>Subscriber line Ring</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>TIP (A)</p></td>
+<td><p>–</p></td>
+<td><p>Subscriber line Tip</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>F/R</p></td>
+<td><p>Input</p></td>
+<td><p>Forward/Reverse polarity. Toggle at 20–25 Hz to ring; hold HIGH for normal calls</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>RM</p></td>
+<td><p>Input</p></td>
+<td><p>Ring Mode. HIGH during ringing, LOW otherwise (≤33% duty cycle)</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>SHK</p></td>
+<td><p>Output</p></td>
+<td><p>Switch Hook. HIGH = off-hook; pulses during pulse dialing. Internal 3.3kΩ pull-up</p></td>
+</tr>
+<tr class="row-odd"><td><p>6–8</p></td>
+<td><p>NC</p></td>
+<td><p>–</p></td>
+<td><p>No connection</p></td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><p>VIN</p></td>
+<td><p>Input</p></td>
+<td><p>Audio in from codec (DAC → line). Couple via 10nF</p></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><p>VOUT</p></td>
+<td><p>Output</p></td>
+<td><p>Audio out to codec (line → ADC). Couple via 100nF</p></td>
+</tr>
+<tr class="row-even"><td><p>11</p></td>
+<td><p>NC</p></td>
+<td><p>–</p></td>
+<td><p>No connection</p></td>
+</tr>
+<tr class="row-odd"><td><p>12</p></td>
+<td><p>GNDPWR</p></td>
+<td><p>–</p></td>
+<td><p>DC/DC ground</p></td>
+</tr>
+<tr class="row-even"><td><p>13</p></td>
+<td><p>+VPWR</p></td>
+<td><p>–</p></td>
+<td><p>+3.3V to +5V supply input</p></td>
+</tr>
+<tr class="row-odd"><td><p>14</p></td>
+<td><p>PD</p></td>
+<td><p>Input</p></td>
+<td><p>Power-down. Leave OPEN for free-run; logic-L powers down. <strong>Never drive HIGH</strong></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="application-circuit">
+<h2>Application Circuit<a class="headerlink" href="#application-circuit" title="Link to this heading"></a></h2>
+<p>The AG1171 needs only a handful of external parts (Silvertel datasheet Figure 4):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">C1</span></code> 100nF and <code class="docutils literal notranslate"><span class="pre">C2</span></code> 470µF/16V across <code class="docutils literal notranslate"><span class="pre">+VPWR</span></code> / <code class="docutils literal notranslate"><span class="pre">GNDPWR</span></code> (supply bypass + bulk).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">C3</span></code> 100nF in series with <code class="docutils literal notranslate"><span class="pre">VOUT</span></code> and <code class="docutils literal notranslate"><span class="pre">C4</span></code> 10nF in series with <code class="docutils literal notranslate"><span class="pre">VIN</span></code> (audio
+coupling to the codec).</p></li>
+<li><p>ESD protection diodes on TIP/RING for on-premise use (<code class="docutils literal notranslate"><span class="pre">D1</span></code> BZT03C82/P6KE82, <code class="docutils literal notranslate"><span class="pre">D2–D5</span></code>
+1N4004/MB4S bridge), and <code class="docutils literal notranslate"><span class="pre">D6</span></code> 1N4148 on <code class="docutils literal notranslate"><span class="pre">PD</span></code> to guarantee it is never pulled high.</p></li>
+</ul>
+<p>Many KS0835F carrier boards already populate the supply caps and protection diodes; the
+audio coupling caps usually must be added externally.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>+3.3V to +5V ──┬── C1(100nF) ──┐
+               └── C2(470µF) ──┴── GNDPWR
+               │
+               +VPWR
+        ┌──────┴───────────────────────────┐
+TIP ────┤2 TIP        AG1171 / KS0835F   F/R├3──── ESP32 (ring oscillation)
+RING ───┤1 RING                          RM ├4──── ESP32 GPIO 13
+        │                                SHK├5──── ESP32 GPIO 32 / 34
+        │              VOUT 10├──C3(100nF)──────── PCM1808 VINL (ADC)
+        │              VIN   9├──C4(10nF)───────── PCM5100 OUTL (DAC)
+        │                 PD 14├ (open)            │
+        └──────────────────────────────────────────┘
+               │
+              GNDPWR ── common ground
+</pre></div>
+</div>
+</section>
+<section id="esp32-gpio-interface">
+<h2>ESP32 GPIO Interface<a class="headerlink" href="#esp32-gpio-interface" title="Link to this heading"></a></h2>
+<p>The AG1171 maps onto the firmware’s existing SLIC GPIOs (defined in
+<code class="docutils literal notranslate"><span class="pre">main/config/pin_assignments.h</span></code>):</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 11.1%" />
+<col style="width: 20.0%" />
+<col style="width: 15.6%" />
+<col style="width: 13.3%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Module Pin</p></th>
+<th class="head"><p>Function</p></th>
+<th class="head"><p>ESP32 GPIO</p></th>
+<th class="head"><p>Direction</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>SHK (Switch Hook)</p></td>
+<td><p>GPIO 32 + GPIO 34</p></td>
+<td><p>Input</p></td>
+<td><p>Off-hook detect <strong>and</strong> pulse dialing — one output feeds both inputs</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>RM (Ring Mode)</p></td>
+<td><p><strong>GPIO 13</strong></p></td>
+<td><p><strong>Output</strong></p></td>
+<td><p>Ring-mode enable + 2s/4s cadence</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>F/R (Forward/Reverse)</p></td>
+<td><p>To be assigned</p></td>
+<td><p>Output</p></td>
+<td><p>20–25 Hz ring oscillation; HIGH for normal calls</p></td>
+</tr>
+<tr class="row-odd"><td><p>9</p></td>
+<td><p>VIN (Audio In)</p></td>
+<td><p>Via Audio Codec</p></td>
+<td><p>Input to module</p></td>
+<td><p>Audio from ESP32 → DAC → module → phone</p></td>
+</tr>
+<tr class="row-even"><td><p>10</p></td>
+<td><p>VOUT (Audio Out)</p></td>
+<td><p>Via Audio Codec</p></td>
+<td><p>Output from module</p></td>
+<td><p>Audio from phone → module → ADC → ESP32</p></td>
+</tr>
+<tr class="row-odd"><td><p>14</p></td>
+<td><p>PD (Power Down)</p></td>
+<td><p>Not Connected</p></td>
+<td><p>–</p></td>
+<td><p>Leave open for free-run</p></td>
+</tr>
+</tbody>
+</table>
+<section id="signal-level-and-firmware-notes">
+<h3>Signal Level and Firmware Notes<a class="headerlink" href="#signal-level-and-firmware-notes" title="Link to this heading"></a></h3>
+<p>The module’s logic is 3.3V-compatible and connects directly to the ESP32. Two differences
+from the HC-5504B affect firmware:</p>
+<ul class="simple">
+<li><p><strong>SHK polarity is active-HIGH</strong> (HIGH = off-hook), whereas the firmware’s
+<code class="docutils literal notranslate"><span class="pre">PIN_OFF_HOOK_DETECT</span></code> and the HC-5504B SHD are active-LOW. Invert the hook/pulse read
+in firmware for this build, or add a single hardware inverter on SHK.</p></li>
+<li><p><strong>Ringing requires an F/R oscillation.</strong> Set RM HIGH and toggle F/R at 20–25 Hz for the
+ring burst (the HC-5504B’s RC pin enables ringing on its own). On off-hook during ring,
+SHK pulses (ring-trip): debounce 10 ms, drive F/R permanently HIGH, then drop RM LOW
+within &gt;10 ms and &lt;500 ms. Implement the F/R toggle on a spare GPIO, or use an external
+~20 Hz oscillator gated by GPIO 13.</p></li>
+</ul>
+</section>
+</section>
+<section id="audio-signal-path">
+<h2>Audio Signal Path<a class="headerlink" href="#audio-signal-path" title="Link to this heading"></a></h2>
+<p>The module’s hybrid presents ground-referenced audio at <code class="docutils literal notranslate"><span class="pre">VIN</span></code> (receive) and <code class="docutils literal notranslate"><span class="pre">VOUT</span></code>
+(transmit) at 0 dB gain, intended to drive a codec directly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>PCM5100 OUTL ──┤10nF├── VIN  (pin 9)    receive: far-end / tones → earpiece
+PCM1808 VINL ──┤100nF├── VOUT (pin 10)   transmit: phone mic → far end
+</pre></div>
+</div>
+<p>Because this is a true hybrid (not the v1.0 AC-coupled loop), the far-end echo of the
+low-voltage rig is eliminated — no firmware AEC or transformer hybrid is required. The I2S
+connections from the codecs to the ESP32 are unchanged from Sub-Assembly A (see
+<a class="reference internal" href="pin-assignments.html"><span class="doc">ESP32 Pin Assignments</span></a>). If the ~2 Vrms DAC full-scale overdrives <code class="docutils literal notranslate"><span class="pre">VIN</span></code>, reduce the codec
+output level in firmware rather than adding hardware attenuation.</p>
+</section>
+<section id="power-supply-integration">
+<h2>Power Supply Integration<a class="headerlink" href="#power-supply-integration" title="Link to this heading"></a></h2>
+<p>A single regulated <strong>+3.3V to +5V</strong> rail powers the module; the integral DC/DC converter
+makes everything else. There is <strong>no −48V, +12V, or 90V AC</strong> rail in this design.</p>
+<p>Supply current is significant and must be planned for (datasheet §8.3):</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 20.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Condition</p></th>
+<th class="head"><p>Current</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>On-hook (idle)</p></td>
+<td><p>~60–70 mA</p></td>
+<td><p>CLI bias resistor not fitted</p></td>
+</tr>
+<tr class="row-odd"><td><p>Off-hook (active)</p></td>
+<td><p>~290–360 mA</p></td>
+<td><p>300Ω load</p></td>
+</tr>
+<tr class="row-even"><td><p>Ringing</p></td>
+<td><p>up to ~500 mA</p></td>
+<td><p>1 REN load</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do <strong>not</strong> power the module from the ESP32’s USB/3V3 rail — off-hook and ringing peaks
+will brown out the ESP32. Use a dedicated regulated supply rated for <strong>≥1 A</strong>, with its
+ground tied to the common ground. Keep <code class="docutils literal notranslate"><span class="pre">+VPWR</span></code> / <code class="docutils literal notranslate"><span class="pre">GNDPWR</span></code> tracks short and thick and
+place the 470µF + 100nF caps directly at the module. Absolute maximum supply is 7.0V —
+exceeding it, even briefly, will destroy the module.</p>
+</div>
+</section>
+<section id="line-protection">
+<h2>Line Protection<a class="headerlink" href="#line-protection" title="Link to this heading"></a></h2>
+<p>The AG1171 is designed for short, <strong>on-premise</strong> loops (FCT/FWT/WLL/VoIP). Per the
+datasheet, power-cross and lightning protection are <em>not</em> required for on-premise use; only
+ESD protection is needed, via the low-cost diode network in the application circuit. This
+is appropriate for bench prototyping. For field/off-premise deployment, the production
+<a class="reference internal" href="line-interface-hc5504b.html"><span class="doc">HC-5504B</span></a> design with full MOV/PTC/bridge protection should
+be used instead.</p>
+</section>
+<section id="component-selection-bill-of-materials">
+<h2>Component Selection &amp; Bill of Materials<a class="headerlink" href="#component-selection-bill-of-materials" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 24.0%" />
+<col style="width: 20.0%" />
+<col style="width: 36.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Ref</p></th>
+<th class="head"><p>Component</p></th>
+<th class="head"><p>Value / Part</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>U2 (alt)</p></td>
+<td><p>SLIC module</p></td>
+<td><p>KS0835F (AG1171/AG1170 compatible)</p></td>
+<td><p>Prototyping line interface; replaces HC-5504B + ring generator</p></td>
+</tr>
+<tr class="row-odd"><td><p>C1</p></td>
+<td><p>Supply bypass</p></td>
+<td><p>100nF ceramic</p></td>
+<td><p>+VPWR / GNDPWR</p></td>
+</tr>
+<tr class="row-even"><td><p>C2</p></td>
+<td><p>Supply bulk</p></td>
+<td><p>470µF, 16V electrolytic</p></td>
+<td><p>+VPWR / GNDPWR</p></td>
+</tr>
+<tr class="row-odd"><td><p>C3</p></td>
+<td><p>Audio coupling (VOUT)</p></td>
+<td><p>100nF ceramic</p></td>
+<td><p>Module VOUT → ADC</p></td>
+</tr>
+<tr class="row-even"><td><p>C4</p></td>
+<td><p>Audio coupling (VIN)</p></td>
+<td><p>10nF ceramic</p></td>
+<td><p>DAC → module VIN</p></td>
+</tr>
+<tr class="row-odd"><td><p>D1</p></td>
+<td><p>ESD clamp</p></td>
+<td><p>BZT03C82 or P6KE82</p></td>
+<td><p>One per line (often on carrier board)</p></td>
+</tr>
+<tr class="row-even"><td><p>D2–D5</p></td>
+<td><p>Bridge / ESD</p></td>
+<td><p>1N4004 or MB4S</p></td>
+<td><p>TIP/RING protection (often on carrier board)</p></td>
+</tr>
+<tr class="row-odd"><td><p>D6</p></td>
+<td><p>PD protection</p></td>
+<td><p>1N4148 or BAS16</p></td>
+<td><p>Ensures PD never pulled HIGH</p></td>
+</tr>
+<tr class="row-even"><td><p>PS</p></td>
+<td><p>Supply</p></td>
+<td><p>Regulated 3.3–5V, ≥1A</p></td>
+<td><p>Dedicated; not the ESP32 USB rail</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="design-notes">
+<h2>Design Notes<a class="headerlink" href="#design-notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>This module makes the AG1171 named in the project risk register (<code class="docutils literal notranslate"><span class="pre">specs/risk-register.md</span></code>,
+RISK-H001) a validated, low-effort prototyping alternative to the HC-5504B.</p></li>
+<li><p>SHK carries both hook state and pulse-dial pulses — wire it to both <code class="docutils literal notranslate"><span class="pre">PIN_OFF_HOOK_DETECT</span></code>
+(GPIO 32) and <code class="docutils literal notranslate"><span class="pre">PIN_PULSE_DIAL_IN</span></code> (GPIO 34), as the low-voltage rig does with its shared
+current-sense event.</p></li>
+<li><p>Ringing is host-paced: keep RM duty cycle ≤33% and switch ringing off (RM LOW) within
+500 ms of ring-trip to limit power dissipation.</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<p><strong>Hardware Documentation:</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://silvertel.com/images/datasheets/Ag1171-datasheet-Low-cost-ringing-SLIC-with-single-supply.pdf">Silvertel Ag1171 Datasheet (V1.6)</a></p></li>
+<li><p><a class="reference external" href="https://silvertel.com/ag1171/">Silvertel Ag1171 product page</a></p></li>
+</ul>
+<p><strong>Build &amp; Firmware Integration:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">impl/slic-module-build-guide.md</span></code> — step-by-step bring-up with this module</p></li>
+<li><p><a class="reference internal" href="line-interface-hc5504b.html"><span class="doc">Line Interface: HC-5504B SLIC</span></a> — production / from-scratch SLIC reference design</p></li>
+<li><p><a class="reference internal" href="../firmware/phone-hardware.html"><span class="doc">SLIC Interface Monitoring</span></a> — SLIC interface monitoring in firmware</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main/config/pin_assignments.h</span></code> — GPIO pin definitions</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To fully exercise this module the firmware needs two adjustments (active-HIGH hook read,
+and a 20–25 Hz F/R ring oscillation). Until then, every feature except ringing the
+bell works with the module as-is.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="line-interface-hc5504b.html" class="btn btn-neutral float-left" title="Line Interface: HC-5504B SLIC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ring-generator.html" class="btn btn-neutral float-right" title="Ring Generator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Chris Deever.
+      <span class="lastupdated">Last updated on Oct 08, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

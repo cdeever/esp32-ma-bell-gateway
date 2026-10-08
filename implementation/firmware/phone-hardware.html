@@ -9,15 +9,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SLIC Interface Monitoring &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=edc13519" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
-      <script src="../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -211,11 +211,11 @@ The internal pull-up ensures the pin reads HIGH (on-hook) when the SLIC is not c
 <p>When a valid state change is detected, the module updates the global phone state:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">current_hook_state</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// On-hook (handset replaced)</span>
-<span class="w">    </span><span class="n">ESP_LOGI</span><span class="p">(</span><span class="n">TAG</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Phone on-hook detected&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ESP_LOGI</span><span class="p">(</span><span class="n">TAG</span><span class="p">,</span><span class="w"> </span><span class="s">"Phone on-hook detected"</span><span class="p">);</span>
 <span class="w">    </span><span class="n">ma_bell_state_update_phone_bits</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">PHONE_STATE_OFF_HOOK</span><span class="p">);</span>
 <span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// Off-hook (handset lifted)</span>
-<span class="w">    </span><span class="n">ESP_LOGI</span><span class="p">(</span><span class="n">TAG</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Phone off-hook detected&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ESP_LOGI</span><span class="p">(</span><span class="n">TAG</span><span class="p">,</span><span class="w"> </span><span class="s">"Phone off-hook detected"</span><span class="p">);</span>
 <span class="w">    </span><span class="n">ma_bell_state_update_phone_bits</span><span class="p">(</span><span class="n">PHONE_STATE_OFF_HOOK</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
@@ -273,13 +273,13 @@ I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 <h2>Web API Integration<a class="headerlink" href="#web-api-integration" title="Link to this heading"></a></h2>
 <p>The off-hook state is exposed through the web interface at <code class="docutils literal notranslate"><span class="pre">/status</span></code>:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;phone&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;hook&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Off-hook&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// or &quot;On-hook&quot;</span>
-<span class="w">      </span><span class="nt">&quot;ringing&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;ring_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;dialing&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;last_digit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;None&quot;</span>
+<span class="w">  </span><span class="nt">"phone"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"hook"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Off-hook"</span><span class="p">,</span><span class="w">     </span><span class="c1">// or "On-hook"</span>
+<span class="w">      </span><span class="nt">"ringing"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"ring_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"dialing"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"last_digit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"None"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
@@ -465,7 +465,7 @@ I (12346) ma_bell_state: Phone state changed: 0x01 -&gt; 0x00
 </ul>
 <p><strong>Build Integration:</strong></p>
 <p>The module is included in the main component’s CMakeLists.txt:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>SRCS &quot;hardware/slic_interface.c&quot;
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>SRCS "hardware/slic_interface.c"
      ...
 </pre></div>
 </div>
