@@ -18,9 +18,10 @@ idf_component_register(
             "network/wifi/wifi.c"
             "network/wifi/wifi_init.c"
             "network/mqtt/mqtt.c"
+            "network/mqtt/mqtt_init.c"
             "main.c"
             INCLUDE_DIRS "." "app" "app/state" "app/bluetooth" "app/web" "app/events" "audio" "storage" "bluetooth" "hardware" "network/wifi" "network/mqtt" "config"
-            REQUIRES nvs_flash driver bt esp_wifi esp_common console esp_http_server mqtt
+            REQUIRES nvs_flash driver bt esp_wifi esp_common console esp_http_server mqtt esp_timer
 )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-error=format)

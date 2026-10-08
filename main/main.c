@@ -18,6 +18,7 @@
 #include "audio/audio_bridge.h"
 #include "bluetooth/bt_init.h"
 #include "network/wifi/wifi_init.h"
+#include "network/mqtt/mqtt_init.h"
 #include "app/web/web_interface.h"
 #include "app/events/event_system.h"
 
@@ -79,6 +80,14 @@ void app_main(void)
     // Signal web server initialization complete
     ma_bell_state_update_network_bits(NET_STATE_WEB_INIT_COMPLETE, 0);
     ESP_LOGI(TAG, "Web interface initialization complete");
+
+    // Connect to the tenant's MQTT broker (optional: the gateway works without it)
+    ESP_LOGI(TAG, "Initializing MQTT...");
+    esp_err_t mqtt_ret = mqtt_init_and_start();
+    if (mqtt_ret != ESP_OK) {
+        ESP_LOGE(TAG, "MQTT initialization failed: %s", esp_err_to_name(mqtt_ret));
+        ESP_LOGE(TAG, "Device will continue without MQTT.");
+    }
 
     ESP_LOGI(TAG, "===========================================");
     ESP_LOGI(TAG, "Ma Bell Gateway initialized successfully!");

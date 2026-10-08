@@ -11,6 +11,9 @@
 // #define DEFAULT_WIFI_SSID           "YourSSID"  // No longer used
 // #define DEFAULT_WIFI_PASS           "YourPassword"  // No longer used
 
+// Hostname announced over DHCP: the gateway's name in the Deevnet device registry
+#define WIFI_HOSTNAME               "ma-bell-gw-01"
+
 // Buffer sizes
 #define MAX_SSID_LEN                32
 #define MAX_PASS_LEN                64
