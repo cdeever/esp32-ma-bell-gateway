@@ -11,5 +11,6 @@ Each subpage documents a specific aspect of the circuit or its subsystems.
    power-supply
    pin-assignments
    line-interface-hc5504b
+   line-interface-ag1171-module
    ring-generator
    

@@ -376,6 +376,12 @@ This document identifies, assesses, and provides mitigation strategies for risks
 3. Design hardware abstraction for SLIC variations
 4. Source from multiple distributors
 
+**Validated alternative:** The AG1171 SLIC module (sold as the KS0835F, "AG1171/AG1170
+compatible") is documented as the recommended prototyping line interface — a single-supply
+(+3.3–5V) drop-in that needs none of the HC-5504B's high-voltage rails or ring generator.
+See `impl/slic-module-build-guide.md` and
+`docs/source/implementation/circuit/line-interface-ag1171-module.rst`.
+
 **Contingency:**
 - Redesign for alternate SLIC if needed
 - Discrete transistor implementation (complex)

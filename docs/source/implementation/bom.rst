@@ -24,7 +24,13 @@ Values, part numbers, and notes are included for clarity.
      - SLIC, Line Interface IC
      - HC-5504B (DIP-24)
      - Intersil / Renesas HC-5504B-5
-     - Subscriber Line Interface Circuit
+     - Subscriber Line Interface Circuit (production design)
+
+   * - U2 (alt)
+     - SLIC Module, Line Interface (prototyping)
+     - KS0835F (AG1171/AG1170 compatible)
+     - Silvertel Ag1171 or compatible
+     - Single-supply (+3.3–5V) drop-in; replaces U2 + ring generator for prototyping. See ``line-interface-ag1171-module``
 
    * - U3
      - DAC (Digital-to-Analog Converter)
