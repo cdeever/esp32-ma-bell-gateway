@@ -52,6 +52,16 @@ output "gateway_broker" {
   }
 }
 
+output "dashboard" {
+  description = "Where the gateway's dashboard is. The password is the one the operator handed over."
+  value = {
+    url      = deevnet_tenant.mabell.dashboard_url
+    org_id   = deevnet_tenant.mabell.dashboard_org_id
+    username = deevnet_tenant.mabell.dashboard_username
+    path     = "/d/mabell-gateway"
+  }
+}
+
 # The tenant's own log store credentials (ADR-0027, CHG-0020).
 #
 # The gateway does NOT use these: it publishes to MQTT, and the substrate's
