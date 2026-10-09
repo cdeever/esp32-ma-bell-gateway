@@ -1,4 +1,5 @@
 #include "ma_bell_state.h"
+#include "app/events/event_log.h"
 #include "esp_log.h"
 #include <string.h>
 #include <inttypes.h>
@@ -38,6 +39,49 @@ const ma_bell_state_t* ma_bell_state_get(void) {
     return &g_state;
 }
 
+// The state changes worth keeping in the tenant's log store: one event when a
+// bit is set and one when it is cleared. Bits not listed here change silently.
+typedef struct {
+    uint8_t bit;
+    const char *set_event;
+    const char *set_msg;
+    const char *clear_event;
+    const char *clear_msg;
+} state_event_t;
+
+static const state_event_t phone_events[] = {
+    { PHONE_STATE_OFF_HOOK, "phone.off_hook", "Handset lifted", "phone.on_hook", "Handset replaced" },
+    { PHONE_STATE_RINGING, "phone.ringing_start", "Phone ringing", "phone.ringing_stop", "Phone stopped ringing" },
+    { PHONE_STATE_DIALING, "phone.dialing_start", "Dialing started", "phone.dialing_stop", "Dialing finished" },
+};
+
+static const state_event_t bluetooth_events[] = {
+    { BT_STATE_CONNECTED, "bt.connected", "Mobile phone connected", "bt.disconnected", "Mobile phone disconnected" },
+    { BT_STATE_IN_CALL, "call.started", "Call started", "call.ended", "Call ended" },
+    { BT_STATE_AUDIO_CONNECTED, "bt.audio_connected", "Call audio connected", "bt.audio_disconnected", "Call audio disconnected" },
+};
+
+static const state_event_t network_events[] = {
+    { NET_STATE_WIFI_CONNECTED, "wifi.connected", "WiFi connected", "wifi.disconnected", "WiFi disconnected" },
+};
+
+static void log_state_events(const state_event_t *events, size_t count, uint8_t old_state, uint8_t new_state) {
+    uint8_t changed = old_state ^ new_state;
+    for (size_t i = 0; i < count; i++) {
+        if (!(changed & events[i].bit)) {
+            continue;
+        }
+        if (new_state & events[i].bit) {
+            event_log(EVENT_LOG_INFO, events[i].set_event, "%s", events[i].set_msg);
+        } else {
+            event_log(EVENT_LOG_INFO, events[i].clear_event, "%s", events[i].clear_msg);
+        }
+    }
+}
+
+#define LOG_STATE_EVENTS(events, old_state, new_state) \
+    log_state_events((events), sizeof(events) / sizeof((events)[0]), (old_state), (new_state))
+
 // Helper function to notify tasks of state changes
 static void notify_state_change(uint32_t notification_bit) {
     for (int i = 0; i < g_notified_task_count; i++) {
@@ -53,6 +97,7 @@ void ma_bell_state_update_phone_bits(uint8_t set_bits, uint8_t clear_bits) {
     
     if (old_state != g_state.phone.state) {
         ESP_LOGI(TAG, "Phone state changed: 0x%02" PRIx8 " -> 0x%02" PRIx8, old_state, g_state.phone.state);
+        LOG_STATE_EVENTS(phone_events, old_state, g_state.phone.state);
         notify_state_change(NOTIFY_PHONE_STATE_CHANGED);
     }
 }
@@ -63,6 +108,7 @@ void ma_bell_state_update_bluetooth_bits(uint8_t set_bits, uint8_t clear_bits) {
     
     if (old_state != g_state.bluetooth.state) {
         ESP_LOGI(TAG, "Bluetooth state changed: 0x%02" PRIx8 " -> 0x%02" PRIx8, old_state, g_state.bluetooth.state);
+        LOG_STATE_EVENTS(bluetooth_events, old_state, g_state.bluetooth.state);
         notify_state_change(NOTIFY_BT_STATE_CHANGED);
     }
 }
@@ -73,6 +119,7 @@ void ma_bell_state_update_network_bits(uint8_t set_bits, uint8_t clear_bits) {
     
     if (old_state != g_state.network.state) {
         ESP_LOGI(TAG, "Network state changed: 0x%02" PRIx8 " -> 0x%02" PRIx8, old_state, g_state.network.state);
+        LOG_STATE_EVENTS(network_events, old_state, g_state.network.state);
         notify_state_change(NOTIFY_NETWORK_STATE_CHANGED);
     }
 }

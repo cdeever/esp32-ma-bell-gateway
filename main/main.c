@@ -21,6 +21,9 @@
 #include "network/mqtt/mqtt_init.h"
 #include "app/web/web_interface.h"
 #include "app/events/event_system.h"
+#include "app/events/event_log.h"
+#include "esp_app_desc.h"
+#include "esp_system.h"
 
 static const char *TAG = "MAIN";
 
@@ -41,6 +44,9 @@ void app_main(void)
     // Initialize core subsystems
     ESP_LOGI(TAG, "Initializing core subsystems...");
     ESP_ERROR_CHECK(event_system_init());
+    ESP_ERROR_CHECK(event_log_init());
+    event_log_with(EVENT_LOG_INFO, "system.boot", NULL, "Gateway started, firmware %s, reset reason %d",
+                   esp_app_get_description()->version, (int)esp_reset_reason());
     ESP_ERROR_CHECK(ma_bell_state_init());
     ESP_ERROR_CHECK(storage_init());
 

@@ -1,6 +1,7 @@
 #include "mqtt.h"
 #include "config/mqtt_config.h"
 #include "esp_log.h"
+#include "esp_heap_caps.h"
 #include "mqtt_client.h"
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     esp_mqtt_event_handle_t event = event_data;
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
-            ESP_LOGI(TAG, "MQTT Connected");
+            ESP_LOGI(TAG, "MQTT Connected (heap free %u, largest block %u)",
+                     (unsigned)heap_caps_get_free_size(MALLOC_CAP_DEFAULT),
+                     (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
             mqtt_connected = true;
             if (connected_callback) {
                 connected_callback();
@@ -28,7 +31,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             mqtt_connected = false;
             break;
         case MQTT_EVENT_PUBLISHED:
-            ESP_LOGI(TAG, "Publish acknowledged by broker, msg_id=%d", event->msg_id);
+            ESP_LOGD(TAG, "Publish acknowledged by broker, msg_id=%d", event->msg_id);
             break;
         case MQTT_EVENT_DATA:
             if (message_callback && event->data_len > 0) {
@@ -43,10 +46,13 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             if (event->error_handle->error_type == MQTT_ERROR_TYPE_CONNECTION_REFUSED) {
                 ESP_LOGE(TAG, "MQTT connection refused by broker, code %d", event->error_handle->connect_return_code);
             } else {
-                ESP_LOGE(TAG, "MQTT transport error: esp_err=0x%x, tls=0x%x, errno=%d",
+                // A TLS handshake needs tens of KB at once, and fails in odd ways without it
+                ESP_LOGE(TAG, "MQTT transport error: esp_err=0x%x, tls=0x%x, errno=%d (heap free %u, largest block %u)",
                          event->error_handle->esp_tls_last_esp_err,
                          event->error_handle->esp_tls_stack_err,
-                         event->error_handle->esp_transport_sock_errno);
+                         event->error_handle->esp_transport_sock_errno,
+                         (unsigned)heap_caps_get_free_size(MALLOC_CAP_DEFAULT),
+                         (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
             }
             break;
         default:

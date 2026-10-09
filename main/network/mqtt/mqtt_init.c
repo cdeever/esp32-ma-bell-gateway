@@ -10,6 +10,8 @@
 #include "config/wifi_config.h"
 #include "storage/storage.h"
 #include "app/state/ma_bell_state.h"
+#include "app/events/event_log.h"
+#include "config/system_config.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -25,11 +27,13 @@ static char s_host[MQTT_MAX_HOST_LEN];
 static char s_user[MQTT_MAX_USER_LEN];
 static char s_pass[MQTT_MAX_PASS_LEN];
 static char s_state_topic[MQTT_MAX_TOPIC_LEN];
+static char s_log_topic[MQTT_MAX_TOPIC_LEN];
 static char s_uri[MQTT_MAX_URI_LEN];
 static char *s_ca = NULL;
 
 static TaskHandle_t s_state_task = NULL;
 static bool s_client_started = false;
+static volatile bool s_just_connected = false;
 
 static const char *OFFLINE_PAYLOAD = "{\"device\":\"" WIFI_HOSTNAME "\",\"online\":false}";
 
@@ -52,6 +56,11 @@ static esp_err_t mqtt_load_config(uint32_t *port)
         return ret;
     }
 
+    // Optional: without a log topic the gateway reports its state and logs nothing
+    if (storage_get_str(STORAGE_NAMESPACE_MQTT, STORAGE_KEY_MQTT_LOG_TOPIC, s_log_topic, sizeof(s_log_topic)) != ESP_OK) {
+        s_log_topic[0] = '\0';
+    }
+
     s_ca = malloc(MQTT_MAX_CA_LEN);
     if (s_ca == NULL) {
         return ESP_ERR_NO_MEM;
@@ -61,6 +70,12 @@ static esp_err_t mqtt_load_config(uint32_t *port)
         free(s_ca);
         s_ca = NULL;
         return ret;
+    }
+
+    // Keep only what the certificate needs: this buffer lives as long as the client
+    char *fitted = realloc(s_ca, strlen(s_ca) + 1);
+    if (fitted != NULL) {
+        s_ca = fitted;
     }
 
     if (storage_get_u32(STORAGE_NAMESPACE_MQTT, STORAGE_KEY_MQTT_PORT, port) != ESP_OK) {
@@ -101,17 +116,33 @@ static void mqtt_publish_state(void)
     }
 }
 
-// Runs in the MQTT task: wake the state task rather than publish from here
+// Runs in the MQTT task: tell the state task rather than publish from here
 static void mqtt_on_connected(void)
 {
-    if (s_state_task != NULL) {
-        xTaskNotifyGive(s_state_task);
+    s_just_connected = true;
+}
+
+// One event from the event log to the tenant's log topic, where the
+// substrate's bridge picks it up. Waits up to ticks_to_wait for one.
+static void mqtt_forward_event(TickType_t ticks_to_wait)
+{
+    static char line[EVENT_LOG_LINE_LEN];
+
+    if (!event_log_receive(line, sizeof(line), ticks_to_wait)) {
+        return;
+    }
+    if (s_log_topic[0] == '\0') {
+        return;
+    }
+    if (mqtt_publish(s_log_topic, line, strlen(line), MQTT_LOG_QOS, false) != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to publish event: %s", line);
     }
 }
 
-// Publishes the state on connect and whenever the reported bits change.
-// Polls the state rather than subscribing to events: phone state changes are
-// not published as events, and event callbacks run in the publisher's context.
+// Publishes the state on connect and whenever the reported bits change, and
+// forwards the event log. Polls the state rather than subscribing to events:
+// phone state changes are not published as events, and event callbacks run in
+// the publisher's context. Events wait in their queue while the broker is away.
 static void mqtt_state_task(void *arg)
 {
     const uint8_t phone_mask = PHONE_STATE_OFF_HOOK | PHONE_STATE_RINGING | PHONE_STATE_DIALING;
@@ -120,7 +151,6 @@ static void mqtt_state_task(void *arg)
     uint8_t last_bt = 0;
 
     while (1) {
-        bool connected_now = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(MQTT_STATE_POLL_MS)) > 0;
 
         // The client is started the first time WiFi is up, which may be long
         // after boot; from then on it reconnects by itself
@@ -135,10 +165,21 @@ static void mqtt_state_task(void *arg)
         }
 
         if (!mqtt_is_connected()) {
+            vTaskDelay(pdMS_TO_TICKS(MQTT_STATE_POLL_MS));
             continue;
         }
 
+        bool connected_now = s_just_connected;
+        s_just_connected = false;
+
         const ma_bell_state_t *state = ma_bell_state_get();
+        if (connected_now) {
+            char extra[64];
+            snprintf(extra, sizeof(extra), "\"ip\":\"%s\",\"rssi\":%d",
+                     state->network.ip_address, -(int)state->network.rssi);
+            event_log_with(EVENT_LOG_INFO, "mqtt.connected", extra, "Connected to broker");
+        }
+
         uint8_t phone = state->phone.state & phone_mask;
         uint8_t bt = state->bluetooth.state & bt_mask;
 
@@ -147,6 +188,9 @@ static void mqtt_state_task(void *arg)
             last_bt = bt;
             mqtt_publish_state();
         }
+
+        // Doubles as the wait between state checks
+        mqtt_forward_event(pdMS_TO_TICKS(MQTT_STATE_POLL_MS));
     }
 }
 
@@ -189,7 +233,7 @@ esp_err_t mqtt_init_and_start(void)
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "MQTT client ready: %s:%lu as %s, state on %s; it connects once WiFi is up",
-             s_host, (unsigned long)port, s_user, s_state_topic);
+    ESP_LOGI(TAG, "MQTT client ready: %s:%lu as %s, state on %s, events on %s; it connects once WiFi is up",
+             s_host, (unsigned long)port, s_user, s_state_topic, s_log_topic[0] ? s_log_topic : "(none)");
     return ESP_OK;
 }

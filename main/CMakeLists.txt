@@ -5,6 +5,7 @@ idf_component_register(
             "config/pin_assignments.c"
             "app/web/web_interface.c"
             "app/events/event_system.c"
+            "app/events/event_log.c"
             "audio/audio_bridge.c"
             "audio/audio_output.c"
             "storage/storage.c"
@@ -21,7 +22,7 @@ idf_component_register(
             "network/mqtt/mqtt_init.c"
             "main.c"
             INCLUDE_DIRS "." "app" "app/state" "app/bluetooth" "app/web" "app/events" "audio" "storage" "bluetooth" "hardware" "network/wifi" "network/mqtt" "config"
-            REQUIRES nvs_flash driver bt esp_wifi esp_common console esp_http_server mqtt esp_timer
+            REQUIRES nvs_flash driver bt esp_wifi esp_common console esp_http_server mqtt esp_timer esp_app_format
 )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-error=format)

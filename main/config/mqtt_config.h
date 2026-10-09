@@ -20,7 +20,8 @@
 
 // State publishing
 #define MQTT_STATE_QOS              1
-#define MQTT_STATE_POLL_MS          500   // How often the state is checked for changes
+#define MQTT_STATE_POLL_MS          200   // How often the state is checked for changes
+#define MQTT_LOG_QOS                1     // Events forwarded to the log topic
 #define MQTT_STATE_TASK_STACK       4096
 #define MQTT_STATE_TASK_PRIORITY    3
 #define MQTT_STATE_PAYLOAD_LEN      384
