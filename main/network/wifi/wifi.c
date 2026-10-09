@@ -4,6 +4,7 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_mac.h"
+#include "esp_timer.h"
 #include "nvs_flash.h"
 #include "wifi.h"
 #include "app/events/event_system.h"
@@ -13,6 +14,30 @@ static const char *TAG = "wifi";
 
 static int s_retry_num = 0;
 static EventGroupHandle_t s_wifi_event_group = NULL;
+static esp_timer_handle_t s_reconnect_timer = NULL;
+static uint32_t s_reconnect_delay_ms = WIFI_RECONNECT_MIN_DELAY_MS;
+
+static void reconnect_timer_cb(void* arg)
+{
+    ESP_LOGI(TAG, "Retrying WiFi connection...");
+    esp_wifi_connect();
+}
+
+// Schedule the next background attempt, doubling the delay up to the maximum
+static void schedule_reconnect(void)
+{
+    if (s_reconnect_timer == NULL) {
+        return;
+    }
+    ESP_LOGI(TAG, "Next WiFi connection attempt in %lu s", (unsigned long)(s_reconnect_delay_ms / 1000));
+    esp_timer_stop(s_reconnect_timer);
+    esp_timer_start_once(s_reconnect_timer, (uint64_t)s_reconnect_delay_ms * 1000);
+
+    s_reconnect_delay_ms *= 2;
+    if (s_reconnect_delay_ms > WIFI_RECONNECT_MAX_DELAY_MS) {
+        s_reconnect_delay_ms = WIFI_RECONNECT_MAX_DELAY_MS;
+    }
+}
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                          int32_t event_id, void* event_data)
@@ -36,8 +61,12 @@ static void event_handler(void* arg, esp_event_base_t event_base,
             s_retry_num++;
             ESP_LOGI(TAG, "retry to connect to the AP (attempt %d/%d)", s_retry_num, WIFI_MAXIMUM_RETRY);
         } else {
-            xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
-            ESP_LOGE(TAG, "Failed to connect to AP after %d attempts", WIFI_MAXIMUM_RETRY);
+            // Let startup continue without WiFi, but keep trying in the background
+            if (!(xEventGroupGetBits(s_wifi_event_group) & WIFI_FAIL_BIT)) {
+                ESP_LOGE(TAG, "Failed to connect to AP after %d attempts", WIFI_MAXIMUM_RETRY);
+                xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
+            }
+            schedule_reconnect();
         }
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
         ESP_LOGI(TAG, "WiFi connected to AP, waiting for IP address...");
@@ -45,7 +74,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
-        xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+        s_reconnect_delay_ms = WIFI_RECONNECT_MIN_DELAY_MS;
 
         // Update state with IP address
         char ip_str[16];
@@ -58,6 +87,9 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
             ma_bell_state_set_wifi_info(ap_info.rssi, ap_info.primary);
         }
+
+        // Signalled last, so whoever is waiting reads the state set above
+        xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     }
 }
 
@@ -98,6 +130,12 @@ esp_err_t wifi_init_sta(EventGroupHandle_t wifi_event_group)
                                                       &event_handler,
                                                       NULL,
                                                       &instance_got_ip));
+
+    const esp_timer_create_args_t reconnect_timer_args = {
+        .callback = reconnect_timer_cb,
+        .name = "wifi_reconnect",
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&reconnect_timer_args, &s_reconnect_timer));
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 

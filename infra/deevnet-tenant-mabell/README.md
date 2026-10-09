@@ -13,6 +13,7 @@ infrastructure it depends on stay together. EdS made the same choice for the sam
 |---|---|
 | `deevnet_tenant.mabell` | the tenant itself. Everything else derives from the index the API allocates |
 | `deevnet_iot_wifi_key.devices` | one PPSK for this tenant's devices, in trust class `iot` |
+| `deevnet_iot_wifi_key.developer` | one key for a developer's computer on `DVNTM-TD`, in trust class `tenant_dev` |
 | `deevnet_iot_device.gateway` | `ma-bell-gw-01` in the registry: an identity, no credential |
 | `deevnet_iot_broker_account.gateway` | the gateway's MQTT username and password, and its topics |
 | `deevnet_iot_address.gateway` | the gateway's fixed address on the device network, and its name `ma-bell-gw-01.<tenant zone>` |
@@ -56,8 +57,16 @@ This reads the outputs here and writes the Wi-Fi key, the broker address, the ga
 topics and the root CA to the board's NVS partition. Nothing is compiled into the firmware. It
 replaces the whole partition, so the phone has to be paired again afterwards.
 
-To test from where the gateway sits, `tools/wifi-tenant.sh` moves a Mac onto the device network with
-this tenant's key and back: `save` once on the operator network, then `use mabell` and `home`.
+## Working on it from a Mac
+
+`tools/wifi-tenant.sh` moves a Mac between the operator network and this tenant's networks. Run
+`save` and `save-home` once, then:
+
+| | |
+|---|---|
+| `use mabell` | join the tenant developer network (`DVNTM-TD`) with this tenant's developer key: the API, the state store and the broker are reachable. The gateway's web page is not: the substrate admits only the operator networks to it today |
+| `use mabell device` | join the device network (`DVNTM-IOT`) with the device key, to see what the gateway sees: the broker and the internet, nothing else |
+| `home` | back to the operator network |
 
 ## Using it
 

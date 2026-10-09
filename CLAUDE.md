@@ -266,7 +266,8 @@ WiFi credentials are stored in NVS only; there are no compile-time defaults (see
 The gateway is a device of the `mabell` tenant on the Deevnet substrate, declared in Terraform under `infra/deevnet-tenant-mabell/`. The tenant issues the WiFi key and the MQTT account.
 
 - `tools/provision_tenant.py` writes the tenant's Terraform outputs to NVS: namespace `wifi` (SSID, key) and namespace `mqtt` (host, port, user, pass, ca, state_topic, log_topic). It replaces the whole NVS partition, including the Bluetooth pairing.
-- `mqtt_init_and_start()` (called last in `main.c`) connects over TLS, verified against the CA in NVS, and publishes a retained JSON state to the state topic on connect and on phone/Bluetooth state changes. It returns `ESP_OK` and skips MQTT when WiFi is down or nothing is provisioned.
+- `mqtt_init_and_start()` (called last in `main.c`) connects over TLS, verified against the CA in NVS, and publishes a retained JSON state to the state topic on connect and on phone/Bluetooth state changes. The client starts once WiFi is up, however long after boot, and reconnects by itself. It returns `ESP_OK` and skips MQTT when nothing is provisioned.
+- WiFi makes `WIFI_MAXIMUM_RETRY` immediate attempts at boot, then startup continues and it keeps retrying in the background with a delay doubling from `WIFI_RECONNECT_MIN_DELAY_MS` to `WIFI_RECONNECT_MAX_DELAY_MS`.
 - MQTT constants are in `main/config/mqtt_config.h`; the DHCP hostname (`WIFI_HOSTNAME`) is in `wifi_config.h`.
 - Log forwarding to the log topic is not implemented yet.
 - `tools/wifi-tenant.sh` switches a Mac between the operator network and the tenant's device network for testing.

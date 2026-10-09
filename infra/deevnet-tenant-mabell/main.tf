@@ -53,6 +53,23 @@ resource "deevnet_iot_wifi_key" "devices" {
   trust_class = "iot"
 }
 
+# The Wi-Fi key a developer's computer joins DVNTM-TD with (CHG-0029).
+#
+# The device key above puts a computer where the gateway sits: it reaches the
+# broker and the internet and nothing else. Working on this tenant - the API
+# and the state store - is done from the tenant developer network, and that
+# takes a key in trust class `tenant_dev`.
+#
+# Not bound to a MAC: a Mac presents a private address per network, and this
+# key is for whichever computer the tenant is being worked on from.
+#
+# CAREFUL: as with the device key, replacing this issues a NEW key.
+resource "deevnet_iot_wifi_key" "developer" {
+  tenant      = deevnet_tenant.mabell.name
+  name        = "developer"
+  trust_class = "tenant_dev"
+}
+
 # The gateway, in the tenant's device registry (ADR-0012 §3, CHG-0014).
 #
 # The entry is an identity and nothing else: no credential, no access. What it
