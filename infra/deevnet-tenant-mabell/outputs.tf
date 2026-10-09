@@ -14,6 +14,16 @@ output "device_wifi" {
   }
 }
 
+output "developer_wifi" {
+  description = "What a developer's computer joins to work on this tenant. tools/wifi-tenant.sh reads it."
+  sensitive   = true
+  value = {
+    ssid = deevnet_iot_wifi_key.developer.ssid
+    psk  = deevnet_iot_wifi_key.developer.psk
+    vlan = deevnet_iot_wifi_key.developer.vlan
+  }
+}
+
 output "gateway_address" {
   description = "Where the gateway is found on the device network, and the name published for it."
   value = {
