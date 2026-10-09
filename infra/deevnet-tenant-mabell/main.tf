@@ -26,6 +26,11 @@ terraform {
       source  = "deevnet/deevnet"
       version = "~> 0.1"
     }
+    # The gateway's dashboard: see dashboards.tf.
+    grafana = {
+      source  = "grafana/grafana"
+      version = "~> 4.46"
+    }
   }
 
   # State is in the substrate's state store (ADR-0007): see backend.tf.

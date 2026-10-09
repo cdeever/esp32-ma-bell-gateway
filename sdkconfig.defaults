@@ -39,3 +39,12 @@ CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
 # Custom partition table with 3MB app partition
 CONFIG_PARTITION_TABLE_CUSTOM=y
 CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# TLS memory - the gateway runs WiFi, Classic Bluetooth and a TLS session to the
+# MQTT broker in internal RAM only. Allocate the TLS record buffers per record
+# instead of holding 20KB of them for the life of the connection, and do not
+# keep the broker's certificate after the handshake.
+CONFIG_MBEDTLS_DYNAMIC_BUFFER=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CONFIG_DATA=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CA_CERT=y
+CONFIG_MBEDTLS_SSL_KEEP_PEER_CERTIFICATE=n

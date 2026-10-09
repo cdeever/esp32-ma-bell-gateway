@@ -65,7 +65,7 @@ main/
 │   ├── bluetooth/            # HFP message handling & command processing
 │   ├── state/                # Centralized state management system
 │   ├── web/                  # HTTP web interface for status monitoring
-│   ├── events/               # Event system for subsystem communication
+│   ├── events/               # Event system for subsystem communication; event log for the tenant's log store
 │   ├── tones.c               # Telephone tone generation (dial, busy, ringback, etc.)
 │   └── pin_assignments.h     # Hardware pin definitions (PCM, GPIO, UART)
 ├── bluetooth/                # Bluetooth subsystem
@@ -269,7 +269,9 @@ The gateway is a device of the `mabell` tenant on the Deevnet substrate, declare
 - `mqtt_init_and_start()` (called last in `main.c`) connects over TLS, verified against the CA in NVS, and publishes a retained JSON state to the state topic on connect and on phone/Bluetooth state changes. The client starts once WiFi is up, however long after boot, and reconnects by itself. It returns `ESP_OK` and skips MQTT when nothing is provisioned.
 - WiFi makes `WIFI_MAXIMUM_RETRY` immediate attempts at boot, then startup continues and it keeps retrying in the background with a delay doubling from `WIFI_RECONNECT_MIN_DELAY_MS` to `WIFI_RECONNECT_MAX_DELAY_MS`.
 - MQTT constants are in `main/config/mqtt_config.h`; the DHCP hostname (`WIFI_HOSTNAME`) is in `wifi_config.h`.
-- Log forwarding to the log topic is not implemented yet.
+- **Event log** (`main/app/events/event_log.h`): `event_log(level, "phone.off_hook", "Handset lifted")` queues one JSON line; the MQTT state task forwards the queue to the log topic, and the substrate's bridge carries it into the tenant's log store. It is for key events only, not the serial log. State-bit transitions are logged from the tables at the top of `ma_bell_state.c`; add a row there to log another bit.
+- `tools/gateway_logs.py` reads the events back from the log store; the Grafana dashboard is declared in `infra/deevnet-tenant-mabell/dashboards.tf`.
+- TLS uses dynamic record buffers (`sdkconfig.defaults`). Without them the TLS session left about 10KB of heap free with WiFi and Bluetooth running, and handshakes failed intermittently.
 - `tools/wifi-tenant.sh` switches a Mac between the operator network and the tenant's device network for testing.
 
 ### Web Interface

@@ -38,13 +38,33 @@ It subscribes to nothing, because the gateway takes no commands over MQTT today.
 
 ## Logs
 
-The gateway does not ship logs itself. It publishes them to `mabell/log/ma-bell-gw-01`, and a
-substrate bridge carries them into this tenant's device log partition, where `log_store.read_token`
+The gateway does not ship logs itself. It publishes its key events to `mabell/log/ma-bell-gw-01`, and
+a substrate bridge carries them into this tenant's device log partition, where `log_store.read_token`
 reads them back. `log` is a reserved first topic level, and this is what it is for.
 
-The firmware does not do this yet: it logs to serial only. It does connect to the broker and
-publish its state, retained, to `mabell/phone/ma-bell-gw-01/state`, with a last will that marks it
-offline.
+Only events worth keeping are sent, not the serial log: the gateway starting, WiFi and the broker
+connecting, the handset lifted and replaced, ringing, the mobile phone connecting, a call starting
+and ending. Each is one JSON object:
+
+```json
+{"level":"info","event":"call.started","msg":"Call started","uptime_ms":812345}
+```
+
+The gateway has no clock, so the store dates each event when it arrives. Events queued while the
+gateway was offline arrive together; `uptime_ms` gives their order. If the queue overflowed, the next
+event carries a `dropped` count.
+
+Two ways to read them:
+
+| | |
+|---|---|
+| `tools/gateway_logs.py` | prints the events in a terminal: `--since 1d`, `-f` to follow, and a LogsQL filter such as `'event:call.*'` |
+| Grafana | the dashboard **Ma Bell Gateway** in this tenant's organization, declared in `dashboards.tf`: calls, handset lifts, restarts, events by kind, WiFi signal, and the events themselves |
+
+The dashboard needs this tenant's Grafana password. The tenant existed before dashboards did, so the
+operator handed the password over and the state does not hold it: put it in a git-ignored
+`*.auto.tfvars` as `dashboard_password = "..."` and apply. `terraform output dashboard` says where to
+log in.
 
 ## Putting it on the gateway
 
@@ -85,7 +105,7 @@ Three files are **not** committed and have to be put in this directory on each m
 |---|---|---|
 | `.backend.env` | the state store's credentials | a machine that already has the state: `make state-backend` writes it |
 | `deevnet-root-ca.pem` | the site's root CA; public | the operator, or the tenant downloads site |
-| `gateway.auto.tfvars` | the gateway board's MAC | you: `gateway_mac = "..."` |
+| `gateway.auto.tfvars` | the gateway board's MAC, and the Grafana password | you: `gateway_mac = "..."`, `dashboard_password = "..."` |
 
 With those in place, `terraform init` reads the state from the store. Needs Terraform 1.10 or later.
 

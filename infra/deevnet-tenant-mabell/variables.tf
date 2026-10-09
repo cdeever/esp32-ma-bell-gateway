@@ -29,3 +29,17 @@ variable "broker_host" {
     not issue one today.
   EOT
 }
+
+variable "dashboard_password" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = <<-EOT
+    This tenant's Grafana password, when its state does not hold it.
+
+    The tenant was created before dashboards existed, so the operator handed
+    the password over instead of the API returning it. Set it in a
+    *.auto.tfvars file, which is ignored by git. Left empty, the dashboard in
+    dashboards.tf is not created.
+  EOT
+}
