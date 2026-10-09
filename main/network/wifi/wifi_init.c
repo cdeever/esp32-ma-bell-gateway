@@ -44,7 +44,7 @@ esp_err_t wifi_init_and_connect(void)
         WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
         pdFALSE,  // Don't clear bits
         pdFALSE,  // Wait for either bit (OR)
-        portMAX_DELAY  // Wait forever until connection succeeds or all retries fail
+        portMAX_DELAY  // Wait until connection succeeds or the immediate retries are used up
     );
 
     // Set initialization complete state regardless of connection outcome
@@ -61,7 +61,7 @@ esp_err_t wifi_init_and_connect(void)
 #endif
         return ESP_OK;
     } else if (bits & WIFI_FAIL_BIT) {
-        ESP_LOGI(TAG, "Failed to connect to AP");
+        ESP_LOGW(TAG, "Not connected to AP yet, continuing startup; WiFi keeps retrying in the background");
         return ESP_OK;
     } else {
         ESP_LOGE(TAG, "UNEXPECTED EVENT");

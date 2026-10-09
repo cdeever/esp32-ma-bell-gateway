@@ -12,10 +12,11 @@
  * - Publishes the gateway's state (retained) on connect and whenever it changes
  * - Registers a last will that marks the gateway offline
  *
- * The connection is made in the background and re-established automatically.
+ * The connection is made in the background once WiFi is up, however long
+ * after boot that is, and re-established automatically.
  *
- * @return ESP_OK on success, and also when MQTT is not provisioned or WiFi is
- *         down (the gateway works without it); ESP_FAIL on an internal error
+ * @return ESP_OK on success, and also when MQTT is not provisioned (the
+ *         gateway works without it); ESP_FAIL on an internal error
  */
 esp_err_t mqtt_init_and_start(void);
 

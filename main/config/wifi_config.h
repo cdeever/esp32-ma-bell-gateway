@@ -3,7 +3,12 @@
 
 // Connection parameters
 #define WIFI_CONNECT_TIMEOUT        60    // Increased to allow all retries to complete
-#define WIFI_MAXIMUM_RETRY          5     // All retries should complete within 60s timeout
+#define WIFI_MAXIMUM_RETRY          5     // Immediate retries at boot before startup continues without WiFi
+
+// After the immediate retries, reconnection continues in the background with
+// a delay that doubles from the minimum to the maximum
+#define WIFI_RECONNECT_MIN_DELAY_MS 5000
+#define WIFI_RECONNECT_MAX_DELAY_MS 60000
 
 // WiFi credentials are stored in NVS only
 // Use provisioning tool to set credentials (see WIFI_SETUP.md)

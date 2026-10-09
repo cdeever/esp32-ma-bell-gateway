@@ -29,6 +29,7 @@ static char s_uri[MQTT_MAX_URI_LEN];
 static char *s_ca = NULL;
 
 static TaskHandle_t s_state_task = NULL;
+static bool s_client_started = false;
 
 static const char *OFFLINE_PAYLOAD = "{\"device\":\"" WIFI_HOSTNAME "\",\"online\":false}";
 
@@ -120,6 +121,19 @@ static void mqtt_state_task(void *arg)
 
     while (1) {
         bool connected_now = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(MQTT_STATE_POLL_MS)) > 0;
+
+        // The client is started the first time WiFi is up, which may be long
+        // after boot; from then on it reconnects by itself
+        if (!s_client_started && ma_bell_state_network_bits_set(NET_STATE_WIFI_CONNECTED)) {
+            esp_err_t ret = mqtt_start();
+            if (ret != ESP_OK) {
+                ESP_LOGE(TAG, "Failed to start MQTT client: %s", esp_err_to_name(ret));
+                continue;
+            }
+            s_client_started = true;
+            ESP_LOGI(TAG, "MQTT client started");
+        }
+
         if (!mqtt_is_connected()) {
             continue;
         }
@@ -139,11 +153,6 @@ static void mqtt_state_task(void *arg)
 esp_err_t mqtt_init_and_start(void)
 {
     ESP_LOGI(TAG, "Initializing MQTT subsystem");
-
-    if (!ma_bell_state_network_bits_set(NET_STATE_WIFI_CONNECTED)) {
-        ESP_LOGW(TAG, "WiFi is not connected, continuing without MQTT");
-        return ESP_OK;
-    }
 
     uint32_t port = MQTT_DEFAULT_PORT;
     esp_err_t ret = mqtt_load_config(&port);
@@ -172,21 +181,15 @@ esp_err_t mqtt_init_and_start(void)
         return ret;
     }
 
+    mqtt_register_connected_callback(mqtt_on_connected);
+
     if (xTaskCreate(mqtt_state_task, "mqtt_state", MQTT_STATE_TASK_STACK, NULL,
                     MQTT_STATE_TASK_PRIORITY, &s_state_task) != pdPASS) {
         ESP_LOGE(TAG, "Failed to create MQTT state task");
         return ESP_FAIL;
     }
 
-    mqtt_register_connected_callback(mqtt_on_connected);
-
-    ret = mqtt_start();
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to start MQTT client: %s", esp_err_to_name(ret));
-        return ret;
-    }
-
-    ESP_LOGI(TAG, "MQTT client started: %s:%lu as %s, state on %s",
+    ESP_LOGI(TAG, "MQTT client ready: %s:%lu as %s, state on %s; it connects once WiFi is up",
              s_host, (unsigned long)port, s_user, s_state_topic);
     return ESP_OK;
 }
