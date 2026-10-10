@@ -16,7 +16,7 @@ esp_err_t bt_connection_manager_init(void);
 /**
  * @brief GAP callback for connection management
  *
- * Handles discovery, authentication, and PIN requests
+ * Handles authentication, PIN requests and remote name answers
  *
  * @param event GAP event type
  * @param param Event parameters
