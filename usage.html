@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2026-10-10T14:46:45+00:00" />
+    <meta property="article:modified_time" content="2026-10-10T15:37:15+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Guide &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
@@ -51,6 +51,7 @@
 <li class="toctree-l1"><a class="reference internal" href="solution-design/index.html">Solution Design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="implementation/index.html">Implementation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#standalone-or-on-deevnet">Standalone or on Deevnet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#wiring-connections">Wiring Connections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bluetooth-syncing">Bluetooth Syncing</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pairing-a-phone">Pairing a Phone</a></li>
@@ -62,6 +63,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#provisioning-process">Provisioning Process</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#verifying-wifi-connection">Verifying WiFi Connection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id1">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-deevnet-backend">The Deevnet Backend</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-the-backend-provides">What the Backend Provides</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#live-state">Live State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#event-history">Event History</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#joining-the-tenant">Joining the Tenant</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Troubleshooting</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#status-screen">Status Screen</a></li>
@@ -99,6 +108,35 @@
   <section id="user-guide">
 <h1>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading"></a></h1>
 <p>This section provides step-by-step instructions for setting up, configuring, and using the Ma Bell Gateway. Each topic below will guide users through common tasks and troubleshooting.</p>
+<section id="standalone-or-on-deevnet">
+<h2>Standalone or on Deevnet<a class="headerlink" href="#standalone-or-on-deevnet" title="Link to this heading"></a></h2>
+<p>The Gateway is a complete telephone line by itself. A powered Gateway and a paired mobile phone are all it takes to make and receive calls: dial tone, dialing, ringing and call audio need no network and no server.</p>
+<p>It can also run as a device on <a class="reference external" href="https://deevnet.github.io/deevnet-docs/">Deevnet</a>, an IoT platform that gives each project, called a <em>tenant</em>, its own WiFi key, message broker account, log store and dashboards. The Gateway’s tenant is named <code class="docutils literal notranslate"><span class="pre">mabell</span></code>. Joining it changes nothing about how the phone works. What it adds is visibility: a record of every call, connection and restart, which you can read from another room or a week later.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>How it is set up</p></th>
+<th class="head"><p>What you get</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>No WiFi</p></td>
+<td><p>A working telephone. The only view inside is the serial port.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Any WiFi network</p></td>
+<td><p>The above, and the Gateway’s own status page on the local network.</p></td>
+</tr>
+<tr class="row-even"><td><p>The <code class="docutils literal notranslate"><span class="pre">mabell</span></code> tenant on Deevnet</p></td>
+<td><p>The above, and the Gateway’s live state, its event history and a dashboard, kept by the Deevnet backend.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The Gateway never depends on the backend. If WiFi or Deevnet is unreachable it carries on handling calls, keeps retrying in the background, and sends the events it held in the meantime once it is connected again.</p>
+<p>The rest of this guide applies to all three setups, and says so where a feature needs Deevnet. <a class="reference internal" href="#deevnet-backend"><span class="std std-ref">The Deevnet Backend</span></a> describes exactly what the backend provides.</p>
+</section>
 <section id="wiring-connections">
 <h2>Wiring Connections<a class="headerlink" href="#wiring-connections" title="Link to this heading"></a></h2>
 <p>Instructions for connecting legacy telephone hardware, ringer modules, power supplies, and the Ma Bell Gateway itself.</p>
@@ -210,12 +248,13 @@
 </tr>
 </tbody>
 </table>
-<p>Read the events with <code class="docutils literal notranslate"><span class="pre">tools/gateway_logs.py</span></code>, or on the Gateway’s dashboard.</p>
+<p>The event log is kept by the Deevnet backend, so it is there only when the Gateway runs as a Deevnet tenant device. Read the events with <code class="docutils literal notranslate"><span class="pre">tools/gateway_logs.py</span></code>, or on the Gateway’s dashboard; see <a class="reference internal" href="#deevnet-backend"><span class="std std-ref">The Deevnet Backend</span></a>.</p>
 </section>
 </section>
 <section id="setting-up-wifi">
 <h2>Setting Up WiFi<a class="headerlink" href="#setting-up-wifi" title="Link to this heading"></a></h2>
 <p>The Ma Bell Gateway requires WiFi credentials to be <strong>provisioned before deployment</strong>. WiFi settings are configured at build/provisioning time and stored in the device’s non-volatile storage (NVS). There is no runtime user interface or provisioning mechanism for changing WiFi credentials on a running device.</p>
+<p>The steps below put the Gateway on any WiFi network. To put it on Deevnet instead, see <a class="reference internal" href="#deevnet-provisioning"><span class="std std-ref">Joining the Tenant</span></a>, which writes the WiFi key and the backend settings in one step.</p>
 <section id="provisioning-process">
 <h3>Provisioning Process<a class="headerlink" href="#provisioning-process" title="Link to this heading"></a></h3>
 <p>WiFi credentials must be written to the device’s NVS partition before the firmware is flashed (or after flashing, before first boot).</p>
@@ -287,6 +326,140 @@
 <p>Erasing flash will remove ALL stored data, including WiFi credentials, Bluetooth pairings, and any other configuration. You will need to re-provision WiFi credentials and re-pair Bluetooth devices.</p>
 </div>
 <p>For detailed provisioning instructions and troubleshooting, see <code class="docutils literal notranslate"><span class="pre">WIFI_SETUP.md</span></code> in the project root directory.</p>
+</section>
+</section>
+<section id="the-deevnet-backend">
+<span id="deevnet-backend"></span><h2>The Deevnet Backend<a class="headerlink" href="#the-deevnet-backend" title="Link to this heading"></a></h2>
+<p>This section applies only to a Gateway that has been provisioned as a device of the <code class="docutils literal notranslate"><span class="pre">mabell</span></code> tenant. Without that, the Gateway skips everything here and works as a telephone line and nothing more.</p>
+<p><a class="reference external" href="https://deevnet.github.io/deevnet-docs/">Deevnet</a> separates the platform (the <em>substrate</em>: network, broker, log store, dashboards) from the projects that use it (the <em>tenants</em>). A tenant is declared in Terraform and holds only what it was issued; it cannot see another tenant’s devices, messages or logs. The <code class="docutils literal notranslate"><span class="pre">mabell</span></code> tenant is declared in this repository under <code class="docutils literal notranslate"><span class="pre">infra/deevnet-tenant-mabell/</span></code>, beside the firmware that uses it. The Gateway itself is what Deevnet calls an <a class="reference external" href="https://deevnet.github.io/deevnet-docs/docs/architecture/edge-devices/">edge device</a>: a physical thing the application owns and the platform attaches to the network.</p>
+<section id="what-the-backend-provides">
+<h3>What the Backend Provides<a class="headerlink" href="#what-the-backend-provides" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 48.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Service</p></th>
+<th class="head"><p>What it does for the Gateway</p></th>
+<th class="head"><p>Deevnet documentation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>WiFi key</p></td>
+<td><p>A key of the tenant’s own on the site’s device network. With it the Gateway reaches the message broker and the internet, and nothing else.</p></td>
+<td><p><a class="reference external" href="https://deevnet.github.io/deevnet-docs/docs/runbook/tenant/services/wifi-keys/">Wi-Fi keys</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Fixed address and name</p></td>
+<td><p>The Gateway is given the same address every time it joins, and is published as <code class="docutils literal notranslate"><span class="pre">ma-bell-gw-01</span></code> in the tenant’s DNS zone, so its status page is always at the same place.</p></td>
+<td><p><a class="reference external" href="https://deevnet.github.io/deevnet-docs/docs/runbook/tenant/services/dns/">DNS</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Message broker account</p></td>
+<td><p>An MQTT account, over TLS, allowed to publish to two topics: the Gateway’s state and its event log. It may subscribe to nothing.</p></td>
+<td><p><a class="reference external" href="https://deevnet.github.io/deevnet-docs/docs/runbook/tenant/services/devices-and-mqtt/">Devices &amp; MQTT</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Log store</p></td>
+<td><p>Keeps the events the Gateway sends, in a partition only this tenant can read.</p></td>
+<td><p><a class="reference external" href="https://deevnet.github.io/deevnet-docs/docs/runbook/tenant/services/logs/">Logs</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Dashboard</p></td>
+<td><p>A Grafana dashboard, <strong>Ma Bell Gateway</strong>, drawn from the log store.</p></td>
+<td><p><a class="reference external" href="https://deevnet.github.io/deevnet-docs/docs/runbook/tenant/services/dashboards/">Dashboards</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>Everything goes one way, from the Gateway to the backend. The backend cannot place a call, ring the phone or change a setting: the Gateway takes no commands over the network.</p>
+</section>
+<section id="live-state">
+<h3>Live State<a class="headerlink" href="#live-state" title="Link to this heading"></a></h3>
+<p>The Gateway publishes its current state to the topic <code class="docutils literal notranslate"><span class="pre">mabell/phone/ma-bell-gw-01/state</span></code> when it connects to the broker and each time the phone or Bluetooth state changes:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">"device"</span><span class="p">:</span><span class="s2">"ma-bell-gw-01"</span><span class="p">,</span><span class="nt">"online"</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">"phone"</span><span class="p">:{</span><span class="nt">"off_hook"</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span><span class="nt">"ringing"</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span><span class="nt">"dialing"</span><span class="p">:</span><span class="kc">false</span><span class="p">},</span>
+<span class="w"> </span><span class="nt">"bluetooth"</span><span class="p">:{</span><span class="nt">"connected"</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span><span class="nt">"in_call"</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span><span class="nt">"audio"</span><span class="p">:</span><span class="kc">false</span><span class="p">},</span>
+<span class="w"> </span><span class="nt">"wifi"</span><span class="p">:{</span><span class="nt">"ip"</span><span class="p">:</span><span class="s2">"10.20.30.57"</span><span class="p">,</span><span class="nt">"rssi"</span><span class="p">:</span><span class="mi">-58</span><span class="p">},</span>
+<span class="w"> </span><span class="nt">"uptime_s"</span><span class="p">:</span><span class="mi">86400</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The broker retains the message, so anything that subscribes later is told the current state at once. If the Gateway drops off the network without saying so, the broker replaces the state with <code class="docutils literal notranslate"><span class="pre">{&quot;device&quot;:&quot;ma-bell-gw-01&quot;,&quot;online&quot;:false}</span></code>.</p>
+<p>Nothing reads this topic yet. It is there for a future service, such as a “line in use” display.</p>
+</section>
+<section id="event-history">
+<h3>Event History<a class="headerlink" href="#event-history" title="Link to this heading"></a></h3>
+<p>The Gateway sends a short record of each key event to the topic <code class="docutils literal notranslate"><span class="pre">mabell/log/ma-bell-gw-01</span></code>, and Deevnet carries it into the tenant’s log store. This is a record of what happened, not a copy of the serial log.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Events</p></th>
+<th class="head"><p>What they record</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">system.boot</span></code></p></td>
+<td><p>The Gateway started, with its firmware version and the reason for the restart.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wifi.*</span></code>, <code class="docutils literal notranslate"><span class="pre">mqtt.connected</span></code></p></td>
+<td><p>WiFi and the broker connecting and disconnecting, with the network name, address and signal strength.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bt.*</span></code></p></td>
+<td><p>The mobile phone connecting and disconnecting, with its name. The individual events are listed under <em>Bluetooth Syncing</em> above.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phone.*</span></code></p></td>
+<td><p>The handset lifted and replaced, dialing, and ringing.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">call.*</span></code></p></td>
+<td><p>Calls arriving, placed, starting and ending, with the other party’s number, the direction and the length.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Call events include the other party’s telephone number. On Deevnet those numbers are stored in the tenant’s log store.</p>
+</div>
+<p>The Gateway has no clock. The log store dates each event when it arrives, and each event also carries the Gateway’s uptime. Events from a period offline are held in the Gateway and arrive together when it reconnects, in the right order but all dated at the moment of arrival. The Gateway holds a limited number; if more than that happen while it is offline, the oldest are lost and the next event to arrive says how many.</p>
+<p>There are two ways to read the history:</p>
+<ul>
+<li><p><strong>In a terminal</strong>, with <code class="docutils literal notranslate"><span class="pre">tools/gateway_logs.py</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tools/gateway_logs.py<span class="w">                  </span><span class="c1"># the last hour</span>
+tools/gateway_logs.py<span class="w"> </span>--since<span class="w"> </span>1d<span class="w">       </span><span class="c1"># the last day</span>
+tools/gateway_logs.py<span class="w"> </span>-f<span class="w">               </span><span class="c1"># keep printing new events</span>
+tools/gateway_logs.py<span class="w"> </span><span class="s1">'event:call.*'</span><span class="w">   </span><span class="c1"># only calls</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>On the dashboard</strong>, <strong>Ma Bell Gateway</strong>, in the tenant’s Grafana organization. It counts calls, handset lifts, restarts and broker reconnections over the chosen period, charts the events by kind and the WiFi signal, and lists the events themselves. Run <code class="docutils literal notranslate"><span class="pre">terraform</span> <span class="pre">output</span> <span class="pre">dashboard</span></code> in <code class="docutils literal notranslate"><span class="pre">infra/deevnet-tenant-mabell/</span></code> for its address and login name.</p></li>
+</ul>
+</section>
+<section id="joining-the-tenant">
+<span id="deevnet-provisioning"></span><h3>Joining the Tenant<a class="headerlink" href="#joining-the-tenant" title="Link to this heading"></a></h3>
+<p>A Gateway joins the tenant by being given what the tenant was issued. With the tenant applied in <code class="docutils literal notranslate"><span class="pre">infra/deevnet-tenant-mabell/</span></code> and the Gateway connected by USB:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>.<span class="w"> </span><span class="nv">$IDF_PATH</span>/export.sh
+tools/provision_tenant.py<span class="w">            </span><span class="c1"># --dry-run to check the values without touching the board</span>
+</pre></div>
+</div>
+<p>This writes the WiFi key, the broker’s address, the Gateway’s account, its two topics and Deevnet’s root certificate to the Gateway’s stored settings. Nothing is compiled into the firmware, so the same firmware runs with or without Deevnet.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Provisioning replaces all of the Gateway’s stored settings, including its record of the paired phone. Remove MA BELL from the phone’s paired devices and pair it again afterwards.</p>
+</div>
+<p>To take a Gateway off Deevnet, provision it for an ordinary WiFi network as described in <em>Setting Up WiFi</em>. That also replaces the stored settings, so the backend settings go with them.</p>
+<p>Creating the tenant in the first place, and changing what it is issued, are covered in <code class="docutils literal notranslate"><span class="pre">infra/deevnet-tenant-mabell/README.md</span></code> and in Deevnet’s <a class="reference external" href="https://deevnet.github.io/deevnet-docs/docs/runbook/tenant/">Tenant Operations</a> guide.</p>
+</section>
+<section id="id3">
+<h3>Troubleshooting<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<p><strong>The phone works but no events arrive.</strong></p>
+<p>The telephone side does not depend on the backend, so this is always a network or provisioning matter. On the serial port, look for:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">MQTT</span> <span class="pre">settings</span> <span class="pre">found</span> <span class="pre">in</span> <span class="pre">NVS</span> <span class="pre">storage</span></code>: the Gateway was provisioned for WiFi only. Run <code class="docutils literal notranslate"><span class="pre">tools/provision_tenant.py</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Not</span> <span class="pre">connected</span> <span class="pre">to</span> <span class="pre">AP</span> <span class="pre">yet</span></code>: WiFi is not up. The Gateway keeps retrying; the broker connection follows by itself once WiFi connects.</p></li>
+</ul>
+<p><strong>The Gateway stopped connecting after a change to the tenant.</strong></p>
+<p>Replacing the tenant’s WiFi key or the Gateway’s broker account issues new credentials, and the Gateway still holds the old ones. Provision it again.</p>
+<p><strong>The status page cannot be reached from the tenant’s networks.</strong></p>
+<p>Deevnet admits only its operator networks to devices on the device network. The status page is reachable from there, not from the tenant’s developer or device network.</p>
 </section>
 </section>
 <section id="status-screen">
