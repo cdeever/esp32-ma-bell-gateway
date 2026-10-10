@@ -17,6 +17,7 @@ infrastructure it depends on stay together. EdS made the same choice for the sam
 | `deevnet_iot_device.gateway` | `ma-bell-gw-01` in the registry: an identity, no credential |
 | `deevnet_iot_broker_account.gateway` | the gateway's MQTT username and password, and its topics |
 | `deevnet_iot_address.gateway` | the gateway's fixed address on the device network, and its name `ma-bell-gw-01.<tenant zone>` |
+| `dns_cname_record.grafana` | `grafana.<tenant zone>`, this tenant's own name for its dashboard |
 
 **No workload.** There is no backend service yet, and a VM that nothing runs on would cost memory on
 the tenant hypervisor and prove nothing. One is added when there is something to put on it.
@@ -65,6 +66,20 @@ The dashboard needs this tenant's Grafana password. The tenant existed before da
 operator handed the password over and the state does not hold it: put it in a git-ignored
 `*.auto.tfvars` as `dashboard_password = "..."` and apply. `terraform output dashboard` says where to
 log in.
+
+### A name for the dashboard
+
+`grafana.mabell.mobile.deevnet.net` is an alias, in this tenant's zone, for the substrate host that
+serves the dashboard (`dns.tf`). The API's own record resource only publishes addresses inside the
+tenant's network, so the alias is written as a signed dynamic update with the tenant's TSIG key.
+That update is accepted from the operator networks and the tenant's own network, **not from
+`DVNTM-TD`**: apply a change to it from the operator network.
+
+It is the name and nothing more. Grafana's certificate is issued for the substrate's host name, so a
+browser warns about the certificate at `https://grafana.mabell.mobile.deevnet.net:3000`, and
+anything that verifies certificates refuses it. Putting this name on the certificate is the
+substrate's change to make. Until then Terraform and `terraform output dashboard`'s `url` keep using
+the substrate's name, and the alias is listed beside it.
 
 ## Putting it on the gateway
 
