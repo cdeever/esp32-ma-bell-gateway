@@ -59,9 +59,6 @@ output "dashboard" {
     org_id   = deevnet_tenant.mabell.dashboard_org_id
     username = deevnet_tenant.mabell.dashboard_username
     path     = "/d/mabell-gateway"
-    # This tenant's own name for the same place (dns.tf). The certificate does
-    # not carry it yet, so a browser warns there.
-    alias = trimsuffix("${dns_cname_record.grafana.name}.${dns_cname_record.grafana.zone}", ".")
   }
 }
 
