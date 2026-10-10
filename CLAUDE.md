@@ -91,7 +91,7 @@ main/
 #### 1. Centralized Configuration (`main/config/`)
 
 All configuration constants are consolidated into subsystem-specific headers:
-- **bluetooth_config.h**: Device name ("MA BELL"), PIN code, task stack sizes, reconnection interval
+- **bluetooth_config.h**: Device name ("MA BELL"), PIN code, task stack sizes, reconnection timing
 - **wifi_config.h**: WiFi credentials, connection timeouts, retry counts
 - **web_config.h**: HTTP server port, stack size, handler limits, timeouts
 - **audio_config.h**: I2S port, sample rate, buffer sizes
@@ -250,7 +250,8 @@ The reconnection task (`bt_reconnect_task`) continuously monitors Bluetooth conn
 - **Default PIN**: "0000" (configured in `main.c`)
 - **Device Name**: "MA BELL"
 - **Pairing storage**: Paired device info (address + name) is stored in NVS via `app_hf_store_paired_device()`
-- **Auto-reconnection**: The system periodically scans for the last paired device and attempts reconnection every 10 seconds
+- **Auto-reconnection**: `bt_reconnect_task` connects straight to the paired phone by its stored address (`esp_hf_client_connect`), never by inquiry: a phone answers an inquiry only while its Bluetooth settings are open. It retries every `BT_RECONNECT_FAST_INTERVAL_MS` for `BT_RECONNECT_FAST_PERIOD_MS` after the phone is lost, then every `BT_RECONNECT_SLOW_INTERVAL_MS`.
+- **Deliberate disconnect**: when an established session's link closes with reason `ESP_BT_STATUS_HCI_PEER_USER` (the user tapped disconnect on the phone), the gateway holds off reconnecting. While held it asks the phone for its name every `BT_HELD_PROBE_INTERVAL_MS`, which reaches the phone without connecting; the hold lifts when the phone stops answering, when the phone connects, or when the gateway restarts (the hold is not stored). A phone restarting or going out of range closes the link with a timeout instead and is retried. The user-facing account is in `docs/source/usage.rst`.
 
 ### Configuration
 
