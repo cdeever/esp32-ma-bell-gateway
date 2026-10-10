@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <meta property="article:modified_time" content="2025-12-27T01:34:03+00:00" />
+    <meta property="article:modified_time" content="2026-10-10T14:46:45+00:00" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Guide &mdash; ESP32 Ma Bell Gateway 1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
@@ -52,11 +52,16 @@
 <li class="toctree-l1"><a class="reference internal" href="implementation/index.html">Implementation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#wiring-connections">Wiring Connections</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bluetooth-syncing">Bluetooth Syncing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bluetooth-syncing">Bluetooth Syncing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pairing-a-phone">Pairing a Phone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#staying-connected">Staying Connected</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#setting-up-wifi">Setting Up WiFi</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#provisioning-process">Provisioning Process</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#verifying-wifi-connection">Verifying WiFi Connection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Troubleshooting</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#status-screen">Status Screen</a></li>
@@ -100,7 +105,113 @@
 </section>
 <section id="bluetooth-syncing">
 <h2>Bluetooth Syncing<a class="headerlink" href="#bluetooth-syncing" title="Link to this heading"></a></h2>
-<p>How to pair the Ma Bell Gateway with Bluetooth-enabled devices (e.g., mobile phones), including first-time setup and troubleshooting.</p>
+<p>The Gateway reaches the telephone network through your mobile phone, over Bluetooth. To the phone it looks like a hands-free car kit named <strong>MA BELL</strong>. You pair the two once; after that the Gateway keeps the connection up by itself.</p>
+<p><strong>In short:</strong> the phone stays connected for as long as it is in range. If the connection is lost, because the phone or the Gateway restarted or the phone was carried away, the Gateway reconnects by itself. If you disconnect MA BELL from the phone’s own Bluetooth settings, the Gateway takes that as intended and leaves the phone alone.</p>
+<section id="pairing-a-phone">
+<h3>Pairing a Phone<a class="headerlink" href="#pairing-a-phone" title="Link to this heading"></a></h3>
+<p>Pairing is done from the phone. The Gateway has nothing to press: it is visible to nearby phones whenever it is powered.</p>
+<ol class="arabic simple">
+<li><p>Power the Gateway and wait a few seconds for it to start.</p></li>
+<li><p>On the phone, open the Bluetooth settings and look for new devices.</p></li>
+<li><p>Choose <strong>MA BELL</strong> from the list.</p></li>
+<li><p>Accept the pairing request if the phone shows one. If it asks for a PIN, enter <code class="docutils literal notranslate"><span class="pre">0000</span></code>.</p></li>
+<li><p>If the phone asks whether MA BELL may be used for calls, or for access to contacts and call history, allow calls. The Gateway does not need the contacts.</p></li>
+</ol>
+<p>The phone then lists MA BELL as connected for calls. Lift the handset and you should hear dial tone.</p>
+<p>The Gateway remembers <strong>one</strong> phone: the one that paired most recently. To move to a different phone, disconnect MA BELL on the old phone, or switch that phone’s Bluetooth off, and pair the new phone as above.</p>
+</section>
+<section id="staying-connected">
+<h3>Staying Connected<a class="headerlink" href="#staying-connected" title="Link to this heading"></a></h3>
+<p>Bluetooth can end a connection for several reasons, and the Gateway treats them differently. The rule it follows is simple: a connection that was <strong>lost</strong> is restored, and a connection that was <strong>ended on purpose</strong> is left ended.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 34.0%" />
+<col style="width: 66.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>What happened</p></th>
+<th class="head"><p>What the Gateway does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>The Gateway was restarted or lost power</p></td>
+<td><p>Connects to the paired phone as soon as it has started, usually within ten seconds.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The phone was restarted</p></td>
+<td><p>Keeps trying, and reconnects shortly after the phone’s Bluetooth is running again.</p></td>
+</tr>
+<tr class="row-even"><td><p>The phone went out of range and came back</p></td>
+<td><p>Keeps trying, and reconnects once the phone is back in range.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bluetooth was switched off on the phone, then on again</p></td>
+<td><p>Reconnects once Bluetooth is back on.</p></td>
+</tr>
+<tr class="row-even"><td><p>You tapped <strong>Disconnect</strong> on MA BELL in the phone’s Bluetooth settings</p></td>
+<td><p>Does <strong>not</strong> reconnect. See below for how to bring it back.</p></td>
+</tr>
+<tr class="row-odd"><td><p>You removed (unpaired, “forgot”) MA BELL on the phone</p></td>
+<td><p>Cannot reconnect. Pair the phone again.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How hard it tries.</strong> After losing the phone the Gateway tries to reconnect every 10 seconds for five minutes. That covers a phone restarting, or a trip to the mailbox. After five minutes it tries once a minute, for as long as it takes, so a phone that comes home in the evening is reconnected within a minute of arriving. Neither the phone nor the Gateway needs to be touched.</p>
+<p><strong>After a deliberate disconnect.</strong> Once you disconnect MA BELL from the phone, the Gateway stops calling the phone back, so that the disconnect stays in force while the phone is sitting next to it. Any one of these brings the connection back:</p>
+<ul class="simple">
+<li><p>Tap <strong>MA BELL</strong> in the phone’s Bluetooth settings to connect it again.</p></li>
+<li><p>Restart the Gateway by switching its power off and on. It always connects to the paired phone when it starts.</p></li>
+<li><p>Take the phone away, or switch its Bluetooth off, or restart it. The Gateway notices that the phone has gone, and from then on treats it like any phone that went out of range: it reconnects when the phone returns.</p></li>
+</ul>
+<p>A deliberate disconnect therefore lasts only while the phone stays nearby with its Bluetooth on. It is not a permanent setting. To keep a phone from connecting at all, remove MA BELL from that phone’s paired devices.</p>
+<p><strong>Calls in progress.</strong> If the connection drops during a call, the call is not ended. It carries on at the mobile phone, as it does when a car kit is switched off.</p>
+</section>
+<section id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h3>
+<p><strong>The phone does not reconnect.</strong></p>
+<ul class="simple">
+<li><p>Check that Bluetooth is on at the phone and that MA BELL is still in its list of paired devices.</p></li>
+<li><p>If MA BELL is listed but not connected, tap it. You may have disconnected it earlier; see <em>After a deliberate disconnect</em> above.</p></li>
+<li><p>If the phone has been away for more than five minutes, allow up to a minute after it returns.</p></li>
+<li><p>Restart the Gateway. It connects to the paired phone when it starts.</p></li>
+</ul>
+<p><strong>MA BELL does not appear when the phone looks for new devices.</strong></p>
+<ul class="simple">
+<li><p>Check that the Gateway has power and has had a few seconds to start.</p></li>
+<li><p>Check that MA BELL is not already in the phone’s list of paired devices.</p></li>
+<li><p>Another phone may be connected to the Gateway. Disconnect that phone first.</p></li>
+</ul>
+<p><strong>The phone lists MA BELL but refuses to connect, or asks to pair again.</strong></p>
+<p>The two no longer agree on the pairing. This happens after the Gateway’s stored settings are erased or re-provisioned (see <em>Setting Up WiFi</em> below), which removes its record of the phone. Remove MA BELL from the phone’s paired devices, then pair again.</p>
+<p><strong>Seeing what happened.</strong> The Gateway records each Bluetooth change in its event log, which is the quickest way to tell a lost connection from a deliberate one:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28.0%" />
+<col style="width: 72.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Event</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bt.connected</span></code></p></td>
+<td><p>The phone connected. The event names the phone.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bt.disconnected</span></code></p></td>
+<td><p>The connection ended, for any reason.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bt.link_lost</span></code></p></td>
+<td><p>The connection was lost rather than ended on purpose. The Gateway is trying to reconnect.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bt.reconnect_held</span></code></p></td>
+<td><p>The phone ended the connection on purpose. The Gateway is not trying to reconnect.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bt.reconnect_resumed</span></code></p></td>
+<td><p>A phone that had disconnected on purpose went out of reach. The Gateway will reconnect when it returns.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Read the events with <code class="docutils literal notranslate"><span class="pre">tools/gateway_logs.py</span></code>, or on the Gateway’s dashboard.</p>
+</section>
 </section>
 <section id="setting-up-wifi">
 <h2>Setting Up WiFi<a class="headerlink" href="#setting-up-wifi" title="Link to this heading"></a></h2>
@@ -150,8 +261,8 @@
 <li><p><strong>Network Status LED</strong>: The device may provide visual feedback through status LEDs indicating WiFi connection state (if implemented).</p></li>
 </ol>
 </section>
-<section id="troubleshooting">
-<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h3>
+<section id="id1">
+<h3>Troubleshooting<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
 <p><strong>No WiFi Connection:</strong></p>
 <ul class="simple">
 <li><p>Verify credentials were provisioned correctly (check serial logs for “No WiFi credentials found” error)</p></li>
@@ -211,7 +322,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2025, Chris Deever.
-      <span class="lastupdated">Last updated on Dec 27, 2025.
+      <span class="lastupdated">Last updated on Oct 10, 2026.
       </span></p>
   </div>
 
