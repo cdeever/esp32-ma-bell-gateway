@@ -49,6 +49,13 @@ void event_log_with(event_log_level_t level, const char *event, const char *extr
 #define event_log(level, event, ...) event_log_with((level), (event), NULL, __VA_ARGS__)
 
 /**
+ * @brief Escape text for use inside a JSON string, e.g. in extra_json
+ *
+ * Truncates to fit; dst is always terminated.
+ */
+void event_log_escape(const char *src, char *dst, size_t dst_len);
+
+/**
  * @brief Take the oldest queued event, as a JSON object
  *
  * @param line Buffer for the event, at least EVENT_LOG_LINE_LEN bytes

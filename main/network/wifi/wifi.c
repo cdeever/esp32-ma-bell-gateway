@@ -52,6 +52,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         ESP_LOGW(TAG, "Disconnect from AP, reason: %d", disconnected->reason);
 
         // Clear WiFi connection state
+        ma_bell_state_set_wifi_disconnect_reason(disconnected->reason);
         ma_bell_state_update_network_bits(0, NET_STATE_WIFI_CONNECTED);
         ma_bell_state_set_ip_address("0.0.0.0");
         ma_bell_state_set_wifi_info(0, 0);
@@ -80,13 +81,15 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         char ip_str[16];
         snprintf(ip_str, sizeof(ip_str), IPSTR, IP2STR(&event->ip_info.ip));
         ma_bell_state_set_ip_address(ip_str);
-        ma_bell_state_update_network_bits(NET_STATE_WIFI_CONNECTED, 0);
 
-        // Get and update WiFi info (RSSI, channel)
+        // Get and update WiFi info (network, RSSI, channel), before the state
+        // change that reports them
         wifi_ap_record_t ap_info;
         if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
+            ma_bell_state_set_wifi_ssid((const char *)ap_info.ssid);
             ma_bell_state_set_wifi_info(ap_info.rssi, ap_info.primary);
         }
+        ma_bell_state_update_network_bits(NET_STATE_WIFI_CONNECTED, 0);
 
         // Signalled last, so whoever is waiting reads the state set above
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
@@ -151,6 +154,7 @@ esp_err_t wifi_init_sta(EventGroupHandle_t wifi_event_group)
     }
 
     ESP_LOGI(TAG, "Found WiFi credentials in NVS for SSID: %s", ssid);
+    ma_bell_state_set_wifi_ssid(ssid);
 
     // Set WiFi config
     wifi_config_t wifi_config = {

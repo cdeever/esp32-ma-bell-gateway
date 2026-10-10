@@ -124,6 +124,16 @@ void bt_connection_manager_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_par
             }
             break;
 
+        case ESP_BT_GAP_READ_REMOTE_NAME_EVT:
+            // Asked for when a phone connects whose name was not stored
+            if (param->read_rmt_name.stat == ESP_BT_STATUS_SUCCESS && param->read_rmt_name.rmt_name[0] != '\0') {
+                char device_name[32] = {0};
+                strncpy(device_name, (const char*)param->read_rmt_name.rmt_name, sizeof(device_name) - 1);
+                ESP_LOGI(TAG, "Remote device name: %s", device_name);
+                ma_bell_state_set_bt_device_name(device_name);
+            }
+            break;
+
         case ESP_BT_GAP_PIN_REQ_EVT:
             ESP_LOGI(TAG, "PIN request from device: %02x:%02x:%02x:%02x:%02x:%02x",
                      param->pin_req.bda[0], param->pin_req.bda[1], param->pin_req.bda[2],
