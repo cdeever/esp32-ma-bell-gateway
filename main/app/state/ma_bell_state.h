@@ -13,6 +13,7 @@
  * see the documentation in docs/source/implementation/state_management.rst
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include "esp_err.h"
 #include "freertos/FreeRTOS.h"
@@ -82,7 +83,14 @@ typedef struct {
         uint8_t signal_strength; // Signal strength (0-5)
         uint8_t battery_level;   // Battery level (0-5)
         char device_name[32];    // Name of connected device
+        char device_addr[18];    // Address of connected device, aa:bb:cc:dd:ee:ff
     } bluetooth;
+
+    struct {
+        char number[32];         // The other party's number, empty if not known
+        bool incoming;           // Direction of the call the number belongs to
+        int64_t started_ms;      // Uptime when the call became active, 0 if none
+    } call;
 
     struct {
         uint8_t state;           // Network state bitmask
@@ -90,6 +98,8 @@ typedef struct {
         uint8_t channel;         // WiFi channel
         char ip_address[16];     // IP address if connected
         char hostname[32];       // mDNS hostname
+        char ssid[33];           // Network the gateway joins
+        uint8_t disconnect_reason; // Reason code of the last WiFi disconnection
     } network;
 
     struct {
@@ -162,11 +172,48 @@ void ma_bell_state_set_ip_address(const char* ip);
 void ma_bell_state_set_wifi_info(int8_t rssi, uint8_t channel);
 
 /**
+ * @brief Set the network the gateway joins, and why it last left it
+ *
+ * Set these before updating NET_STATE_WIFI_CONNECTED: the event logged for
+ * that change reports them.
+ *
+ * @param ssid Network name
+ */
+void ma_bell_state_set_wifi_ssid(const char* ssid);
+void ma_bell_state_set_wifi_disconnect_reason(uint8_t reason);
+
+/**
  * @brief Set Bluetooth device name
  *
- * @param name Device name string
+ * Set before updating BT_STATE_CONNECTED, which reports it. Set while already
+ * connected (the name was not known in time), it is reported by itself.
+ *
+ * @param name Device name string, empty if not known
  */
 void ma_bell_state_set_bt_device_name(const char* name);
+
+/**
+ * @brief Set Bluetooth device address
+ *
+ * @param addr Address as aa:bb:cc:dd:ee:ff
+ */
+void ma_bell_state_set_bt_device_addr(const char* addr);
+
+/**
+ * @brief Set the other party of the current or arriving call
+ *
+ * Reported once per call, when the number is first learned. Reported again
+ * with BT_STATE_IN_CALL changes, and forgotten when the call ends.
+ *
+ * @param number The other party's number
+ * @param incoming true for a call arriving, false for one being placed
+ */
+void ma_bell_state_set_call_party(const char* number, bool incoming);
+
+/**
+ * @brief Forget the other party, when a new call is beginning
+ */
+void ma_bell_state_clear_call_party(void);
 
 /**
  * @brief Set Bluetooth volume, signal, and battery

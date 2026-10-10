@@ -47,8 +47,12 @@ connecting, the handset lifted and replaced, ringing, the mobile phone connectin
 and ending. Each is one JSON object:
 
 ```json
-{"level":"info","event":"call.started","msg":"Call started","uptime_ms":812345}
+{"level":"info","event":"call.incoming","msg":"Incoming call from +15555550123","uptime_ms":812345,"number":"+15555550123","direction":"incoming"}
 ```
+
+Events say who or what where the gateway knows: the WiFi network, address and signal; the connected
+mobile phone's name and address; the other party's number and the call's direction, and its length
+when it ends. **Phone numbers are therefore in this tenant's log store.**
 
 The gateway has no clock, so the store dates each event when it arrives. Events queued while the
 gateway was offline arrive together; `uptime_ms` gives their order. If the queue overflowed, the next

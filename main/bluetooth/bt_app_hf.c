@@ -241,6 +241,27 @@ void bt_app_hf_register_data_callbacks(void)
 
 static const char *TAG = "bt_app_hf";
 
+// Record which phone connected: its address, and its name as stored when it
+// was paired. A phone whose name was not stored is asked for it; the answer
+// arrives in the GAP callback.
+static void bt_app_hf_identify_phone(esp_bd_addr_t remote_bda)
+{
+    char addr_str[18];
+    snprintf(addr_str, sizeof(addr_str), "%02x:%02x:%02x:%02x:%02x:%02x",
+             remote_bda[0], remote_bda[1], remote_bda[2], remote_bda[3], remote_bda[4], remote_bda[5]);
+    ma_bell_state_set_bt_device_addr(addr_str);
+
+    esp_bd_addr_t paired_addr = {0};
+    char paired_name[32] = {0};
+    if (app_hf_get_paired_device(paired_addr, paired_name, sizeof(paired_name)) == ESP_OK &&
+        memcmp(paired_addr, remote_bda, ESP_BD_ADDR_LEN) == 0 && paired_name[0] != '\0') {
+        ma_bell_state_set_bt_device_name(paired_name);
+    } else {
+        ma_bell_state_set_bt_device_name("");
+        esp_bt_gap_read_remote_name(remote_bda);
+    }
+}
+
 /* callback for HF_CLIENT */
 void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_t *param)
 {
@@ -248,6 +269,8 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
         case ESP_HF_CLIENT_CONNECTION_STATE_EVT:
             ESP_LOGI(TAG, "Connection state: %d", param->conn_stat.state);
             if (param->conn_stat.state == ESP_HF_CLIENT_CONNECTION_STATE_CONNECTED) {
+                // Say which phone this is, before the state change that reports it
+                bt_app_hf_identify_phone(param->conn_stat.remote_bda);
                 // Update state
                 ma_bell_state_update_bluetooth_bits(BT_STATE_CONNECTED, 0);
                 // Publish connection event
@@ -289,6 +312,21 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
             ma_bell_state_update_phone_bits(PHONE_STATE_RINGING, 0);
             break;
 
+        case ESP_HF_CLIENT_CLIP_EVT:
+            // Caller ID, sent with each ring
+            ESP_LOGI(TAG, "Caller ID: %s", param->clip.number ? param->clip.number : "(withheld)");
+            ma_bell_state_set_call_party(param->clip.number, true);
+            break;
+
+        case ESP_HF_CLIENT_CLCC_EVT:
+            // Answer to esp_hf_client_query_current_calls()
+            ESP_LOGI(TAG, "Current call %d: %s, number %s", param->clcc.idx,
+                     param->clcc.dir == ESP_HF_CURRENT_CALL_DIRECTION_INCOMING ? "incoming" : "outgoing",
+                     param->clcc.number ? param->clcc.number : "(unknown)");
+            ma_bell_state_set_call_party(param->clcc.number,
+                                         param->clcc.dir == ESP_HF_CURRENT_CALL_DIRECTION_INCOMING);
+            break;
+
         case ESP_HF_CLIENT_CIND_CALL_EVT:
             ESP_LOGI(TAG, "Call state changed: %s", c_call_str[param->call.status]);
             if (param->call.status == 0) {  // No call in progress
@@ -303,6 +341,10 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
                 ESP_LOGI(TAG, "Call active - updating state");
                 ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
                 ma_bell_state_update_bluetooth_bits(BT_STATE_IN_CALL, 0);
+                if (ma_bell_state_get()->call.number[0] == '\0') {
+                    // No caller ID arrived: ask the phone who the call is with
+                    esp_hf_client_query_current_calls();
+                }
                 // Publish call started event
                 event_publish(BT_EVENT_CALL_STARTED, NULL);
             }
@@ -314,6 +356,11 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
                 // Incoming call
                 ESP_LOGI(TAG, "Incoming call detected");
                 ma_bell_state_update_phone_bits(PHONE_STATE_RINGING, 0);
+            } else if (param->call_setup.status == ESP_HF_CALL_SETUP_STATUS_OUTGOING_DIALING) {
+                // A call is being placed: ask the phone for the number
+                ESP_LOGI(TAG, "Outgoing call being placed");
+                ma_bell_state_clear_call_party();
+                esp_hf_client_query_current_calls();
             } else if (param->call_setup.status == ESP_HF_CALL_SETUP_STATUS_IDLE) {
                 // Call setup ended (could be hangup, reject, or timeout)
                 ESP_LOGI(TAG, "Call setup ended - clearing ringing state");
@@ -344,9 +391,7 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
         case ESP_HF_CLIENT_CIND_BATTERY_LEVEL_EVT:
         case ESP_HF_CLIENT_COPS_CURRENT_OPERATOR_EVT:
         case ESP_HF_CLIENT_BTRH_EVT:
-        case ESP_HF_CLIENT_CLIP_EVT:
         case ESP_HF_CLIENT_CCWA_EVT:
-        case ESP_HF_CLIENT_CLCC_EVT:
         case ESP_HF_CLIENT_VOLUME_CONTROL_EVT:
         case ESP_HF_CLIENT_AT_RESPONSE_EVT:
         case ESP_HF_CLIENT_CNUM_EVT:

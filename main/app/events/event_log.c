@@ -33,10 +33,15 @@ static const char *level_name(event_log_level_t level)
     }
 }
 
-// Escape src as the inside of a JSON string; truncates to fit
-static void json_escape(const char *src, char *dst, size_t dst_len)
+void event_log_escape(const char *src, char *dst, size_t dst_len)
 {
     size_t o = 0;
+    if (dst == NULL || dst_len == 0) {
+        return;
+    }
+    if (src == NULL) {
+        src = "";
+    }
     for (; *src != '\0' && o + 7 < dst_len; src++) {
         unsigned char c = (unsigned char)*src;
         if (c == '"' || c == '\\') {
@@ -46,6 +51,20 @@ static void json_escape(const char *src, char *dst, size_t dst_len)
             o += snprintf(dst + o, dst_len - o, "\\u%04x", c);
         } else {
             dst[o++] = (char)c;
+        }
+    }
+
+    // A name cut short can end partway through a UTF-8 character, and that
+    // would stop the whole line being read as JSON: drop the partial one
+    size_t lead = o;
+    while (lead > 0 && ((unsigned char)dst[lead - 1] & 0xC0) == 0x80) {
+        lead--;
+    }
+    if (lead > 0 && ((unsigned char)dst[lead - 1] & 0x80)) {
+        unsigned char first = (unsigned char)dst[lead - 1];
+        size_t need = (first & 0xE0) == 0xC0 ? 2 : (first & 0xF0) == 0xE0 ? 3 : (first & 0xF8) == 0xF0 ? 4 : 0;
+        if (need == 0 || o - (lead - 1) < need) {
+            o = lead - 1;
         }
     }
     dst[o] = '\0';
@@ -77,7 +96,7 @@ void event_log_with(event_log_level_t level, const char *event, const char *extr
     va_start(args, fmt);
     vsnprintf(s_msg, sizeof(s_msg), fmt, args);
     va_end(args);
-    json_escape(s_msg, s_escaped, sizeof(s_escaped) / 2);
+    event_log_escape(s_msg, s_escaped, sizeof(s_escaped) / 2);
 
     // No clock on the gateway: the broker's receive time dates the event, and
     // uptime_ms orders events that were queued while it was offline
