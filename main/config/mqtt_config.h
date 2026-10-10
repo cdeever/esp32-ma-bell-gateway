@@ -17,6 +17,10 @@
 #define MQTT_DEFAULT_PORT           8883
 #define MQTT_KEEPALIVE_SEC          60
 #define MQTT_RECONNECT_TIMEOUT_MS   10000
+// An unacknowledged message is sent again after this long. The library's 1 s
+// was shorter than a delivery held up by Bluetooth sharing the radio (1.9 s
+// seen), and the event then reached the log store twice.
+#define MQTT_RETRANSMIT_TIMEOUT_MS  5000
 
 // State publishing
 #define MQTT_STATE_QOS              1
