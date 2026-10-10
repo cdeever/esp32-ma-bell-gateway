@@ -31,6 +31,11 @@ terraform {
       source  = "grafana/grafana"
       version = "~> 4.46"
     }
+    # The dashboard's name in this tenant's zone: see dns.tf.
+    dns = {
+      source  = "hashicorp/dns"
+      version = "~> 3.4"
+    }
   }
 
   # State is in the substrate's state store (ADR-0007): see backend.tf.
