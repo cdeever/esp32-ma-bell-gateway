@@ -87,6 +87,7 @@ esp_err_t mqtt_init(const mqtt_config_t *config)
         },
         .session = {
             .keepalive = MQTT_KEEPALIVE_SEC,
+            .message_retransmit_timeout = MQTT_RETRANSMIT_TIMEOUT_MS,
             .last_will = {
                 .topic = config->lwt_topic,
                 .msg = config->lwt_msg,
