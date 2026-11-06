@@ -361,3 +361,15 @@ The Sphinx documentation (`docs/source/`) includes:
 - Usage and standards
 
 When modifying documentation, follow the existing reStructuredText format and rebuild with `make html`.
+
+### Where things are written
+
+- **`docs/source/` (Sphinx, published to gh-pages):** the settled design. Polished; options considered are fine.
+- **`impl/`:** build guides, the plan for each build.
+- **`notebook/`:** the engineering notebook, read on GitHub with no site. It holds:
+  - `wiring/`: as-built wiring
+  - `log/`: dated bench entries, from `log/_template.md`, listed newest first in `notebook/README.md`
+  - `results/`: raw captures
+
+  It's transient and never tidied. Copy something from the notebook into `docs/source/` only when the owner asks, written up properly, with a link back to the notebook entry as evidence.
+- **The project plan and tasks** live in deevnet-docs (`content/docs/roadmap/mabell/plan/`), one page per version.
