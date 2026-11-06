@@ -365,8 +365,8 @@ When modifying documentation, follow the existing reStructuredText format and re
 ### Where things are written
 
 - **`docs/source/` (Sphinx, published to gh-pages):** the settled design. Polished; options considered are fine.
-- **`impl/`:** build guides, the plan for each build.
 - **`notebook/`:** the engineering notebook, read on GitHub with no site. It holds:
+  - `build-guides/`: the plan for each build
   - `wiring/`: as-built wiring
   - `log/`: dated bench entries, from `log/_template.md`, listed newest first in `notebook/README.md`
   - `results/`: raw captures
