@@ -1,7 +1,7 @@
 # Sub-Assembly A: ESP32 + PCM5100 DAC + PCM1808 ADC
 
 **Status:** not built yet. Wiring below is as planned in the
-[prototyping build guide](../../impl/prototyping-build-guide.md#sub-assembly-a-esp32--pcm-audio-codecs-breadboard);
+[prototyping build guide](../build-guides/prototyping-build-guide.md#sub-assembly-a-esp32--pcm-audio-codecs-breadboard);
 update it to what was actually built.
 
 **Firmware pin map (authoritative):** [`main/config/pin_assignments.h`](../../main/config/pin_assignments.h).

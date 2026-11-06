@@ -13,12 +13,18 @@ what to build next is the [MaBell project plan](https://deevnet.github.io/deevne
 
 | Folder | What goes in it |
 |---|---|
+| [`build-guides/`](build-guides/) | The plan for each build: parts, wiring order, test matrices. Written before a build; corrected when the bench proves them wrong. |
 | [`wiring/`](wiring/) | Living pages: how each board is wired right now, pin to pin. Edited as the build changes; git keeps the history. |
 | [`log/`](log/) | Dated entries, one per bench session or test: `YYYY-MM-DD-short-name.md`, from [`log/_template.md`](log/_template.md). Never tidied afterward. |
 | [`results/`](results/) | Raw evidence the log entries link to: CSVs, scope screenshots, photos, audio clips, named after their entry. |
 
-The build guides in [`impl/`](../impl/) are the plan for each build; the notebook records what
-happened when it was built.
+## Build guides
+
+One per prototype stage of the [project plan](https://deevnet.github.io/deevnet-docs/docs/roadmap/mabell/plan/):
+
+- [Prototyping build guide](build-guides/prototyping-build-guide.md): Sub-Assembly A (ESP32 + codecs) is the base for every version. Its Sub-B and Sub-C are the HC-5504B path, optional in v3.
+- [Low-voltage build](build-guides/low-voltage-test-rig.md): v2, a corded phone on a 5V loop. Its appendix stand-ins also serve v1.
+- [SLIC module build](build-guides/slic-module-build-guide.md): v3, the AG1171/KS0835F module and a real bell.
 
 ## Wiring
 
