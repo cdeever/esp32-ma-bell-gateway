@@ -14,7 +14,7 @@ supply, with no high-voltage hardware**.
    interface. The :doc:`HC-5504B <line-interface-hc5504b>` remains the project's
    **production / from-scratch reference design**. The two are interchangeable at the
    ESP32 interface (with the polarity and ringing differences noted below). For the
-   hands-on bring-up procedure, see ``impl/slic-module-build-guide.md``.
+   hands-on bring-up procedure, see ``notebook/build-guides/slic-module-build-guide.md``.
 
 Overview
 --------
@@ -309,7 +309,7 @@ References
 
 **Build & Firmware Integration:**
 
-- ``impl/slic-module-build-guide.md`` — step-by-step bring-up with this module
+- ``notebook/build-guides/slic-module-build-guide.md`` — step-by-step bring-up with this module
 - :doc:`line-interface-hc5504b` — production / from-scratch SLIC reference design
 - :doc:`../firmware/phone-hardware` — SLIC interface monitoring in firmware
 - ``main/config/pin_assignments.h`` — GPIO pin definitions
