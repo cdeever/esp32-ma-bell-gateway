@@ -29,6 +29,7 @@ One per prototype stage of the [project plan](https://deevnet.github.io/deevnet-
 ## Wiring
 
 - [Sub-Assembly A: ESP32 + PCM5100 DAC + PCM1808 ADC](wiring/sub-a-codecs.md)
+- [Tone test: ESP32 + MAX98357A I2S amp](wiring/max98357a-tone-test.md)
 
 ## Log
 
