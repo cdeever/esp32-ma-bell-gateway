@@ -1,8 +1,9 @@
-# Tone test: ESP32 + MAX98357A I2S amp
+# Bench rig: ESP32 + MAX98357A I2S amp + hook switch
 
-**Status:** not built yet. This is a bench rig for hearing the call-progress tones (dial tone, busy
-signal, ringback) and an incoming-call ring before the PCM5100 DAC and the line interface are built. Update it to what was
-actually built.
+**Status:** built 2026-11-10 ([log](../log/2026-11-10-tones-ring-hook.md)). A bench rig for the
+call-progress tones (dial tone, busy signal, ringback), the incoming-call ring and the hook switch,
+before the PCM5100 DAC and the line interface are built. The wiring below is as planned; correct
+anything that differs on the bench (SD and GAIN strapping, the 100µF).
 
 **Firmware pin map (authoritative):** [`main/config/pin_assignments.h`](../../main/config/pin_assignments.h).
 I2S runs at 8 kHz, 16-bit, Philips format, mono (`AUDIO_SAMPLE_RATE` in
@@ -91,8 +92,8 @@ input side are the easier things to scope.
 
 ## Playing the tones
 
-Nothing drives the tones from the line yet; off-hook detection will do that later. For the bench,
-dial a test code on the paired cell phone and press call. The gateway reads the number the phone is
+Lifting the handset plays dial tone, reorder and the howler in turn (see Hook switch). To play any
+tone on its own, dial a test code on the paired cell phone and press call. The gateway reads the number the phone is
 dialing (AT+CLCC), hangs the call up while it is still dialing, and plays the tone
 ([`main/audio/tone_test.c`](../../main/audio/tone_test.c), on by default with
 `CONFIG_MA_BELL_TONE_TEST`):

@@ -29,10 +29,10 @@ One per prototype stage of the [project plan](https://deevnet.github.io/deevnet-
 ## Wiring
 
 - [Sub-Assembly A: ESP32 + PCM5100 DAC + PCM1808 ADC](wiring/sub-a-codecs.md)
-- [Tone test: ESP32 + MAX98357A I2S amp](wiring/max98357a-tone-test.md)
+- [Bench rig: ESP32 + MAX98357A I2S amp + hook switch](wiring/max98357a-tone-test.md)
 
 ## Log
 
 Newest first.
 
-- *No entries yet.*
+- [2026-11-10: Call tones, speaker ring and hook switch on the MAX98357A rig](log/2026-11-10-tones-ring-hook.md)
