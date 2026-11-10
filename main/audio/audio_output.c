@@ -27,7 +27,7 @@ static TaskHandle_t tone_task_handle = NULL;
 #define AUDIO_WRITE_MAX_SAMPLES 256
 
 // Tone level as a fraction of full scale (0.0 to 1.0); see audio_output_tone_level_step()
-#define TONE_VOLUME_DEFAULT 0.141f  // -17 dBFS: clean on the MAX98357A bench speaker at 9 dB gain
+#define TONE_VOLUME_DEFAULT 0.1f  // -20 dBFS: clean on the MAX98357A bench speaker at 9 dB gain
 #define TONE_VOLUME_MAX     1.0f
 #define TONE_VOLUME_MIN     0.01f
 static volatile float tone_volume = TONE_VOLUME_DEFAULT;

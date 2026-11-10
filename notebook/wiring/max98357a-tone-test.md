@@ -35,7 +35,7 @@ accept 3.3V levels at any VIN, so you don't need level shifting.
 | 100µF across VIN–GND at the amp (+ to VIN) | | |
 
 The 100µF is cheap insurance against brownout resets when Bluetooth or WiFi transmit while the
-amp is playing. At the firmware's tone level (`TONE_VOLUME_DEFAULT`, −17 dBFS) the amp draws little either way.
+amp is playing. At the firmware's tone level (`TONE_VOLUME_DEFAULT`, −20 dBFS) the amp draws little either way.
 
 ## I2S
 
