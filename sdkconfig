@@ -438,6 +438,12 @@ CONFIG_EXAMPLE_SSP_ENABLED=y
 # end of HFP Example Configuration
 
 #
+# Ma Bell Gateway
+#
+CONFIG_MA_BELL_TONE_TEST=y
+# end of Ma Bell Gateway
+
+#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEBUG=y

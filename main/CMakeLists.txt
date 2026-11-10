@@ -8,6 +8,7 @@ idf_component_register(
             "app/events/event_log.c"
             "audio/audio_bridge.c"
             "audio/audio_output.c"
+            "audio/tone_test.c"
             "storage/storage.c"
             "bluetooth/bt_app_core.c"
             "bluetooth/bt_app_hf.c"

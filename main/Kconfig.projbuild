@@ -10,3 +10,16 @@ menu "HFP Example Configuration"
 
 
 endmenu
+
+menu "Ma Bell Gateway"
+    config MA_BELL_TONE_TEST
+        bool "Tone test codes dialed from the cell phone"
+        default y
+        help
+            Bench test for the call-progress tones. Dialing *1 to *6 on the
+            paired cell phone plays a tone on the I2S output (dial tone,
+            ringback, busy, reorder, off-hook warning, stutter dial tone),
+            *9 plays each in turn and *0 stops. The gateway hangs the call
+            up while it is still dialing. Turn this off once off-hook
+            detection drives the tones.
+endmenu

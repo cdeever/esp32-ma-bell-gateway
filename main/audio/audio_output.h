@@ -77,4 +77,15 @@ bool audio_output_tone_active(void);
  */
 tone_type_t audio_output_get_current_tone(void);
 
+/**
+ * @brief Raise or lower the tone level in 3 dB steps
+ *
+ * Takes effect on the next buffer of the tone that is playing. Not stored:
+ * the level returns to the default at restart.
+ *
+ * @param steps Number of 3 dB steps, positive for louder, negative for quieter
+ * @return The new level in dBFS
+ */
+float audio_output_tone_level_step(int steps);
+
 #endif /* __AUDIO_OUTPUT_H__ */

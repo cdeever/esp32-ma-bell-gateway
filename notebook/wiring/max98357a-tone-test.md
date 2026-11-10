@@ -35,7 +35,7 @@ accept 3.3V levels at any VIN, so you don't need level shifting.
 | 100µF across VIN–GND at the amp (+ to VIN) | | |
 
 The 100µF is cheap insurance against brownout resets when Bluetooth or WiFi transmit while the
-amp is playing. At the firmware's tone level (`TONE_VOLUME 0.2`) the amp draws little either way.
+amp is playing. At the firmware's tone level (`TONE_VOLUME_DEFAULT`, −17 dBFS) the amp draws little either way.
 
 ## I2S
 
@@ -90,33 +90,26 @@ input side are the easier things to scope.
 
 ## Playing the tones
 
-Nothing in the firmware calls `audio_output_play_tone()` yet. Off-hook detection will do that
-later. For this bench test, add a temporary loop at the end of `app_main()` in
-[`main/main.c`](../../main/main.c) (after `audio_output_init()` has run) and **don't commit it**:
+Nothing drives the tones from the line yet; off-hook detection will do that later. For the bench,
+dial a test code on the paired cell phone and press call. The gateway reads the number the phone is
+dialing (AT+CLCC), hangs the call up while it is still dialing, and plays the tone
+([`main/audio/tone_test.c`](../../main/audio/tone_test.c), on by default with
+`CONFIG_MA_BELL_TONE_TEST`):
 
-```c
-#include "audio/audio_output.h"   // with the other includes
+| Dial | Tone |
+|---|---|
+| `*1` | Dial tone: 350 + 440 Hz, steady |
+| `*2` | Ringback: 440 + 480 Hz, 2 s on / 4 s off |
+| `*3` | Busy: 480 + 620 Hz, 0.5 s on / 0.5 s off |
+| `*4` | Reorder (fast busy): 480 + 620 Hz, 0.25 s on / 0.25 s off |
+| `*5` | Off-hook warning (howler): 1400 + 2060 Hz, 0.1 s on / 0.1 s off |
+| `*6` | Stutter dial tone: 350 + 440 Hz, 0.1 s on / 0.1 s off |
+| `*7` / `*8` | Quieter / louder by 3 dB (the tone keeps playing; back to the default at restart) |
+| `*9` | Each of the above for 8 s, in turn |
+| `*0` | Stop |
 
-// BENCH ONLY: cycle the call-progress tones on the MAX98357A
-while (1) {
-    ESP_LOGI(TAG, "Bench: dial tone");
-    audio_output_play_tone(DIAL_TONE);       // 350 + 440 Hz, steady
-    vTaskDelay(pdMS_TO_TICKS(5000));
-
-    ESP_LOGI(TAG, "Bench: busy");
-    audio_output_play_tone(BUSY_SIGNAL);     // 480 + 620 Hz, 0.5 s on / 0.5 s off
-    vTaskDelay(pdMS_TO_TICKS(6000));
-
-    ESP_LOGI(TAG, "Bench: ringback");
-    audio_output_play_tone(RINGBACK_TONE);   // 440 + 480 Hz, 2 s on / 4 s off
-    vTaskDelay(pdMS_TO_TICKS(12000));        // two full ring cycles
-
-    audio_output_stop_tone();
-    vTaskDelay(pdMS_TO_TICKS(2000));
-}
-```
-
-The serial monitor shows `Playing tone: N` from `audio_output` each time a tone changes.
+A tone plays until another code is dialed. The serial monitor shows `tone_test: *N: <name>` and
+`Playing tone: N` from `audio_output`. Bluetooth must be connected.
 
 ## Bring-up checks
 
