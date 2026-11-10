@@ -277,7 +277,8 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
                 // Publish connection event
                 event_publish(BT_EVENT_CONNECTED, NULL);
             } else if (param->conn_stat.state == ESP_HF_CLIENT_CONNECTION_STATE_DISCONNECTED) {
-                // Update state
+                // Update state. A call can't ring on with the phone gone.
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
                 ma_bell_state_update_bluetooth_bits(0, BT_STATE_CONNECTED);
                 // Publish disconnection event
                 event_publish(BT_EVENT_DISCONNECTED, NULL);

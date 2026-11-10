@@ -27,7 +27,7 @@ static TaskHandle_t tone_task_handle = NULL;
 #define AUDIO_WRITE_MAX_SAMPLES 256
 
 // Tone level as a fraction of full scale (0.0 to 1.0); see audio_output_tone_level_step()
-#define TONE_VOLUME_DEFAULT 0.141f  // -17 dBFS: clean on the MAX98357A bench speaker at 9 dB gain
+#define TONE_VOLUME_DEFAULT 0.1f  // -20 dBFS: clean on the MAX98357A bench speaker at 9 dB gain
 #define TONE_VOLUME_MAX     1.0f
 #define TONE_VOLUME_MIN     0.01f
 static volatile float tone_volume = TONE_VOLUME_DEFAULT;
@@ -56,6 +56,63 @@ static esp_err_t i2s_write_mono16(int16_t *samples, size_t count, size_t *bytes_
     return i2s_channel_write(tx_handle, samples, count * sizeof(int16_t), bytes_written, timeout);
 }
 
+// Oscillator state carried from one buffer to the next
+typedef struct {
+    float phase1;
+    float phase2;
+    int warble_count;  // Samples into the current warble half-cycle
+    bool warble_high;  // Warble: true while freq2 is sounding
+} tone_osc_t;
+
+static bool tone_changed(tone_type_t playing)
+{
+    xSemaphoreTake(tone_mutex, portMAX_DELAY);
+    bool changed = (current_tone != playing);
+    xSemaphoreGive(tone_mutex);
+    return changed;
+}
+
+/**
+ * @brief Fill a buffer with a tone's samples
+ *
+ * A two-frequency tone sounds both frequencies at once. A warble tone
+ * (warble_hz set) sounds one at a time, switching between them on a single
+ * phase-continuous oscillator so the switch doesn't click.
+ */
+static void fill_tone(int16_t *buffer, int count, const tone_t *tone, tone_osc_t *osc)
+{
+    const float volume = tone_volume;
+    const float inc1 = TWO_PI * tone->freq1 / AUDIO_SAMPLE_RATE;
+    const float inc2 = TWO_PI * tone->freq2 / AUDIO_SAMPLE_RATE;
+
+    if (tone->warble_hz > 0) {
+        // Each frequency sounds for half a warble cycle
+        const int half_cycle = AUDIO_SAMPLE_RATE / (2 * tone->warble_hz);
+        for (int i = 0; i < count; i++) {
+            buffer[i] = (int16_t)(32767.0f * volume * sinf(osc->phase1));
+            osc->phase1 += osc->warble_high ? inc2 : inc1;
+            if (osc->phase1 >= TWO_PI) osc->phase1 -= TWO_PI;
+            if (++osc->warble_count >= half_cycle) {
+                osc->warble_count = 0;
+                osc->warble_high = !osc->warble_high;
+            }
+        }
+        return;
+    }
+
+    for (int i = 0; i < count; i++) {
+        float sample1 = sinf(osc->phase1);
+        float sample2 = tone->freq2 ? sinf(osc->phase2) : 0.0f;
+        float mixed = (sample1 + sample2) / 2.0f;
+        buffer[i] = (int16_t)(32767.0f * volume * mixed);
+
+        osc->phase1 += inc1;
+        if (osc->phase1 >= TWO_PI) osc->phase1 -= TWO_PI;
+        osc->phase2 += inc2;
+        if (osc->phase2 >= TWO_PI) osc->phase2 -= TWO_PI;
+    }
+}
+
 /**
  * @brief Tone generation task
  *
@@ -67,8 +124,7 @@ static void tone_generation_task(void *arg)
     ESP_LOGI(TAG, "Tone generation task started");
 
     int16_t buffer[AUDIO_BUFFER_SIZE];
-    float phase1 = 0.0f;
-    float phase2 = 0.0f;
+    tone_osc_t osc = { 0 };
 
     while (1) {
         // Check if we have a tone to play
@@ -79,8 +135,7 @@ static void tone_generation_task(void *arg)
         if (tone_to_play == TONE_NONE) {
             // No tone active, sleep briefly
             vTaskDelay(pdMS_TO_TICKS(50));
-            phase1 = 0.0f;
-            phase2 = 0.0f;
+            osc = (tone_osc_t){ 0 };
             continue;
         }
 
@@ -92,34 +147,10 @@ static void tone_generation_task(void *arg)
             continue;
         }
 
-        // Calculate phase increments per sample
-        float phase_inc1 = TWO_PI * tone->freq1 / AUDIO_SAMPLE_RATE;
-        float phase_inc2 = tone->freq2 ? (TWO_PI * tone->freq2 / AUDIO_SAMPLE_RATE) : 0.0f;
-
         if (tone->duration_on < 0) {
             // Continuous tone - generate until stopped or changed
-            while (1) {
-                // Check if tone changed
-                xSemaphoreTake(tone_mutex, portMAX_DELAY);
-                if (current_tone != tone_to_play) {
-                    xSemaphoreGive(tone_mutex);
-                    break;
-                }
-                xSemaphoreGive(tone_mutex);
-
-                // Generate buffer of samples
-                const float volume = tone_volume;
-                for (int i = 0; i < AUDIO_BUFFER_SIZE; i++) {
-                    float sample1 = sinf(phase1);
-                    float sample2 = tone->freq2 ? sinf(phase2) : 0.0f;
-                    float mixed = (sample1 + sample2) / 2.0f;
-                    buffer[i] = (int16_t)(32767.0f * volume * mixed);
-
-                    phase1 += phase_inc1;
-                    if (phase1 >= TWO_PI) phase1 -= TWO_PI;
-                    phase2 += phase_inc2;
-                    if (phase2 >= TWO_PI) phase2 -= TWO_PI;
-                }
+            while (!tone_changed(tone_to_play)) {
+                fill_tone(buffer, AUDIO_BUFFER_SIZE, tone, &osc);
 
                 // Write to I2S
                 size_t bytes_written;
@@ -134,16 +165,9 @@ static void tone_generation_task(void *arg)
             int samples_on = (int)(tone->duration_on * AUDIO_SAMPLE_RATE);
             int samples_off = (int)(tone->duration_off * AUDIO_SAMPLE_RATE);
 
-            while (1) {
-                // Check if tone changed
-                xSemaphoreTake(tone_mutex, portMAX_DELAY);
-                if (current_tone != tone_to_play) {
-                    xSemaphoreGive(tone_mutex);
-                    break;
-                }
-                xSemaphoreGive(tone_mutex);
-
-                // Generate "on" phase
+            while (!tone_changed(tone_to_play)) {
+                // Generate "on" phase. Checked each buffer, so a long burst
+                // (ringing is 2 s) stops promptly when the call is answered.
                 int samples_generated = 0;
                 while (samples_generated < samples_on) {
                     int samples_this_buffer = AUDIO_BUFFER_SIZE;
@@ -151,22 +175,15 @@ static void tone_generation_task(void *arg)
                         samples_this_buffer = samples_on - samples_generated;
                     }
 
-                    const float volume = tone_volume;
-                    for (int i = 0; i < samples_this_buffer; i++) {
-                        float sample1 = sinf(phase1);
-                        float sample2 = tone->freq2 ? sinf(phase2) : 0.0f;
-                        float mixed = (sample1 + sample2) / 2.0f;
-                        buffer[i] = (int16_t)(32767.0f * volume * mixed);
-
-                        phase1 += phase_inc1;
-                        if (phase1 >= TWO_PI) phase1 -= TWO_PI;
-                        phase2 += phase_inc2;
-                        if (phase2 >= TWO_PI) phase2 -= TWO_PI;
-                    }
+                    fill_tone(buffer, samples_this_buffer, tone, &osc);
 
                     size_t bytes_written;
                     i2s_write_mono16(buffer, samples_this_buffer, &bytes_written, portMAX_DELAY);
                     samples_generated += samples_this_buffer;
+
+                    if (tone_changed(tone_to_play)) {
+                        goto next_tone;
+                    }
                 }
 
                 // Generate "off" phase (silence)
@@ -198,9 +215,8 @@ static void tone_generation_task(void *arg)
             next_tone:;
         }
 
-        // Reset phases for next tone
-        phase1 = 0.0f;
-        phase2 = 0.0f;
+        // Reset the oscillator for the next tone
+        osc = (tone_osc_t){ 0 };
     }
 }
 

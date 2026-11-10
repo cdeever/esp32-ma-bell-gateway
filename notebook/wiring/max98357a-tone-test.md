@@ -1,7 +1,7 @@
 # Tone test: ESP32 + MAX98357A I2S amp
 
 **Status:** not built yet. This is a bench rig for hearing the call-progress tones (dial tone, busy
-signal, ringback) before the PCM5100 DAC and the line interface are built. Update it to what was
+signal, ringback) and an incoming-call ring before the PCM5100 DAC and the line interface are built. Update it to what was
 actually built.
 
 **Firmware pin map (authoritative):** [`main/config/pin_assignments.h`](../../main/config/pin_assignments.h).
@@ -35,7 +35,7 @@ accept 3.3V levels at any VIN, so you don't need level shifting.
 | 100µF across VIN–GND at the amp (+ to VIN) | | |
 
 The 100µF is cheap insurance against brownout resets when Bluetooth or WiFi transmit while the
-amp is playing. At the firmware's tone level (`TONE_VOLUME_DEFAULT`, −17 dBFS) the amp draws little either way.
+amp is playing. At the firmware's tone level (`TONE_VOLUME_DEFAULT`, −20 dBFS) the amp draws little either way.
 
 ## I2S
 
@@ -111,6 +111,18 @@ dialing (AT+CLCC), hangs the call up while it is still dialing, and plays the to
 A tone plays until another code is dialed. The serial monitor shows `tone_test: *N: <name>` and
 `Playing tone: N` from `audio_output`. Bluetooth must be connected.
 
+## Incoming-call ring
+
+The speaker also rings for an incoming call, with no new wiring: call the paired cell phone from
+another phone. The gateway plays an electronic ringer, a 1000 / 1250 Hz warble switching 20 times
+a second, 2 s on / 4 s off ([`main/audio/ringer.c`](../../main/audio/ringer.c), on by default with
+`CONFIG_MA_BELL_SPEAKER_RING`). It stops when the call is answered or declined on the cell phone,
+when the caller hangs up, or when Bluetooth disconnects. The serial monitor shows
+`ringer: Incoming call: ringing the speaker` and `ringer: Ringing stopped`. `*7` / `*8` set its
+level too.
+
+The cell phone keeps ringing as usual. Silence it there if the two together are too much.
+
 ## Bring-up checks
 
 Log the results in a dated entry.
@@ -127,6 +139,9 @@ Log the results in a dated entry.
 | 8 | Busy signal | 480 + 620 Hz, 60 interruptions per minute (0.5 s on / 0.5 s off) |
 | 9 | Ringback | 440 + 480 Hz, 2 s on / 4 s off |
 | 10 | During a BT reconnect or WiFi activity | No reset, no dropouts |
+| 11 | Call the cell phone | Warble ring, 2 s on / 4 s off, starting with the cell phone's ring |
+| 12 | Answer, decline, or caller hangs up | Ring stops within a fraction of a second, even mid-burst |
+| 13 | Bluetooth off on the cell phone while ringing | Ring stops |
 
 ## Troubleshooting
 

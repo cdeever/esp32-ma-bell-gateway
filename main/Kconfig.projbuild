@@ -22,4 +22,14 @@ menu "Ma Bell Gateway"
             *9 plays each in turn and *0 stops. The gateway hangs the call
             up while it is still dialing. Turn this off once off-hook
             detection drives the tones.
+
+    config MA_BELL_SPEAKER_RING
+        bool "Ring on the speaker for an incoming call"
+        default y
+        help
+            Plays an electronic ringer (a 1000 / 1250 Hz warble, 2s on /
+            4s off) on the I2S output while the cell phone has an incoming
+            call, and stops when the call is answered, declined or
+            missed. For the bench, before the line interface rings a real
+            bell. Turn this off once the bell rings.
 endmenu
