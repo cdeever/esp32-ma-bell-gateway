@@ -21,6 +21,7 @@ there's no jack and no coupling cap as on the PCM5100 path.
 - MAX98357A breakout (Adafruit-style: VIN, GND, SD, GAIN, DIN, BCLK, LRC, and the + / − speaker terminal)
 - Small speaker, 4Ω or 8Ω, about 1–3W (8Ω is gentler on USB power)
 - 100µF electrolytic for the 5V rail (optional, see Power)
+- A toggle switch, standing in for the hook switch (see Hook switch). A jumper wire will do.
 
 ## Power
 
@@ -116,12 +117,43 @@ A tone plays until another code is dialed. The serial monitor shows `tone_test: 
 The speaker also rings for an incoming call, with no new wiring: call the paired cell phone from
 another phone. The gateway plays an electronic ringer, a 1000 / 1250 Hz warble switching 20 times
 a second, 2 s on / 4 s off ([`main/audio/ringer.c`](../../main/audio/ringer.c), on by default with
-`CONFIG_MA_BELL_SPEAKER_RING`). It stops when the call is answered or declined on the cell phone,
-when the caller hangs up, or when Bluetooth disconnects. The serial monitor shows
+`CONFIG_MA_BELL_SPEAKER_RING`). It stops when the handset is lifted (see Hook switch), when the
+call is answered or declined on the cell phone, when the caller hangs up, or when Bluetooth
+disconnects. It doesn't ring while the handset is lifted. The serial monitor shows
 `ringer: Incoming call: ringing the speaker` and `ringer: Ringing stopped`. `*7` / `*8` set its
 level too.
 
 The cell phone keeps ringing as usual. Silence it there if the two together are too much.
+
+## Hook switch
+
+A toggle switch stands in for the phone's hook switch.
+
+| ESP32 | Switch |
+|---|---|
+| GPIO 32 | One side |
+| GND | The other side |
+
+GPIO 32 has its internal pull-up on: open reads on-hook, closed (to GND) reads off-hook. This is
+the same input the SLIC's SHD pin drives later, active low. A change counts once it has held for
+50 ms. Use a toggle, not a momentary button: off-hook has to stay off-hook for the whole call.
+
+The central office's side of the line is [`main/app/line/line.c`](../../main/app/line/line.c);
+its timers are in [`main/config/line_config.h`](../../main/config/line_config.h).
+
+| Do | Hear / see |
+|---|---|
+| Lift, no call | Dial tone; after 15 s, reorder; after 30 s more, the howler until on-hook |
+| Lift with the cell phone not connected | Silence (a dead line); dial tone once it connects |
+| Hang up | The tone stops |
+| Call in, lift while it rings | The ring stops and the call is answered on the cell phone |
+| Hang up during the call | The call ends on the cell phone |
+| The caller hangs up first | 10 s of silence, then dial tone |
+| A call arrives while lifted | No speaker ring; hang up and it rings |
+
+The serial monitor shows `slic_if: Phone off-hook detected` / `on-hook detected` and each change of
+the line, such as `line: on-hook -> dial tone`. Call audio isn't wired yet: an answered call is
+connected, but the caller isn't heard on the speaker.
 
 ## Bring-up checks
 
@@ -155,3 +187,7 @@ Log the results in a dated entry.
 - **Pops at tone start/stop:** expected for now. The tone task starts and stops at full amplitude
   with no ramp.
 - **Resets when the tone starts:** brownout. Use a better USB cable or port, and add the 100µF.
+- **A tone keeps playing after it should stop:** the I2S channel must have `auto_clear_after_cb`
+  set (`audio_output_init()`). Without it the DMA replays its last buffers.
+- **The switch does nothing:** check that it goes to GPIO 32 and GND, and that the log shows
+  `slic_if: Initial hook state: on-hook` with the switch open.

@@ -204,6 +204,11 @@ void ma_bell_state_update_phone_bits(uint8_t set_bits, uint8_t clear_bits) {
                                                                        : PHONE_EVENT_RINGING_STOP,
                           NULL);
         }
+        if ((old_state ^ g_state.phone.state) & PHONE_STATE_OFF_HOOK) {
+            event_publish((g_state.phone.state & PHONE_STATE_OFF_HOOK) ? PHONE_EVENT_OFF_HOOK
+                                                                        : PHONE_EVENT_ON_HOOK,
+                          NULL);
+        }
         LOG_STATE_EVENTS(phone_events, old_state, g_state.phone.state);
         notify_state_change(NOTIFY_PHONE_STATE_CHANGED);
     }

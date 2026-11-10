@@ -12,49 +12,56 @@ static const char *TAG = "slic_if";
 #define HOOK_DEBOUNCE_MS 50
 #define POLL_INTERVAL_MS 20
 
+// A hook change runs every subscriber's callback on this task (the ringer,
+// the line, the event log's formatting), so it needs more than the 2KB a
+// bare GPIO poll would
+#define SLIC_MONITOR_STACK_SIZE 4096
+
 // Task handle
 static TaskHandle_t slic_monitor_task_handle = NULL;
 
-// Debounce state
-static bool last_hook_state = true;  // true = on-hook (default)
-static TickType_t last_hook_change_time = 0;
+// Debounce state: the accepted hook state, and the raw reading waiting to be accepted
+static bool hook_on = true;             // true = on-hook
+static bool candidate_on = true;
+static TickType_t candidate_since = 0;
+
+static void report_hook(bool on_hook)
+{
+    if (on_hook) {
+        ESP_LOGI(TAG, "Phone on-hook detected");
+        ma_bell_state_update_phone_bits(0, PHONE_STATE_OFF_HOOK);
+    } else {
+        ESP_LOGI(TAG, "Phone off-hook detected");
+        ma_bell_state_update_phone_bits(PHONE_STATE_OFF_HOOK, 0);
+    }
+}
 
 /**
  * @brief Task to monitor SLIC interface status
  *
- * Polls SLIC input pins for status changes:
- * - GPIO 32 (SHD pin): Off-hook detection
- * The SLIC SHD pin goes LOW when the phone is off-hook.
+ * Polls the hook input on GPIO 32: the SLIC's SHD pin, or on the bench a
+ * switch to ground. Low is off-hook. A change is accepted once the reading
+ * has held for HOOK_DEBOUNCE_MS, so a bouncing contact reports once.
  */
 static void slic_monitor_task(void *arg)
 {
     ESP_LOGI(TAG, "SLIC monitor task started");
 
     while (1) {
-        // Read hook state - SHD pin is active LOW (0 = off-hook, 1 = on-hook)
-        int gpio_level = gpio_get_level(PIN_OFF_HOOK_DETECT);
-        bool current_hook_state = (gpio_level == 1);  // true = on-hook
+        bool reading_on = (gpio_get_level(PIN_OFF_HOOK_DETECT) == 1);
+        TickType_t now = xTaskGetTickCount();
 
-        // Check for state change with debouncing
-        if (current_hook_state != last_hook_state) {
-            TickType_t now = xTaskGetTickCount();
-            TickType_t elapsed_ms = pdTICKS_TO_MS(now - last_hook_change_time);
-
-            if (elapsed_ms > HOOK_DEBOUNCE_MS) {
-                // State change confirmed after debounce period
-                last_hook_state = current_hook_state;
-                last_hook_change_time = now;
-
-                if (current_hook_state) {
-                    // On-hook (handset replaced)
-                    ESP_LOGI(TAG, "Phone on-hook detected");
-                    ma_bell_state_update_phone_bits(0, PHONE_STATE_OFF_HOOK);
-                } else {
-                    // Off-hook (handset lifted)
-                    ESP_LOGI(TAG, "Phone off-hook detected");
-                    ma_bell_state_update_phone_bits(PHONE_STATE_OFF_HOOK, 0);
-                }
-            }
+        if (reading_on != candidate_on) {
+            // The reading moved: start timing it again
+            candidate_on = reading_on;
+            candidate_since = now;
+        } else if (candidate_on != hook_on &&
+                   pdTICKS_TO_MS(now - candidate_since) >= HOOK_DEBOUNCE_MS) {
+            hook_on = candidate_on;
+            report_hook(hook_on);
+            // Measured 2026-11-10: about 2KB never used, answering a ringing call
+            ESP_LOGD(TAG, "Hook task stack: %u bytes never used",
+                     (unsigned)uxTaskGetStackHighWaterMark(NULL));
         }
 
         vTaskDelay(pdMS_TO_TICKS(POLL_INTERVAL_MS));
@@ -84,17 +91,18 @@ esp_err_t slic_interface_init(void)
     ESP_LOGI(TAG, "GPIO %d configured for off-hook detection", PIN_OFF_HOOK_DETECT);
 
     // Read initial state
-    int initial_level = gpio_get_level(PIN_OFF_HOOK_DETECT);
-    last_hook_state = (initial_level == 1);
-    last_hook_change_time = xTaskGetTickCount();
-
-    ESP_LOGI(TAG, "Initial hook state: %s", last_hook_state ? "on-hook" : "off-hook");
+    hook_on = candidate_on = (gpio_get_level(PIN_OFF_HOOK_DETECT) == 1);
+    candidate_since = xTaskGetTickCount();
+    ESP_LOGI(TAG, "Initial hook state: %s", hook_on ? "on-hook" : "off-hook");
+    if (!hook_on) {
+        report_hook(hook_on);
+    }
 
     // Create monitoring task
     BaseType_t task_ret = xTaskCreate(
         slic_monitor_task,
         "slic_monitor",
-        2048,           // Stack size
+        SLIC_MONITOR_STACK_SIZE,
         NULL,           // Parameters
         5,              // Priority
         &slic_monitor_task_handle

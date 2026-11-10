@@ -3,6 +3,7 @@ datasheets/
 build/
 docs/build
 .ccls-cache/
+.cache/
 .vscode/
 sdkconfig
 sdkconfig.old

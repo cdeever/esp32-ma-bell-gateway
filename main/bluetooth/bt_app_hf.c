@@ -341,15 +341,18 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
             if (param->call.status == 0) {  // No call in progress
                 // Call ended (hung up)
                 ESP_LOGI(TAG, "Call ended - returning to idle state");
-                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING | PHONE_STATE_OFF_HOOK);
+                // The hook switch alone says whether the handset is up
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
                 ma_bell_state_update_bluetooth_bits(0, BT_STATE_IN_CALL | BT_STATE_AUDIO_CONNECTED);
                 // Publish call ended event
                 event_publish(BT_EVENT_CALL_ENDED, NULL);
             } else if (param->call.status == 1) {  // Call in progress
                 // Call active
                 ESP_LOGI(TAG, "Call active - updating state");
-                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
+                // In call before ringing stops: whoever handles the end of
+                // ringing then sees an answered call, not a lost one
                 ma_bell_state_update_bluetooth_bits(BT_STATE_IN_CALL, 0);
+                ma_bell_state_update_phone_bits(0, PHONE_STATE_RINGING);
                 if (ma_bell_state_get()->call.number[0] == '\0') {
                     // No caller ID arrived: ask the phone who the call is with
                     esp_hf_client_query_current_calls();

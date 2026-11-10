@@ -227,10 +227,24 @@ Each tone is defined with dual frequencies and on/off cadence patterns.
 - `PIN_PCM_DIN` (GPIO35): Audio input from phone
 
 #### Phone Line Detection
-- `PIN_OFF_HOOK_DETECT` (GPIO32): Off-hook detection circuit input
+- `PIN_OFF_HOOK_DETECT` (GPIO32): Off-hook detection circuit input, active low with the internal pull-up (on the bench, a toggle switch to GND)
 - `PIN_RING_DETECT` (GPIO33): Ring detection
 - `PIN_DIAL_LAMP_CTRL` (GPIO27): Dial lamp control output
 - `PIN_PULSE_DIAL_IN` (GPIO34): Rotary dial pulse detection
+
+### The Line (`main/app/line/line.c`)
+
+The central office's side of the line, driven by the hook switch. `slic_interface.c` polls GPIO 32 and sets `PHONE_STATE_OFF_HOOK` once a change has held 50 ms; `ma_bell_state.c` publishes `PHONE_EVENT_OFF_HOOK` / `PHONE_EVENT_ON_HOOK`. The line handles those and the Bluetooth call events on its own task, in order:
+
+- Lifted while ringing: answers (`esp_hf_client_answer_call`). Replaced during a call the handset is in: hangs up (`esp_hf_client_reject_call`, AT+CHUP).
+- Lifted with no call: dial tone, then reorder, then the off-hook warning (timers in `main/config/line_config.h`). No cell phone connected: silence until it connects.
+- The far end hangs up: silence, then dial tone.
+
+Only the hook switch sets or clears `PHONE_STATE_OFF_HOOK`; Bluetooth call events don't. The ringer (`main/audio/ringer.c`) rings only while on-hook.
+
+Hook events run every subscriber on the hook task (`slic_monitor`, 4KB stack; answering a ringing call uses about 2KB). Keep subscriber callbacks short, and hand longer work to a task, as the line does.
+
+Bench test codes, dialed on the cell phone (`main/audio/tone_test.c`, `CONFIG_MA_BELL_TONE_TEST`): `*1`–`*6` play a tone, `*9` plays each in turn, `*0` stops, `*7` / `*8` lower or raise the tone level 3 dB.
 
 ### Initialization Sequence (from `main/main.c`)
 
