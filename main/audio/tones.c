@@ -38,7 +38,13 @@ static const tone_t tones[NUM_TONES] = {
     {950, 1400, 0.274f, 0.0f},
 
     // STUTTER_DIAL_TONE: 350 Hz + 440 Hz, rapid stutter (voicemail waiting)
-    {350, 440, 0.1f, 0.1f}
+    {350, 440, 0.1f, 0.1f},
+
+    // RING_TONE: an electronic ringer for an incoming call, played on the speaker
+    // until the line interface rings a real bell. The pitch alternates between
+    // 1000 and 1250 Hz 20 times a second (the rate of North American ringing
+    // current), in the standard 2s on / 4s off ringing cadence.
+    {1000, 1250, 2.0f, 4.0f, 20}
 };
 
 const tone_t *tone_get_definition(tone_type_t tone)

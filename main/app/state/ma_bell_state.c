@@ -1,5 +1,6 @@
 #include "ma_bell_state.h"
 #include "app/events/event_log.h"
+#include "app/events/event_system.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include <stdio.h>
@@ -199,6 +200,9 @@ void ma_bell_state_update_phone_bits(uint8_t set_bits, uint8_t clear_bits) {
                 ma_bell_state_clear_call_party();
             }
             log_ringing(g_state.phone.state & PHONE_STATE_RINGING);
+            event_publish((g_state.phone.state & PHONE_STATE_RINGING) ? PHONE_EVENT_RINGING_START
+                                                                       : PHONE_EVENT_RINGING_STOP,
+                          NULL);
         }
         LOG_STATE_EVENTS(phone_events, old_state, g_state.phone.state);
         notify_state_change(NOTIFY_PHONE_STATE_CHANGED);

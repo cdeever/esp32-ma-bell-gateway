@@ -9,6 +9,7 @@ idf_component_register(
             "audio/audio_bridge.c"
             "audio/audio_output.c"
             "audio/tone_test.c"
+            "audio/ringer.c"
             "storage/storage.c"
             "bluetooth/bt_app_core.c"
             "bluetooth/bt_app_hf.c"

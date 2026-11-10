@@ -19,6 +19,7 @@ typedef enum {
     CALL_WAITING_TONE,   // 440 Hz, 0.3s on (single beep)
     SIT_TONE,            // 950 Hz + 1400 Hz, 0.274s (Special Information Tone)
     STUTTER_DIAL_TONE,   // 350 Hz + 440 Hz, 0.1s on / 0.1s off (voicemail indicator)
+    RING_TONE,           // Electronic ringer: 1000 / 1250 Hz warble at 20 Hz, 2s on / 4s off
     NUM_TONES,
     TONE_NONE = NUM_TONES  // No tone playing
 } tone_type_t;
@@ -33,6 +34,8 @@ typedef struct {
     int freq2;           // Secondary frequency in Hz (0 for single frequency)
     float duration_on;   // Duration of tone in seconds (-1 for continuous)
     float duration_off;  // Duration of silence in seconds (-1 for continuous)
+    int warble_hz;       // 0: freq1 and freq2 sound together. Otherwise they alternate,
+                         // switching warble_hz times a second per pair (an electronic ringer)
 } tone_t;
 
 /**
