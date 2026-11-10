@@ -23,11 +23,38 @@ static SemaphoreHandle_t tone_mutex = NULL;
 static volatile tone_type_t current_tone = TONE_NONE;
 static TaskHandle_t tone_task_handle = NULL;
 
-// Volume factor for tone generation (0.0 to 1.0)
-#define TONE_VOLUME 0.2f
+// Largest write audio_output_write() takes at once (the bridge sends 160-sample frames)
+#define AUDIO_WRITE_MAX_SAMPLES 256
+
+// Tone level as a fraction of full scale (0.0 to 1.0); see audio_output_tone_level_step()
+#define TONE_VOLUME_DEFAULT 0.141f  // -17 dBFS: clean on the MAX98357A bench speaker at 9 dB gain
+#define TONE_VOLUME_MAX     1.0f
+#define TONE_VOLUME_MIN     0.01f
+static volatile float tone_volume = TONE_VOLUME_DEFAULT;
 
 // Pre-computed values for efficiency
 #define TWO_PI (2.0f * M_PI)
+
+/**
+ * @brief Write 16-bit mono samples to I2S in the order the ESP32 needs
+ *
+ * In 16-bit mono mode the ESP32's I2S sends each pair of samples swapped
+ * (written 1,2,3,4 goes out as 2,1,4,3; see "16 bit mono" in the ESP-IDF I2S
+ * docs). Swapping each pair here puts them back in order on the line.
+ * Uncorrected, every tone gets an image near 4 kHz and sounds rough.
+ * Swaps the caller's buffer in place; a trailing odd sample is dropped.
+ */
+static esp_err_t i2s_write_mono16(int16_t *samples, size_t count, size_t *bytes_written,
+                                  TickType_t timeout)
+{
+    count &= ~(size_t)1;
+    for (size_t i = 0; i < count; i += 2) {
+        int16_t t = samples[i];
+        samples[i] = samples[i + 1];
+        samples[i + 1] = t;
+    }
+    return i2s_channel_write(tx_handle, samples, count * sizeof(int16_t), bytes_written, timeout);
+}
 
 /**
  * @brief Tone generation task
@@ -81,11 +108,12 @@ static void tone_generation_task(void *arg)
                 xSemaphoreGive(tone_mutex);
 
                 // Generate buffer of samples
+                const float volume = tone_volume;
                 for (int i = 0; i < AUDIO_BUFFER_SIZE; i++) {
                     float sample1 = sinf(phase1);
                     float sample2 = tone->freq2 ? sinf(phase2) : 0.0f;
                     float mixed = (sample1 + sample2) / 2.0f;
-                    buffer[i] = (int16_t)(32767.0f * TONE_VOLUME * mixed);
+                    buffer[i] = (int16_t)(32767.0f * volume * mixed);
 
                     phase1 += phase_inc1;
                     if (phase1 >= TWO_PI) phase1 -= TWO_PI;
@@ -95,9 +123,8 @@ static void tone_generation_task(void *arg)
 
                 // Write to I2S
                 size_t bytes_written;
-                esp_err_t ret = i2s_channel_write(tx_handle, buffer,
-                                                   AUDIO_BUFFER_SIZE * sizeof(int16_t),
-                                                   &bytes_written, portMAX_DELAY);
+                esp_err_t ret = i2s_write_mono16(buffer, AUDIO_BUFFER_SIZE,
+                                                 &bytes_written, portMAX_DELAY);
                 if (ret != ESP_OK) {
                     ESP_LOGW(TAG, "I2S write failed: %s", esp_err_to_name(ret));
                 }
@@ -124,11 +151,12 @@ static void tone_generation_task(void *arg)
                         samples_this_buffer = samples_on - samples_generated;
                     }
 
+                    const float volume = tone_volume;
                     for (int i = 0; i < samples_this_buffer; i++) {
                         float sample1 = sinf(phase1);
                         float sample2 = tone->freq2 ? sinf(phase2) : 0.0f;
                         float mixed = (sample1 + sample2) / 2.0f;
-                        buffer[i] = (int16_t)(32767.0f * TONE_VOLUME * mixed);
+                        buffer[i] = (int16_t)(32767.0f * volume * mixed);
 
                         phase1 += phase_inc1;
                         if (phase1 >= TWO_PI) phase1 -= TWO_PI;
@@ -137,9 +165,7 @@ static void tone_generation_task(void *arg)
                     }
 
                     size_t bytes_written;
-                    i2s_channel_write(tx_handle, buffer,
-                                      samples_this_buffer * sizeof(int16_t),
-                                      &bytes_written, portMAX_DELAY);
+                    i2s_write_mono16(buffer, samples_this_buffer, &bytes_written, portMAX_DELAY);
                     samples_generated += samples_this_buffer;
                 }
 
@@ -323,8 +349,14 @@ esp_err_t audio_output_write(const void *data, size_t len, size_t *bytes_written
         return ESP_OK;  // Silently drop - tone has priority
     }
 
-    return i2s_channel_write(tx_handle, data, len, bytes_written,
-                              pdMS_TO_TICKS(timeout_ms));
+    // Copy so the pair swap doesn't change the caller's buffer
+    int16_t samples[AUDIO_WRITE_MAX_SAMPLES];
+    size_t count = len / sizeof(int16_t);
+    if (count > AUDIO_WRITE_MAX_SAMPLES) {
+        count = AUDIO_WRITE_MAX_SAMPLES;
+    }
+    memcpy(samples, data, count * sizeof(int16_t));
+    return i2s_write_mono16(samples, count, bytes_written, pdMS_TO_TICKS(timeout_ms));
 }
 
 i2s_chan_handle_t audio_output_get_rx_handle(void)
@@ -379,4 +411,18 @@ tone_type_t audio_output_get_current_tone(void)
     xSemaphoreGive(tone_mutex);
 
     return tone;
+}
+
+float audio_output_tone_level_step(int steps)
+{
+    // Each step is 3 dB (a factor of sqrt(2) in amplitude)
+    float v = tone_volume;
+    for (; steps > 0; steps--) v *= 1.41421356f;
+    for (; steps < 0; steps++) v /= 1.41421356f;
+    if (v > TONE_VOLUME_MAX) v = TONE_VOLUME_MAX;
+    if (v < TONE_VOLUME_MIN) v = TONE_VOLUME_MIN;
+    tone_volume = v;
+    float db = 20.0f * log10f(v);
+    ESP_LOGI(TAG, "Tone level %.3f of full scale (%.1f dBFS)", v, db);
+    return db;
 }

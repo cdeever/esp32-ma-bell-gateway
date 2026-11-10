@@ -22,6 +22,7 @@
 #include "ma_bell_state.h"
 #include "app/events/event_system.h"
 #include "audio/audio_bridge.h"
+#include "audio/tone_test.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -285,8 +286,9 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
 
         case ESP_HF_CLIENT_AUDIO_STATE_EVT:
             ESP_LOGI(TAG, "Audio state: %s", c_audio_state_str[param->audio_stat.state]);
-            if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED) {
-                // Audio connected - start audio bridge tasks
+            if (param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED ||
+                param->audio_stat.state == ESP_HF_CLIENT_AUDIO_STATE_CONNECTED_MSBC) {
+                // Audio connected (CVSD or wideband mSBC) - start audio bridge tasks
                 ma_bell_state_update_bluetooth_bits(BT_STATE_AUDIO_CONNECTED, 0);
 #if CONFIG_BT_HFP_AUDIO_DATA_PATH_HCI
                 audio_bridge_start();
@@ -323,6 +325,12 @@ void bt_app_hf_client_cb(esp_hf_client_cb_event_t event, esp_hf_client_cb_param_
             ESP_LOGI(TAG, "Current call %d: %s, number %s", param->clcc.idx,
                      param->clcc.dir == ESP_HF_CURRENT_CALL_DIRECTION_INCOMING ? "incoming" : "outgoing",
                      param->clcc.number ? param->clcc.number : "(unknown)");
+            if (param->clcc.dir == ESP_HF_CURRENT_CALL_DIRECTION_OUTGOING &&
+                tone_test_handle_dialed(param->clcc.number)) {
+                // A tone test code, not a real call: hang it up before it goes anywhere
+                esp_hf_client_reject_call();
+                break;
+            }
             ma_bell_state_set_call_party(param->clcc.number,
                                          param->clcc.dir == ESP_HF_CURRENT_CALL_DIRECTION_INCOMING);
             break;
