@@ -215,9 +215,8 @@ static void tone_generation_task(void *arg)
             next_tone:;
         }
 
-        // Reset phases for next tone
-        phase1 = 0.0f;
-        phase2 = 0.0f;
+        // Reset the oscillator for the next tone
+        osc = (tone_osc_t){ 0 };
     }
 }
 
