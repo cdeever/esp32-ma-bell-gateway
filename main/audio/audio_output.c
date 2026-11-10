@@ -234,6 +234,9 @@ esp_err_t audio_output_init(void)
     // I2S channel configuration - create both TX and RX channels together
     // This is required by ESP-IDF: both channels on same port must be created in single call
     i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(AUDIO_I2S_PORT, I2S_ROLE_MASTER);
+    // Send silence when nothing is written. Without it the DMA replays its last
+    // buffers, so a stopped tone keeps sounding.
+    chan_cfg.auto_clear_after_cb = true;
 
     // Create both TX and RX channels in one call
     esp_err_t ret = i2s_new_channel(&chan_cfg, &tx_handle, &rx_handle);

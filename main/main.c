@@ -17,6 +17,7 @@
 #include "audio/audio_output.h"
 #include "audio/audio_bridge.h"
 #include "audio/ringer.h"
+#include "app/line/line.h"
 #include "bluetooth/bt_init.h"
 #include "network/wifi/wifi_init.h"
 #include "network/mqtt/mqtt_init.h"
@@ -59,6 +60,7 @@ void app_main(void)
     ESP_LOGI(TAG, "Initializing audio output...");
     ESP_ERROR_CHECK(audio_output_init());
     ESP_ERROR_CHECK(ringer_init());
+    ESP_ERROR_CHECK(line_init());
 
     // Initialize audio bridge (I2S RX for phone mic)
     ESP_LOGI(TAG, "Initializing audio bridge...");
