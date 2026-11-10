@@ -441,6 +441,7 @@ CONFIG_EXAMPLE_SSP_ENABLED=y
 # Ma Bell Gateway
 #
 CONFIG_MA_BELL_TONE_TEST=y
+CONFIG_MA_BELL_SPEAKER_RING=y
 # end of Ma Bell Gateway
 
 #
